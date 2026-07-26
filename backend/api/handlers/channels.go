@@ -122,6 +122,21 @@ func CreateChannel(c *gin.Context) {
 	externalID := ""
 	channelName := req.Name
 
+	if req.ChannelType == "pancake" {
+		// external_id is part of the unique index
+		// uq_channel_tenant_type_ext (tenant_id, channel_type, external_id).
+		// Leaving it empty means every Pancake channel of a tenant collides on
+		// ('tenant', 'pancake', ''), so only the first one can ever be created —
+		// which defeats the whole point, since one Pancake account fronts many
+		// pages.
+		var pcCreds struct {
+			PageID string `json:"page_id"`
+		}
+		if err := json.Unmarshal(req.Credentials, &pcCreds); err == nil {
+			externalID = pcCreds.PageID
+		}
+	}
+
 	if req.ChannelType == "facebook" {
 		var fbCreds struct {
 			PageID      string `json:"page_id"`
