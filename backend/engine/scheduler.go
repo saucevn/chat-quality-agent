@@ -125,9 +125,16 @@ func (s *Scheduler) syncAllChannelsTask() {
 			}
 		}
 
-		// Skip if last sync was too recent
-		if ch.LastSyncAt != nil {
-			elapsed := now.Sub(*ch.LastSyncAt)
+		// Skip if we attempted too recently. This paces off the ATTEMPT, not the
+		// last success — a channel that keeps failing must still wait out its
+		// interval instead of being retried on every tick. Falls back to
+		// LastSyncAt for rows written before last_sync_attempt_at existed.
+		lastAttempt := ch.LastSyncAttemptAt
+		if lastAttempt == nil {
+			lastAttempt = ch.LastSyncAt
+		}
+		if lastAttempt != nil {
+			elapsed := now.Sub(*lastAttempt)
 			if elapsed < time.Duration(interval)*time.Minute {
 				continue
 			}

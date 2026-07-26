@@ -243,14 +243,29 @@ func (s *SyncEngine) upsertMessage(tenantID, conversationID string, msg channels
 	return db.DB.Create(&message).Error
 }
 
+// syncStatusUpdates builds the column updates for one sync outcome.
+//
+// last_sync_at is the data watermark and must only advance when the sync
+// actually succeeded. Advancing it on failure makes the next run start after
+// the window that just failed, so every message that arrived during the outage
+// is skipped forever, silently. last_sync_attempt_at always advances so the
+// scheduler can pace retries instead of hammering a broken channel.
+func syncStatusUpdates(status, errMsg string, now time.Time) map[string]interface{} {
+	updates := map[string]interface{}{
+		"last_sync_attempt_at": &now,
+		"last_sync_status":     status,
+		"last_sync_error":      errMsg,
+		"updated_at":           now,
+	}
+	if status == "success" {
+		updates["last_sync_at"] = &now
+	}
+	return updates
+}
+
 func (s *SyncEngine) updateSyncStatus(channelID, status, errMsg string) error {
 	now := time.Now()
-	updates := map[string]interface{}{
-		"last_sync_at":     &now,
-		"last_sync_status": status,
-		"last_sync_error":  errMsg,
-		"updated_at":       now,
-	}
+	updates := syncStatusUpdates(status, errMsg, now)
 	db.DB.Model(&models.Channel{}).Where("id = ?", channelID).Updates(updates)
 	if errMsg != "" {
 		// Log error to activity logs

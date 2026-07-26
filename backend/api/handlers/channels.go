@@ -301,10 +301,11 @@ func PurgeChannelConversations(c *gin.Context) {
 
 	// Reset sync state so next sync fetches everything from scratch
 	db.DB.Model(&channel).Updates(map[string]interface{}{
-		"last_sync_at":     nil,
-		"last_sync_status": nil,
-		"last_sync_error":  "",
-		"updated_at":       time.Now(),
+		"last_sync_at":         nil,
+		"last_sync_attempt_at": nil,
+		"last_sync_status":     nil,
+		"last_sync_error":      "",
+		"updated_at":           time.Now(),
 	})
 
 	db.LogActivity(tenantID, middleware.GetUserID(c), middleware.GetUserEmail(c),
