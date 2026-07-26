@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -125,10 +126,9 @@ func (p *PancakeAdapter) HealthCheck(ctx context.Context) error {
 }
 
 const (
-	pancakeConvPageSize     = 60
-	pancakeMaxConvPages     = 200 // safety net against malformed pagination responses
+	pancakeConvPageSize = 60
+	pancakeMaxConvPages = 200 // safety net against malformed pagination responses
 )
-
 
 // parsePancakeTime parses Pancake timestamps.
 //
@@ -341,15 +341,37 @@ func mapPancakeAttachments(v interface{}) []Attachment {
 	return out
 }
 
+// htmlTagRe khớp mọi thẻ HTML, dùng để kiểm tra xem `message` có nội dung thật
+// hay chỉ là vỏ thẻ rỗng.
+var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
+
+// pancakeMessageText lấy nội dung chữ của một tin nhắn.
+//
+// `original_message` là text thô, `message` là bản Pancake đã render và có thể
+// chứa HTML. Với tin CHỈ có ảnh, `original_message` rỗng còn `message` là
+// "<div></div>" — nếu cứ thế fallback thì cột content lưu rác HTML, và rác đó
+// đi thẳng vào transcript gửi cho AI chấm điểm.
+//
+// Quan sát thật trên một page Pancake: 75/469 tin (16%) rơi đúng vào trường hợp
+// này, và cả 75 đều có attachment.
+func pancakeMessageText(m map[string]interface{}) string {
+	if s, _ := m["original_message"].(string); strings.TrimSpace(s) != "" {
+		return s
+	}
+	rendered, _ := m["message"].(string)
+	// Còn chữ sau khi bỏ thẻ thì mới dùng; ngược lại trả rỗng và để
+	// ContentType/Attachments mô tả tin đó.
+	if strings.TrimSpace(htmlTagRe.ReplaceAllString(rendered, "")) == "" {
+		return ""
+	}
+	return rendered
+}
+
 func (p *PancakeAdapter) mapMessage(m map[string]interface{}, sentAt time.Time) SyncedMessage {
 	id, _ := m["id"].(string)
 	from, _ := m["from"].(map[string]interface{})
 
-	// original_message is the raw text; message may contain rendered HTML.
-	content, _ := m["original_message"].(string)
-	if content == "" {
-		content, _ = m["message"].(string)
-	}
+	content := pancakeMessageText(m)
 
 	senderType, senderID, senderName := classifyPancakeSender(from, content, p.creds.PageID)
 
