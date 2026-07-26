@@ -363,3 +363,180 @@ func TestFetchRecentConversationsHandlesRepeatingPages(t *testing.T) {
 		t.Errorf("expected 2 requests (first page + stall detection), made %d", requestCount)
 	}
 }
+
+func TestClassifyPancakeSender(t *testing.T) {
+	cases := []struct {
+		name     string
+		from     map[string]interface{}
+		content  string
+		wantType string
+		wantID   string
+		wantName string
+	}{
+		{
+			name:     "khách hàng",
+			from:     map[string]interface{}{"id": "psid9", "name": "Khách A"},
+			wantType: "customer", wantID: "psid9", wantName: "Khách A",
+		},
+		{
+			name: "nhân viên có uid",
+			from: map[string]interface{}{
+				"id": "psid9", "name": "Page", "uid": "uuid-1", "admin_name": "Lan",
+			},
+			wantType: "agent", wantID: "uuid-1", wantName: "Lan",
+		},
+		{
+			name:     "nhân viên chỉ có admin_id",
+			from:     map[string]interface{}{"id": "x", "name": "Page", "admin_id": "a1"},
+			wantType: "agent", wantID: "", wantName: "Page",
+		},
+		{
+			name:     "page tự gửi",
+			from:     map[string]interface{}{"id": "p1", "name": "Shop"},
+			wantType: "agent", wantID: "", wantName: "Shop",
+		},
+		{
+			name: "automation thắng nhân viên",
+			from: map[string]interface{}{
+				"id": "x", "name": "Page", "uid": "uuid-2", "is_automated": true,
+			},
+			wantType: "system", wantID: "uuid-2", wantName: "Page",
+		},
+		{
+			name: "ai_generated thắng nhân viên",
+			from: map[string]interface{}{
+				"id": "x", "name": "Page", "uid": "uuid-3", "ai_generated": true,
+			},
+			wantType: "system", wantID: "uuid-3", wantName: "Page",
+		},
+		{
+			name:     "Botcake nhận diện qua tiền tố nội dung",
+			from:     map[string]interface{}{"id": "x", "name": "Page", "uid": "uuid-4"},
+			content:  "[Botcake Reply] Xin chào bạn",
+			wantType: "system", wantID: "uuid-4", wantName: "Page",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			gotType, gotID, gotName := classifyPancakeSender(tc.from, tc.content, "p1")
+			if gotType != tc.wantType {
+				t.Errorf("senderType = %q, want %q", gotType, tc.wantType)
+			}
+			if gotID != tc.wantID {
+				t.Errorf("senderID = %q, want %q", gotID, tc.wantID)
+			}
+			if gotName != tc.wantName {
+				t.Errorf("senderName = %q, want %q", gotName, tc.wantName)
+			}
+		})
+	}
+}
+
+func TestMapPancakeAttachmentsPrefersRealVideoURL(t *testing.T) {
+	raw := []interface{}{
+		map[string]interface{}{"type": "photo", "url": "https://x/a.jpg", "title": "anh"},
+		map[string]interface{}{
+			"type":       "video",
+			"url":        "https://x/thumb.jpg",
+			"video_data": map[string]interface{}{"url": "https://x/real.mp4"},
+		},
+		map[string]interface{}{"type": "sticker"}, // no url -> dropped
+	}
+	got := mapPancakeAttachments(raw)
+
+	if len(got) != 2 {
+		t.Fatalf("expected 2 usable attachments, got %d", len(got))
+	}
+	if got[0].Type != "photo" || got[0].URL != "https://x/a.jpg" || got[0].Name != "anh" {
+		t.Errorf("bad photo mapping: %+v", got[0])
+	}
+	if got[1].URL != "https://x/real.mp4" {
+		t.Errorf("video must use video_data.url, not the thumbnail; got %q", got[1].URL)
+	}
+	if mapPancakeAttachments(nil) != nil {
+		t.Error("nil input should map to nil")
+	}
+}
+
+func TestFetchMessagesStopsAtSinceWatermark(t *testing.T) {
+	// newest -> oldest, as Pancake orders them
+	page := []map[string]interface{}{
+		{
+			"id": "m3", "inserted_at": "2026-07-20T12:00:00.000000",
+			"original_message": "tin mới",
+			"from":             map[string]interface{}{"id": "psid", "name": "Khách"},
+		},
+		{
+			"id": "m2", "inserted_at": "2026-07-20T11:00:00.000000",
+			"message": "<div></div>",
+			"from":    map[string]interface{}{"id": "x", "uid": "uuid-1", "admin_name": "Lan"},
+			"attachments": []interface{}{
+				map[string]interface{}{"type": "photo", "url": "https://x/a.jpg"},
+			},
+		},
+		{
+			"id": "m1", "inserted_at": "2026-07-19T09:00:00.000000",
+			"original_message": "tin cũ, phải bị bỏ",
+			"from":             map[string]interface{}{"id": "psid", "name": "Khách"},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp, _ := json.Marshal(map[string]interface{}{"success": true, "messages": page})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	since := time.Date(2026, 7, 20, 0, 0, 0, 0, time.UTC)
+	msgs, err := newTestAdapter(srv.URL).FetchMessages(context.Background(), "conv1", since)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(msgs) != 2 {
+		t.Fatalf("messages older than since must be dropped, got %d", len(msgs))
+	}
+	if msgs[0].ExternalID != "m3" || msgs[0].SenderType != "customer" || msgs[0].Content != "tin mới" {
+		t.Errorf("bad mapping on m3: %+v", msgs[0])
+	}
+	if msgs[1].SenderType != "agent" || msgs[1].SenderName != "Lan" || msgs[1].SenderExternalID != "uuid-1" {
+		t.Errorf("m2 should be an agent message from Lan: %+v", msgs[1])
+	}
+	if msgs[1].ContentType != "attachment" || len(msgs[1].Attachments) != 1 {
+		t.Errorf("m2 should carry one attachment: %+v", msgs[1])
+	}
+}
+
+func TestFetchMessagesPaginatesWithCurrentCount(t *testing.T) {
+	full := make([]map[string]interface{}, pancakeMsgPageSize)
+	for i := range full {
+		full[i] = map[string]interface{}{
+			"id": fmt.Sprintf("m%d", i), "inserted_at": "2026-07-20T12:00:00.000000",
+			"original_message": "x",
+			"from":             map[string]interface{}{"id": "psid", "name": "K"},
+		}
+	}
+	var gotCounts []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotCounts = append(gotCounts, r.URL.Query().Get("current_count"))
+		body := map[string]interface{}{"success": true, "messages": full}
+		if r.URL.Query().Get("current_count") == "30" {
+			body["messages"] = full[:2] // short page ends pagination
+		}
+		resp, _ := json.Marshal(body)
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	msgs, err := newTestAdapter(srv.URL).FetchMessages(context.Background(), "conv1", time.Time{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(msgs) != pancakeMsgPageSize+2 {
+		t.Errorf("expected %d messages, got %d", pancakeMsgPageSize+2, len(msgs))
+	}
+	if len(gotCounts) != 2 || gotCounts[0] != "" || gotCounts[1] != "30" {
+		t.Errorf("current_count sequence wrong: %v", gotCounts)
+	}
+}
