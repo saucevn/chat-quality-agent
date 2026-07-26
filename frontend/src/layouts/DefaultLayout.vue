@@ -157,7 +157,7 @@
         </div>
         <div class="d-flex align-center mt-2 ga-1">
           <span class="text-caption text-grey">Cập nhật thủ công:</span>
-          <code class="text-caption pa-1 rounded" style="user-select: all; background: #f5f5f5; color: #333; border: 1px solid #ddd;">cd /opt/cqa && docker compose pull && docker compose up -d</code>
+          <code class="text-caption pa-1 rounded" style="user-select: all; background: var(--muted); color: var(--foreground); border: 1px solid var(--border);">cd /opt/cqa && docker compose pull && docker compose up -d</code>
           <v-btn icon="mdi-content-copy" size="x-small" variant="text" color="primary" @click="copyUpdateCmd" />
         </div>
       </v-alert>
@@ -261,6 +261,16 @@ const { t } = useI18n()
 const drawer = ref(mdAndUp.value)
 const rail = ref(false)
 const isDark = computed(() => theme.global.current.value.dark)
+
+// Khối .dark trong design/tokens.css bám vào class này. Vuetify đổi theme bằng
+// class riêng của nó và không gắn `.dark`, nên không đồng bộ thì mọi CSS tay
+// (biến OKLCH) sẽ kẹt ở màu light kể cả khi app đang ở dark mode.
+// Dùng watch thay vì sửa toggleTheme để bắt được mọi nguồn đổi theme.
+watch(
+  isDark,
+  (dark) => document.documentElement.classList.toggle('dark', dark),
+  { immediate: true },
+)
 const isRail = computed(() => mdAndUp.value && rail.value)
 
 const tenantId = computed(() => route.params.tenantId as string)

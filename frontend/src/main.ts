@@ -1,5 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+// Trước vuetify: plugins/vuetify.ts import 'vuetify/styles', nên nạp token
+// trước để biến CSS có sẵn khi Vuetify khởi tạo.
+import './design/tokens.css'
 import vuetify from './plugins/vuetify'
 import i18n from './i18n'
 import router from './router'
