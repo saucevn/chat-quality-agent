@@ -17,6 +17,11 @@ import (
 func newTestAdapter(srvURL string) *PancakeAdapter {
 	a := NewPancakeAdapter(PancakeCredentials{PageID: "p1", PageAccessToken: "tok123"})
 	a.apiRoot = srvURL
+	// Drop the 200ms real-world throttle: these tests talk to a local stub, and
+	// the runaway-pagination tests deliberately burn through the page cap. At
+	// the production interval those two alone take 40s each. Pacing itself is
+	// covered directly by TestPacerSpacesRequests.
+	a.pacer = newPacer(0)
 	return a
 }
 
