@@ -82,38 +82,67 @@ func TestPancakeReportsRateLimit(t *testing.T) {
 }
 
 func TestPancakeEscapesPageIDInPath(t *testing.T) {
-	// Verify that PageID is properly escaped in the URL path to prevent injection.
-	// A PageID with spaces and slashes should be percent-encoded in the path,
-	// not treated as literal path separators.
-	var gotPath string
-	var gotToken string
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotPath = r.URL.Path
-		gotToken = r.URL.Query().Get("page_access_token")
-		fmt.Fprint(w, `{"success":true,"tags":[]}`)
-	}))
-	defer srv.Close()
+	t.Run("hash_fragment_injection", func(t *testing.T) {
+		// Verify that # in PageID is properly escaped to prevent fragment injection.
+		// If # is not escaped, it will be interpreted as a URL fragment separator,
+		// causing the page_access_token to be stripped from the query string.
+		var gotPath string
+		var gotToken string
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotPath = r.URL.Path
+			gotToken = r.URL.Query().Get("page_access_token")
+			fmt.Fprint(w, `{"success":true,"tags":[]}`)
+		}))
+		defer srv.Close()
 
-	// Create adapter with PageID containing space and slash
-	a := NewPancakeAdapter(PancakeCredentials{PageID: "p 1/x", PageAccessToken: "tok123"})
-	a.apiRoot = srv.URL
-	_ = a.HealthCheck(context.Background())
+		a := NewPancakeAdapter(PancakeCredentials{PageID: "p1#evil", PageAccessToken: "tok123"})
+		a.apiRoot = srv.URL
+		err := a.HealthCheck(context.Background())
 
-	// Unescape the path to verify the server received the correct page_id after decoding
-	decodedPath, err := url.PathUnescape(gotPath)
-	if err != nil {
-		t.Fatalf("failed to unescape path: %v", err)
-	}
+		if err != nil {
+			t.Fatalf("HealthCheck should not fail: %v", err)
+		}
 
-	expectedDecodedPath := "/public_api/v1/pages/p 1/x/tags"
-	if decodedPath != expectedDecodedPath {
-		t.Errorf("server received path %q, expected %q", decodedPath, expectedDecodedPath)
-	}
+		// After unescaping the path, verify it contains the correct page_id
+		decodedPath, err := url.PathUnescape(gotPath)
+		if err != nil {
+			t.Fatalf("failed to unescape path: %v", err)
+		}
+		expectedDecodedPath := "/public_api/v1/pages/p1#evil/tags"
+		if decodedPath != expectedDecodedPath {
+			t.Errorf("server received path %q, expected %q after decoding", decodedPath, expectedDecodedPath)
+		}
 
-	// Verify the token is still transmitted correctly
-	if gotToken != "tok123" {
-		t.Errorf("token must be preserved in query string, got %q", gotToken)
-	}
+		// Most importantly: verify that the token is NOT lost to fragment injection
+		// Without proper escaping, # would cause page_access_token to be part of the fragment
+		// and thus dropped from r.URL.Query()
+		if gotToken != "tok123" {
+			t.Errorf("token must not be stripped by fragment injection; got %q, expected %q", gotToken, "tok123")
+		}
+	})
+
+	t.Run("control_character_safety", func(t *testing.T) {
+		// Verify that control characters in PageID do not leak secrets in error messages.
+		// If control characters are not escaped, http.NewRequestWithContext will fail
+		// with an error message that contains the raw URL (including the token).
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, `{"success":true,"tags":[]}`)
+		}))
+		defer srv.Close()
+
+		a := NewPancakeAdapter(PancakeCredentials{PageID: "p1\x00evil", PageAccessToken: "SECRETTOKEN"})
+		a.apiRoot = srv.URL
+		err := a.HealthCheck(context.Background())
+
+		// The request should either succeed (if properly escaped) or fail gracefully,
+		// but the error message must NOT contain the token in plaintext.
+		if err != nil {
+			// If there is an error, the message must not leak the token
+			if strings.Contains(err.Error(), "SECRETTOKEN") {
+				t.Errorf("error message must not leak token; got: %v", err)
+			}
+		}
+	})
 }
 
 func TestPancakeErrorOnHTTPErrorWithoutSuccessField(t *testing.T) {
