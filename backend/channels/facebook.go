@@ -44,7 +44,10 @@ func (f *FacebookAdapter) doRequest(ctx context.Context, url string) (map[string
 
 	resp, err := f.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("facebook api request failed: %w", err)
+		// err is typically a *url.Error whose Error() embeds the full request
+		// URL, access_token included — must be redacted before it can be
+		// stored in channels.last_sync_error or shown in the UI (see C2).
+		return nil, fmt.Errorf("facebook api request failed: %s", redactSecrets(err.Error()))
 	}
 	defer resp.Body.Close()
 

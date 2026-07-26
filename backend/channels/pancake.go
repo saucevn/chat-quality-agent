@@ -78,12 +78,15 @@ func (p *PancakeAdapter) doRequest(ctx context.Context, path string, params url.
 	endpoint := p.apiRoot + path + "?" + paramsCopy.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
-		return nil, fmt.Errorf("pancake: build request: %w", err)
+		return nil, fmt.Errorf("pancake: build request: %s", redactSecrets(err.Error()))
 	}
 
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("pancake: request failed: %w", err)
+		// err is typically a *url.Error whose Error() embeds the full request
+		// URL, page_access_token included — must be redacted before it can be
+		// stored in channels.last_sync_error or shown in the UI (see C2).
+		return nil, fmt.Errorf("pancake: request failed: %s", redactSecrets(err.Error()))
 	}
 	defer resp.Body.Close()
 
