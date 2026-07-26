@@ -125,3 +125,4 @@ rm -rf /opt/cqa
 - [Cập nhật phiên bản](/guide/updates) — Cập nhật thủ công hoặc tự động
 - [Tên miền & SSL](/guide/domain-ssl) — Trỏ domain và bật HTTPS
 - [Thiết lập ban đầu](/guide/initial-setup) — Tạo admin, cấu hình AI
+- **Phát triển:** Xem [DEVELOPMENT.md](https://github.com/tanviet12/chat-quality-agent/blob/main/DEVELOPMENT.md) nếu muốn chạy từ mã nguồn để đóng góp code hoặc custom development

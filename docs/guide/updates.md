@@ -1,5 +1,11 @@
 # Cập nhật phiên bản
 
+## Cập nhật tự động (migration)
+
+CQA sử dụng AutoMigrate của GORM — bản mới nào có thay đổi schema thì database sẽ tự cập nhật khi ứng dụng khởi động. **Bạn không cần chạy lệnh migrate thêm nào.**
+
+Ví dụ: phiên bản mới thêm cột `channels.last_sync_attempt_at` để theo dõi từng lần đồng bộ. Khi ứng dụng restart, cột này tự được tạo — dữ liệu cũ không bị ảnh hưởng.
+
 ## Thông báo trên giao diện
 
 CQA tự động kiểm tra phiên bản mới mỗi khi bạn đăng nhập (cache 1 giờ). Khi có bản cập nhật:

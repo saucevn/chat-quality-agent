@@ -4,7 +4,9 @@
 
 ### CQA hỗ trợ những kênh chat nào?
 
-Hiện tại hỗ trợ **Zalo OA** và **Facebook Messenger**. Các kênh khác (Viber, Shopee Chat...) sẽ được bổ sung trong tương lai.
+Hỗ trợ **Zalo OA**, **Facebook Messenger**, và **Pancake** (nền tảng gộp nhiều kênh: Instagram, TikTok, WhatsApp, Line, Telegram, Shopee, Lazada, Tokopedia, và nhiều kênh khác).
+
+Lưu ý: qua Pancake hiện chỉ đồng bộ **hội thoại inbox**. Những kênh chỉ có bình luận (YouTube, Threads) hoặc chỉ có đánh giá (Google Business Profile) chưa dùng được.
 
 ### Nên dùng Claude hay Gemini?
 
@@ -39,6 +41,26 @@ Do giới hạn API của Zalo. Zalo chỉ cho phép ứng dụng bên thứ 3 �
 ### Có cần tên miền không?
 
 Không bắt buộc. CQA chạy được với IP trực tiếp (http://IP-VPS). Tên miền + SSL chỉ cần khi muốn HTTPS hoặc dùng MCP với Claude Web.
+
+### Kết nối qua Pancake khác gì kết nối Facebook/Zalo trực tiếp?
+
+**Pancake là một hub gộp nhiều kênh**, bạn không cần tạo từng kết nối riêng cho mỗi nền tảng. Ưu điểm:
+- **1 token Pancake** cho 20+ nền tảng (Facebook, Instagram, TikTok, WhatsApp, Shopee...)
+- **Giao diện quản lý tập trung** tại Pancake, sau đó CQA kéo dữ liệu
+- **Không cần OAuth lặp lại** khi muốn thêm kênh mới
+
+Nhược điểm: lịch sử tin nhắn phụ thuộc vào lịch sử lưu trữ của Pancake và nền tảng thứ ba (WhatsApp 6 tháng, Facebook 14 ngày, Line không kéo được tin cũ...).
+
+### Vì sao nhập token Pancake lại báo "Invalid access_token"?
+
+Nguyên nhân phổ biến: nhập **slug Pancake** (ký tự chữ thường từ URL) thay vì **Page ID** (chuỗi số).
+
+**Ví dụ sai**: nhập `nhabepduide` → báo lỗi `Invalid access_token`  
+**Đúng**: nhập `151780661361876` (Page ID dạng số)
+
+**Cách tìm Page ID**:
+- Tại Pancake, vào Cài đặt > Công cụ > Page Access Token — payload token chứa sẵn Page ID
+- Hoặc gọi API `GET https://pages.fm/api/v1/pages?access_token=<token>` để lấy danh sách Page ID
 
 ### Chi phí AI ước tính bao nhiêu?
 

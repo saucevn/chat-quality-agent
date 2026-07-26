@@ -3,7 +3,7 @@
 [![Docker Hub](https://img.shields.io/docker/v/buitanviet/chat-quality-agent?label=Docker%20Hub&sort=semver)](https://hub.docker.com/r/buitanviet/chat-quality-agent)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Hệ thống phân tích chất lượng chăm sóc khách hàng bằng AI. Tự động đồng bộ tin nhắn từ Zalo OA, Facebook Messenger, dùng AI (Claude/Gemini) đánh giá chất lượng CSKH và gửi cảnh báo qua Telegram/Email.
+Hệ thống phân tích chất lượng chăm sóc khách hàng bằng AI. Tự động đồng bộ tin nhắn từ Zalo OA, Facebook Messenger và Pancake (kênh gộp đa nền tảng), dùng AI (Claude/Gemini) đánh giá chất lượng CSKH và gửi cảnh báo qua Telegram/Email.
 
 📖 **Hướng dẫn sử dụng chi tiết: [https://tanviet12.github.io/chat-quality-agent/](https://tanviet12.github.io/chat-quality-agent/)**
 
@@ -11,7 +11,7 @@ Hệ thống phân tích chất lượng chăm sóc khách hàng bằng AI. Tự
 
 ## Tính năng
 
-- **Đồng bộ tin nhắn** từ Zalo OA và Facebook Messenger
+- **Đồng bộ tin nhắn** từ Zalo OA, Facebook Messenger và Pancake — kênh gộp phủ thêm gần 20 nền tảng khác (Instagram, TikTok, Zalo cá nhân, Shopee, WhatsApp, Telegram...), hiện chỉ đồng bộ hội thoại inbox
 - **Đánh giá chất lượng CSKH** bằng AI (Claude hoặc Gemini) — Đạt/Không đạt, điểm 0-100, nhận xét chi tiết
 - **Phân loại chat** theo chủ đề tùy chỉnh (khiếu nại, góp ý, hỏi giá...)
 - **Cảnh báo tự động** qua Telegram và Email
@@ -94,7 +94,7 @@ chat-quality-agent/
 ├── backend/            # Go API server
 │   ├── ai/             # AI providers (Claude, Gemini)
 │   ├── api/            # REST API handlers + middleware
-│   ├── channels/       # Zalo OA, Facebook adapters
+│   ├── channels/       # Zalo OA, Facebook, Pancake adapters
 │   ├── db/             # GORM models + MySQL
 │   ├── engine/         # Analyzer + Sync + Scheduler
 │   ├── mcp/            # MCP server cho Claude
@@ -102,14 +102,27 @@ chat-quality-agent/
 ├── frontend/           # Vue 3 SPA
 ├── docker/             # Nginx + SSL configs
 ├── docs/               # Tài liệu hướng dẫn (VitePress)
+├── research/           # Tài liệu nghiên cứu nội bộ, không publish lên docs
 ├── docker-compose.yml      # Build từ source
 ├── docker-compose.hub.yml  # Dùng image Docker Hub
-└── Dockerfile
+├── docker-compose.dev.yml  # Môi trường dev (xem DEVELOPMENT.md)
+├── Makefile                # Lệnh dev: make setup / make dev / make test...
+├── Dockerfile
+└── DEVELOPMENT.md      # Hướng dẫn phát triển ở local
+```
+
+## Phát triển ở local
+
+Môi trường dev chạy MySQL trong Docker, backend và frontend chạy native để hot-reload nhanh. Xem chi tiết tại [DEVELOPMENT.md](DEVELOPMENT.md).
+
+```bash
+make setup    # cài dependency + bật MySQL (chạy 1 lần sau khi clone)
+make dev      # chạy backend + frontend
 ```
 
 ## Hướng dẫn sử dụng
 
-1. **Kết nối kênh chat**: Cài đặt > Kênh chat > Kết nối Facebook/Zalo
+1. **Kết nối kênh chat**: Cài đặt > Kênh chat > Kết nối Facebook/Zalo/Pancake
 2. **Đồng bộ tin nhắn**: Bấm "Đồng bộ ngay" hoặc chờ tự động
 3. **Cấu hình AI**: Cài đặt > AI > Chọn Claude/Gemini + nhập API key
 4. **Tạo công việc**: Công việc > Tạo mới > Wizard 6 bước

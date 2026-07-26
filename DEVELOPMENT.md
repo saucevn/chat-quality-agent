@@ -92,12 +92,14 @@ make init-storage
 make test
 ```
 
-Hai test sau **đang fail sẵn trên `main`**, không liên quan tới môi trường dev:
+Một test **đang fail sẵn trên `main`**, không liên quan tới môi trường dev:
 
-- `ai/prompts_test.go` — không build được: `BuildQCPrompt` giờ nhận 2 tham số
-  nhưng test vẫn gọi với 1.
 - `engine/analyzer_test.go` — `TestCalculateCostUSD/claude_haiku_cheap` kỳ vọng
-  chi phí trong khoảng cũ, đơn giá trong code đã đổi.
+  chi phí trong khoảng cũ, đơn giá trong code đã đổi. Cần quyết định giá nào
+  đúng trước khi sửa.
+
+(`ai/prompts_test.go` trước đây cũng fail vì sai chữ ký `BuildQCPrompt`, đã được
+sửa — nay package `ai` pass.)
 
 `make test-go` cố tình chạy `go test` với môi trường đã gỡ hết biến của
 `.env.dev` (xem `CONFIG_VARS` trong Makefile), vì `config_test.go` kiểm tra giá

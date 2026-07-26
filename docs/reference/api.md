@@ -59,6 +59,38 @@ Tất cả endpoint dưới đây nằm trong scope tenant: `/api/v1/tenants/:te
 | POST | `/channels/:id/sync` | Đồng bộ tin nhắn |
 | POST | `/channels/:id/test` | Test kết nối |
 
+#### Chi tiết tạo kênh
+
+```json
+POST /channels
+{
+  "channel_type": "zalo_oa | facebook | pancake",
+  "name": "Tên kênh",
+  "credentials": { ... }
+}
+```
+
+**channel_type:**
+- `zalo_oa` — Zalo Official Account (cần OAuth)
+- `facebook` — Facebook Fanpage (cần OAuth)
+- `pancake` — Pancake (nhiều nền tảng: Facebook, Instagram, Zalo, WhatsApp, Line, Telegram, TikTok, Shopee, Lazada, v.v.)
+
+**credentials (tùy theo loại):**
+
+**Pancake:**
+```json
+{
+  "page_id": "151780661361876",
+  "page_access_token": "..."
+}
+```
+
+**Response kênh (GET /channels/:id):**
+
+Trả về trường bổ sung:
+- `last_sync_attempt_at` — thời điểm lần đồng bộ cuối cùng (thành công hay thất bại), dùng để tính khoảng giãn giữa các lần thử
+- `last_sync_at` — thời điểm dữ liệu được đồng bộ tới (chỉ cập nhật khi thành công)
+
 ### Cuộc hội thoại
 | Method | Path | Mô tả |
 |--------|------|-------|
