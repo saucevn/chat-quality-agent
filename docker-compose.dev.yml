@@ -1,0 +1,44 @@
+# =============================================================================
+# Chat Quality Agent - MySQL cho DEV LOCAL
+# =============================================================================
+# CHỈ chạy MySQL. Backend (go run) và frontend (vite) chạy native trên host.
+#
+# Luôn chạy kèm --env-file .env.dev, nếu không docker compose sẽ đọc .env
+# (file production, secrets đang rỗng) và MySQL sẽ khởi động lỗi:
+#
+#   docker compose --env-file .env.dev -f docker-compose.dev.yml up -d
+#
+# Hoặc đơn giản hơn: dùng `make db-up`.
+#
+# `name` đặt project riêng => volume/network tách hẳn khỏi stack production.
+
+name: cqa-dev
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: cqa-dev-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "127.0.0.1:${DB_PORT}:3306"
+    volumes:
+      - cqa_dev_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+
+volumes:
+  cqa_dev_mysql:
