@@ -567,6 +567,55 @@ func TestFetchMessagesPreservesMessagesWithUnparseableInsertedAt(t *testing.T) {
 	}
 }
 
+// The live Pancake API contradicts its own docs: each page of messages comes
+// back OLDEST-first, while `current_count` pages backwards in time. Verified
+// against a real page on 2026-07-26:
+//
+//	current_count=0  -> 30 msgs, 2026-04-10 .. 2026-07-22 (ascending)
+//	current_count=30 -> 30 msgs, 2026-01-05 .. 2026-04-10 (ascending)
+//
+// So the first entry of a page is the one most likely to predate the sync
+// watermark. Bailing out of the page there returns nothing at all.
+func TestFetchMessagesKeepsNewMessagesWhenPageIsOldestFirst(t *testing.T) {
+	page := []map[string]interface{}{
+		{ // older than the watermark
+			"id": "m_old", "inserted_at": "2026-07-19T09:00:00.000000",
+			"original_message": "tin cũ",
+			"from":             map[string]interface{}{"id": "psid", "name": "Khách"},
+		},
+		{ // newer
+			"id": "m_new1", "inserted_at": "2026-07-20T11:00:00.000000",
+			"original_message": "tin mới 1",
+			"from":             map[string]interface{}{"id": "psid", "name": "Khách"},
+		},
+		{ // newer still
+			"id": "m_new2", "inserted_at": "2026-07-20T12:00:00.000000",
+			"original_message": "tin mới 2",
+			"from":             map[string]interface{}{"id": "x", "uid": "uuid-1", "admin_name": "Lan"},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp, _ := json.Marshal(map[string]interface{}{"success": true, "messages": page})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	since := time.Date(2026, 7, 20, 0, 0, 0, 0, time.UTC)
+	msgs, err := newTestAdapter(srv.URL).FetchMessages(context.Background(), "conv1", since)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(msgs) != 2 {
+		t.Fatalf("the two messages newer than the watermark must survive even though "+
+			"the page starts with an older one; got %d", len(msgs))
+	}
+	if msgs[0].ExternalID != "m_new1" || msgs[1].ExternalID != "m_new2" {
+		t.Errorf("wrong messages kept: %q, %q", msgs[0].ExternalID, msgs[1].ExternalID)
+	}
+}
+
 func TestFetchMessagesPaginatesWithCurrentCount(t *testing.T) {
 	full := make([]map[string]interface{}, pancakeMsgPageSize)
 	for i := range full {

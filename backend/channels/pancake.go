@@ -181,7 +181,13 @@ func (p *PancakeAdapter) FetchRecentConversations(ctx context.Context, since tim
 		// reading that matches incremental sync.
 		params.Set("order_by", "updated_at")
 		if !since.IsZero() {
+			// The API rejects `since` on its own with
+			//   "Since must be provided with until"
+			// even though the spec documents both as optional. Verified against
+			// the live API 2026-07-26. Pair it with "now" to get an open-ended
+			// upper bound.
 			params.Set("since", strconv.FormatInt(since.Unix(), 10))
+			params.Set("until", strconv.FormatInt(time.Now().Unix(), 10))
 		}
 		if lastID != "" {
 			params.Set("last_conversation_id", lastID)
@@ -417,8 +423,14 @@ func (p *PancakeAdapter) FetchMessages(ctx context.Context, conversationID strin
 			}
 			sentAt := parsePancakeTime(m["inserted_at"])
 			if !since.IsZero() && !sentAt.IsZero() && !sentAt.After(since) {
+				// Skip this one but keep scanning the page. The docs claim
+				// messages arrive newest-first; the live API actually returns
+				// each page oldest-first, while `current_count` pages backwards
+				// in time. Breaking here would abandon a whole page on its very
+				// first (= oldest) entry, so an incremental sync would fetch
+				// nothing at all. Verified against the real API 2026-07-26.
 				reachedWatermark = true
-				break
+				continue
 			}
 			out = append(out, p.mapMessage(m, sentAt))
 		}

@@ -10,8 +10,15 @@ type Channel struct {
 	ExternalID           string     `gorm:"type:varchar(255)" json:"external_id"`
 	CredentialsEncrypted []byte     `gorm:"type:varbinary(2048);not null" json:"-"`
 	IsActive             bool       `gorm:"default:true;index:idx_channel_tenant_active" json:"is_active"`
-	LastSyncAt           *time.Time `json:"last_sync_at"`
-	LastSyncStatus       string     `gorm:"type:varchar(20)" json:"last_sync_status"`
+	// LastSyncAt is the data watermark: the point up to which messages have been
+	// successfully fetched. It only moves forward on a successful sync, so a
+	// failed run never skips over the window it failed to read.
+	LastSyncAt *time.Time `json:"last_sync_at"`
+	// LastSyncAttemptAt records every attempt, successful or not. The scheduler
+	// paces retries off this field; using LastSyncAt for that would busy-loop on
+	// a failing channel.
+	LastSyncAttemptAt *time.Time `json:"last_sync_attempt_at"`
+	LastSyncStatus    string     `gorm:"type:varchar(20)" json:"last_sync_status"`
 	LastSyncError        string     `gorm:"type:text" json:"last_sync_error,omitempty"`
 	Metadata             string     `gorm:"type:json" json:"metadata"`
 	CreatedAt            time.Time  `gorm:"not null" json:"created_at"`

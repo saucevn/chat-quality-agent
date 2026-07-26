@@ -45,6 +45,7 @@ type ChannelResponse struct {
 	IsActive          bool       `json:"is_active"`
 	Metadata          string     `json:"metadata"`
 	LastSyncAt        *time.Time `json:"last_sync_at"`
+	LastSyncAttemptAt *time.Time `json:"last_sync_attempt_at"`
 	LastSyncStatus    string     `json:"last_sync_status"`
 	ConversationCount int64      `json:"conversation_count"`
 	CreatedAt         time.Time  `json:"created_at"`
@@ -122,6 +123,21 @@ func CreateChannel(c *gin.Context) {
 	externalID := ""
 	channelName := req.Name
 
+	if req.ChannelType == "pancake" {
+		// external_id is part of the unique index
+		// uq_channel_tenant_type_ext (tenant_id, channel_type, external_id).
+		// Leaving it empty means every Pancake channel of a tenant collides on
+		// ('tenant', 'pancake', ''), so only the first one can ever be created —
+		// which defeats the whole point, since one Pancake account fronts many
+		// pages.
+		var pcCreds struct {
+			PageID string `json:"page_id"`
+		}
+		if err := json.Unmarshal(req.Credentials, &pcCreds); err == nil {
+			externalID = pcCreds.PageID
+		}
+	}
+
 	if req.ChannelType == "facebook" {
 		var fbCreds struct {
 			PageID      string `json:"page_id"`
@@ -167,9 +183,14 @@ func CreateChannel(c *gin.Context) {
 		ExternalID:           externalID,
 		CredentialsEncrypted: credentialsToStore,
 		IsActive:             true,
-		Metadata:             func() string { if req.Metadata != "" { return req.Metadata }; return "{}" }(),
-		CreatedAt:            now,
-		UpdatedAt:            now,
+		Metadata: func() string {
+			if req.Metadata != "" {
+				return req.Metadata
+			}
+			return "{}"
+		}(),
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	if err := db.DB.Create(&channel).Error; err != nil {
@@ -301,10 +322,11 @@ func PurgeChannelConversations(c *gin.Context) {
 
 	// Reset sync state so next sync fetches everything from scratch
 	db.DB.Model(&channel).Updates(map[string]interface{}{
-		"last_sync_at":     nil,
-		"last_sync_status": nil,
-		"last_sync_error":  "",
-		"updated_at":       time.Now(),
+		"last_sync_at":         nil,
+		"last_sync_attempt_at": nil,
+		"last_sync_status":     nil,
+		"last_sync_error":      "",
+		"updated_at":           time.Now(),
 	})
 
 	db.LogActivity(tenantID, middleware.GetUserID(c), middleware.GetUserEmail(c),
@@ -455,7 +477,7 @@ type zaloTokenResponse struct {
 	AccessToken  string          `json:"access_token"`
 	RefreshToken string          `json:"refresh_token"`
 	ExpiresIn    json.RawMessage `json:"expires_in"` // Zalo returns string or int
-	Error        json.RawMessage `json:"error"`       // can be int or string
+	Error        json.RawMessage `json:"error"`      // can be int or string
 	Message      string          `json:"message"`
 }
 
@@ -534,8 +556,8 @@ func fetchZaloOAInfo(accessToken string) (*zaloOAInfo, error) {
 		Error   int    `json:"error"`
 		Message string `json:"message"`
 		Data    struct {
-			OAID   string `json:"oa_id"`
-			Name   string `json:"name"`
+			OAID string `json:"oa_id"`
+			Name string `json:"name"`
 		} `json:"data"`
 	}
 	if err := json.Unmarshal(body, &result); err != nil {
@@ -858,16 +880,17 @@ func getFBPageToken(userToken string, targetPageID string) (pageID, pageToken, p
 
 func channelToResponse(ch models.Channel) ChannelResponse {
 	return ChannelResponse{
-		ID:             ch.ID,
-		TenantID:       ch.TenantID,
-		ChannelType:    ch.ChannelType,
-		Name:           ch.Name,
-		ExternalID:     ch.ExternalID,
-		IsActive:       ch.IsActive,
-		Metadata:       ch.Metadata,
-		LastSyncAt:     ch.LastSyncAt,
-		LastSyncStatus: ch.LastSyncStatus,
-		CreatedAt:      ch.CreatedAt,
+		ID:                ch.ID,
+		TenantID:          ch.TenantID,
+		ChannelType:       ch.ChannelType,
+		Name:              ch.Name,
+		ExternalID:        ch.ExternalID,
+		IsActive:          ch.IsActive,
+		Metadata:          ch.Metadata,
+		LastSyncAt:        ch.LastSyncAt,
+		LastSyncAttemptAt: ch.LastSyncAttemptAt,
+		LastSyncStatus:    ch.LastSyncStatus,
+		CreatedAt:         ch.CreatedAt,
 	}
 }
 
