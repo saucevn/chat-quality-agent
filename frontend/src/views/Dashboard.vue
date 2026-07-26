@@ -70,7 +70,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">{{ $t(stat.label) }}</div>
+              <div class="text-body-2 text-medium-emphasis">{{ $t(stat.label) }}</div>
               <div class="text-h5 font-weight-bold mt-1">{{ stat.value }}</div>
             </div>
             <v-icon :color="stat.color" size="32" class="opacity-50">{{ stat.icon }}</v-icon>
@@ -85,7 +85,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">{{ channelLabel(ch.channel_type) }}</div>
+              <div class="text-body-2 text-medium-emphasis">{{ channelLabel(ch.channel_type) }}</div>
               <div class="text-h5 font-weight-bold mt-1">{{ ch.count }}</div>
             </div>
             <v-icon :color="channelColor(ch.channel_type)" size="32" class="opacity-50">
@@ -98,7 +98,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">Tổng tin nhắn</div>
+              <div class="text-body-2 text-medium-emphasis">Tổng tin nhắn</div>
               <div class="text-h5 font-weight-bold mt-1">{{ totalMessages.toLocaleString() }}</div>
             </div>
             <v-icon color="primary" size="32" class="opacity-50">mdi-email-multiple</v-icon>
@@ -109,7 +109,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">{{ $t('ai_cost') }}</div>
+              <div class="text-body-2 text-medium-emphasis">{{ $t('ai_cost') }}</div>
               <div class="text-h5 font-weight-bold mt-1">{{ Math.round(costToday * exchangeRate).toLocaleString('vi-VN') }}đ</div>
             </div>
             <v-icon color="warning" size="32" class="opacity-50">mdi-currency-usd</v-icon>
@@ -132,7 +132,7 @@
               :key="item.id"
               class="d-flex align-center pa-2 mb-1 rounded"
               style="cursor: pointer"
-              :style="{ background: item._type === 'qc' ? 'var(--destructive-bg)' : 'var(--primary-mist)' }"
+              :style="{ background: item._type === 'qc' ? 'var(--destructive-bg)' : 'var(--muted)' }"
               @click="goToConversation(item.conversation_id, item._type === 'qc' ? 'evaluation' : 'classification')"
             >
               <!-- QC Alert row -->
@@ -145,16 +145,16 @@
               <!-- Classification row -->
               <template v-else>
                 <span class="text-body-2 font-weight-medium mr-2 flex-shrink-0">{{ item.customer_name || '—' }}</span>
-                <span class="text-body-2 text-grey-darken-1 mr-2 flex-shrink-0">Phân loại:</span>
-                <v-chip size="x-small" color="deep-purple" variant="tonal" class="mr-1 flex-shrink-0">{{ item.rule_name }}</v-chip>
+                <span class="text-body-2 text-medium-emphasis mr-2 flex-shrink-0">Phân loại:</span>
+                <v-chip size="x-small" color="chart-5" variant="tonal" class="mr-1 flex-shrink-0">{{ item.rule_name }}</v-chip>
               </template>
               <v-spacer />
-              <span class="text-caption text-grey text-no-wrap ml-2">{{ timeAgo(item.created_at) }}</span>
+              <span class="text-caption text-medium-emphasis text-no-wrap ml-2">{{ timeAgo(item.created_at) }}</span>
             </div>
           </div>
           <div v-else class="text-center pa-6">
             <v-icon size="40" color="success" class="mb-2">mdi-check-circle</v-icon>
-            <div class="text-grey">Chưa có hoạt động nào trong khoảng thời gian này.</div>
+            <div class="text-medium-emphasis">Chưa có hoạt động nào trong khoảng thời gian này.</div>
           </div>
         </v-card>
       </v-col>
@@ -169,11 +169,11 @@
           </div>
           <div class="d-flex ga-4 mb-3">
             <div>
-              <div class="text-caption text-grey">{{ $t('cost_today') }}</div>
+              <div class="text-caption text-medium-emphasis">{{ $t('cost_today') }}</div>
               <div class="text-h6 font-weight-bold">{{ Math.round(costToday * exchangeRate).toLocaleString('vi-VN') }}đ</div>
             </div>
             <div>
-              <div class="text-caption text-grey">{{ $t('cost_this_month') }}</div>
+              <div class="text-caption text-medium-emphasis">{{ $t('cost_this_month') }}</div>
               <div class="text-h6 font-weight-bold">{{ Math.round(costMonth * exchangeRate).toLocaleString('vi-VN') }}đ</div>
             </div>
           </div>
@@ -195,7 +195,7 @@
               </tr>
             </tbody>
           </v-table>
-          <div v-else class="text-center text-grey text-caption pa-2">{{ $t('no_data') }}</div>
+          <div v-else class="text-center text-medium-emphasis text-caption pa-2">{{ $t('no_data') }}</div>
         </v-card>
 
         <!-- Service Status -->
@@ -227,7 +227,7 @@
             {{ $t('messages_by_day') }}
           </div>
           <Line v-if="messagesChartData.labels.length" :data="messagesChartData" :options="chartOptions" style="max-height: 250px" />
-          <div v-else class="text-center text-grey pa-4">{{ $t('no_data') }}</div>
+          <div v-else class="text-center text-medium-emphasis pa-4">{{ $t('no_data') }}</div>
         </v-card>
       </v-col>
       <v-col cols="12" md="6">
@@ -237,7 +237,7 @@
             {{ $t('cost_by_day_chart') }}
           </div>
           <Line v-if="costChartData.labels.length" :data="costChartData" :options="chartOptionsNoLegend" style="max-height: 250px" />
-          <div v-else class="text-center text-grey pa-4">{{ $t('no_data') }}</div>
+          <div v-else class="text-center text-medium-emphasis pa-4">{{ $t('no_data') }}</div>
         </v-card>
       </v-col>
     </v-row>

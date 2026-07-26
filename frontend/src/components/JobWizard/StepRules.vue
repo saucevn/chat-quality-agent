@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3 class="text-h6 mb-2">{{ $t('job_wizard_step_rules') }}</h3>
-    <div class="text-body-2 text-grey-darken-1 mb-4">
+    <div class="text-body-2 text-medium-emphasis mb-4">
       {{ form.job_type === 'qc_analysis'
         ? 'Nhập quy tắc đánh giá chất lượng. AI Agent sẽ phân tích từng cuộc hội thoại dựa trên các quy tắc này để đánh giá nhân viên. Ví dụ: Nhân viên phải chào hỏi lịch sự, trả lời đầy đủ câu hỏi khách hàng...'
         : 'Cấu hình các nhãn phân loại. AI Agent sẽ tự động phân loại cuộc chat theo các nhãn bạn định nghĩa (feedback, hỏi giá, khiếu nại...).' }}
@@ -23,10 +23,10 @@
 
       <v-divider class="my-4" />
       <div class="text-subtitle-2 font-weight-bold mb-1">
-        <v-icon start size="small" color="grey">mdi-skip-next-circle</v-icon>
+        <v-icon start size="small" color="muted-foreground">mdi-skip-next-circle</v-icon>
         Điều kiện bỏ qua (không đánh giá)
       </div>
-      <div class="text-caption text-grey-darken-1 mb-2">
+      <div class="text-caption text-medium-emphasis mb-2">
         Mô tả các trường hợp cuộc chat không cần đánh giá. AI sẽ đánh dấu "Bỏ qua" thay vì Đạt/Không đạt.
       </div>
       <v-textarea
@@ -37,7 +37,7 @@
         variant="outlined"
         density="compact"
       />
-      <v-btn variant="text" size="small" color="grey-darken-1" class="mt-1" @click="loadSkipTemplate">
+      <v-btn variant="text" size="small" color="muted-foreground" class="mt-1" @click="loadSkipTemplate">
         <v-icon start size="small">mdi-file-document</v-icon>
         Tải mẫu điều kiện bỏ qua
       </v-btn>

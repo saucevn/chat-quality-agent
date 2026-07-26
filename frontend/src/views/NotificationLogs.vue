@@ -37,9 +37,9 @@
             </tr>
             <tr v-if="expandedId === log.id">
               <td colspan="5" class="bg-grey-lighten-5 pa-4">
-                <div class="text-caption text-grey mb-2">Nội dung đã gửi:</div>
+                <div class="text-caption text-medium-emphasis mb-2">Nội dung đã gửi:</div>
                 <div class="text-body-2 pa-3 rounded" style="background: var(--card); border: 1px solid var(--border); white-space: pre-wrap;">{{ log.body }}</div>
-                <div v-if="log.subject" class="text-caption text-grey mt-2">Tiêu đề: {{ log.subject }}</div>
+                <div v-if="log.subject" class="text-caption text-medium-emphasis mt-2">Tiêu đề: {{ log.subject }}</div>
                 <div v-if="log.error_message" class="text-error text-body-2 mt-2">
                   Lỗi: {{ log.error_message }}
                 </div>
@@ -52,8 +52,8 @@
         <v-pagination v-model="page" :length="totalPages" :total-visible="7" density="compact" />
       </v-card-actions>
       <div v-else-if="!logs.length" class="text-center pa-8">
-        <v-icon size="48" color="grey-lighten-1" class="mb-3">mdi-bell-outline</v-icon>
-        <div class="text-grey">Chưa có thông báo nào. Thông báo sẽ được ghi nhận khi công việc chạy và gửi kết quả qua Telegram/Email.</div>
+        <v-icon size="48" color="muted-foreground" class="mb-3">mdi-bell-outline</v-icon>
+        <div class="text-medium-emphasis">Chưa có thông báo nào. Thông báo sẽ được ghi nhận khi công việc chạy và gửi kết quả qua Telegram/Email.</div>
       </div>
     </v-card>
   </div>

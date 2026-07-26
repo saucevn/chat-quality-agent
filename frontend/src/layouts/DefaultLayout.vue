@@ -150,13 +150,13 @@
       >
         <div class="d-flex align-center flex-wrap">
           <span class="text-body-2">Có phiên bản mới: <a href="https://tanviet12.github.io/chat-quality-agent/changelog.html" target="_blank" class="text-primary font-weight-bold">{{ updateInfo.latest }}</a></span>
-          <span class="text-caption text-grey mx-2">|</span>
-          <span class="text-caption text-grey">Hiện tại: {{ updateInfo.current }}</span>
-          <span class="text-caption text-grey mx-2">|</span>
+          <span class="text-caption text-medium-emphasis mx-2">|</span>
+          <span class="text-caption text-medium-emphasis">Hiện tại: {{ updateInfo.current }}</span>
+          <span class="text-caption text-medium-emphasis mx-2">|</span>
           <span class="text-caption"><a href="https://tanviet12.github.io/chat-quality-agent/guide/installation.html#tu-%C4%91ong-cap-nhat-tuy-chon" target="_blank" class="text-primary">Cài Watchtower</a> để tự động cập nhật.</span>
         </div>
         <div class="d-flex align-center mt-2 ga-1">
-          <span class="text-caption text-grey">Cập nhật thủ công:</span>
+          <span class="text-caption text-medium-emphasis">Cập nhật thủ công:</span>
           <code class="text-caption pa-1 rounded" style="user-select: all; background: var(--muted); color: var(--foreground); border: 1px solid var(--border);">cd /opt/cqa && docker compose pull && docker compose up -d</code>
           <v-btn icon="mdi-content-copy" size="x-small" variant="text" color="primary" @click="copyUpdateCmd" />
         </div>
