@@ -177,22 +177,25 @@ func (f *FacebookAdapter) FetchMessages(ctx context.Context, conversationID stri
 			// Determine sender type
 			senderType := "customer"
 			senderName := ""
+			senderExternalID := ""
 			if from, ok := msg["from"].(map[string]interface{}); ok {
 				fromID, _ := from["id"].(string)
 				senderName, _ = from["name"].(string)
+				senderExternalID = fromID
 				if fromID == f.creds.PageID {
 					senderType = "agent"
 				}
 			}
 
 			syncedMsg := SyncedMessage{
-				ExternalID:  msgID,
-				SenderType:  senderType,
-				SenderName:  senderName,
-				Content:     content,
-				ContentType: "text",
-				SentAt:      sentAt,
-				RawData:     msg,
+				ExternalID:       msgID,
+				SenderType:       senderType,
+				SenderName:       senderName,
+				SenderExternalID: senderExternalID,
+				Content:          content,
+				ContentType:      "text",
+				SentAt:           sentAt,
+				RawData:          msg,
 			}
 
 			// Parse attachments

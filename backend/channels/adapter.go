@@ -16,14 +16,18 @@ type SyncedConversation struct {
 
 // SyncedMessage represents a message fetched from an external channel.
 type SyncedMessage struct {
-	ExternalID  string
-	SenderType  string // "customer" | "agent" | "system"
-	SenderName  string
-	Content     string
-	ContentType string // "text" | "image" | "file" | "sticker" | "gif"
-	Attachments []Attachment
-	SentAt      time.Time
-	RawData     map[string]interface{}
+	ExternalID string
+	SenderType string // "customer" | "agent" | "system"
+	SenderName string
+	// SenderExternalID is the platform-side identity of the sender: the staff
+	// UUID for agent messages, the customer id/PSID for customer messages.
+	// Required for per-agent quality scoring.
+	SenderExternalID string
+	Content          string
+	ContentType      string // "text" | "image" | "file" | "sticker" | "gif"
+	Attachments      []Attachment
+	SentAt           time.Time
+	RawData          map[string]interface{}
 }
 
 // Attachment represents a media attachment in a message.

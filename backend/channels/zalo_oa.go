@@ -261,6 +261,7 @@ func (z *ZaloOAAdapter) FetchMessages(ctx context.Context, conversationID string
 			content, _ := msg["message"].(string)
 			senderType := "customer"
 			senderName := ""
+			senderExternalID, _ := msg["from_id"].(string)
 
 			if src, ok := msg["src"].(float64); ok && src == 0 {
 				senderType = "agent"
@@ -271,13 +272,14 @@ func (z *ZaloOAAdapter) FetchMessages(ctx context.Context, conversationID string
 			}
 
 			syncedMsg := SyncedMessage{
-				ExternalID:  msgID,
-				SenderType:  senderType,
-				SenderName:  senderName,
-				Content:     content,
-				ContentType: "text",
-				SentAt:      sentAt,
-				RawData:     msg,
+				ExternalID:       msgID,
+				SenderType:       senderType,
+				SenderName:       senderName,
+				SenderExternalID: senderExternalID,
+				Content:          content,
+				ContentType:      "text",
+				SentAt:           sentAt,
+				RawData:          msg,
 			}
 
 			// Check for attachments (image, file, sticker, gif, etc.)
