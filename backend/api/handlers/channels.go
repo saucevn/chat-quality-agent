@@ -89,6 +89,26 @@ func CreateChannel(c *gin.Context) {
 
 	tenantID := middleware.GetTenantID(c)
 
+	// Pancake has no server-side gate on credentials: unlike Facebook (token
+	// exchange below) and Zalo OA (mandatory OAuth flow), a channel can be
+	// created here with an empty page_id or page_access_token and only fail
+	// later with an opaque "decode response (HTTP 404): invalid character '<'"
+	// once someone tries to sync. Reject it up front instead (I5).
+	if req.ChannelType == "pancake" {
+		var pancakeCreds struct {
+			PageID          string `json:"page_id"`
+			PageAccessToken string `json:"page_access_token"`
+		}
+		if err := json.Unmarshal(req.Credentials, &pancakeCreds); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_credentials", "details": "credentials must be valid JSON"})
+			return
+		}
+		if strings.TrimSpace(pancakeCreds.PageID) == "" || strings.TrimSpace(pancakeCreds.PageAccessToken) == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_credentials", "details": "page_id and page_access_token are required and must not be empty"})
+			return
+		}
+	}
+
 	// Encrypt credentials
 	cfg, _ := config.Load()
 	encrypted, err := pkg.Encrypt([]byte(req.Credentials), cfg.EncryptionKey)
