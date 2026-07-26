@@ -43,11 +43,11 @@ func NewPancakeAdapter(creds PancakeCredentials) *PancakeAdapter {
 }
 
 func (p *PancakeAdapter) v1(suffix string) string {
-	return "/public_api/v1/pages/" + p.creds.PageID + suffix
+	return "/public_api/v1/pages/" + url.PathEscape(p.creds.PageID) + suffix
 }
 
 func (p *PancakeAdapter) v2(suffix string) string {
-	return "/public_api/v2/pages/" + p.creds.PageID + suffix
+	return "/public_api/v2/pages/" + url.PathEscape(p.creds.PageID) + suffix
 }
 
 // doRequest performs a GET and decodes the JSON body.
@@ -66,9 +66,14 @@ func (p *PancakeAdapter) doRequest(ctx context.Context, path string, params url.
 	if params == nil {
 		params = url.Values{}
 	}
-	params.Set("page_access_token", p.creds.PageAccessToken)
+	// Clone params to avoid mutating the caller's map.
+	paramsCopy := make(url.Values)
+	for k, v := range params {
+		paramsCopy[k] = v
+	}
+	paramsCopy.Set("page_access_token", p.creds.PageAccessToken)
 
-	endpoint := p.apiRoot + path + "?" + params.Encode()
+	endpoint := p.apiRoot + path + "?" + paramsCopy.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("pancake: build request: %w", err)
@@ -96,6 +101,10 @@ func (p *PancakeAdapter) doRequest(ctx context.Context, path string, params url.
 			int(code), msg, resp.Header.Get("x-request-id"))
 	}
 
+	// Safety net for valid JSON responses with error status codes but missing the
+	// "success" field. This is not a substitute for checking "success" — it's a
+	// fallback for edge cases where Pancake returns an error status without the
+	// expected "success" field marker.
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("pancake: unexpected HTTP %d", resp.StatusCode)
 	}

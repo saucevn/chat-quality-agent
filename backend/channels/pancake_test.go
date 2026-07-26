@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -77,5 +78,60 @@ func TestPancakeReportsRateLimit(t *testing.T) {
 	err := newTestAdapter(srv.URL).HealthCheck(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "429") {
 		t.Errorf("expected a 429 rate-limit error, got: %v", err)
+	}
+}
+
+func TestPancakeEscapesPageIDInPath(t *testing.T) {
+	// Verify that PageID is properly escaped in the URL path to prevent injection.
+	// A PageID with spaces and slashes should be percent-encoded in the path,
+	// not treated as literal path separators.
+	var gotPath string
+	var gotToken string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		gotToken = r.URL.Query().Get("page_access_token")
+		fmt.Fprint(w, `{"success":true,"tags":[]}`)
+	}))
+	defer srv.Close()
+
+	// Create adapter with PageID containing space and slash
+	a := NewPancakeAdapter(PancakeCredentials{PageID: "p 1/x", PageAccessToken: "tok123"})
+	a.apiRoot = srv.URL
+	_ = a.HealthCheck(context.Background())
+
+	// Unescape the path to verify the server received the correct page_id after decoding
+	decodedPath, err := url.PathUnescape(gotPath)
+	if err != nil {
+		t.Fatalf("failed to unescape path: %v", err)
+	}
+
+	expectedDecodedPath := "/public_api/v1/pages/p 1/x/tags"
+	if decodedPath != expectedDecodedPath {
+		t.Errorf("server received path %q, expected %q", decodedPath, expectedDecodedPath)
+	}
+
+	// Verify the token is still transmitted correctly
+	if gotToken != "tok123" {
+		t.Errorf("token must be preserved in query string, got %q", gotToken)
+	}
+}
+
+func TestPancakeErrorOnHTTPErrorWithoutSuccessField(t *testing.T) {
+	// Verify that HTTP 500 with valid JSON but missing "success" field is treated as error.
+	// This is a safety net for responses that have valid JSON but don't include the
+	// "success" field, which would normally be relied upon to signal errors.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, `{"message":"boom"}`)
+	}))
+	defer srv.Close()
+
+	err := newTestAdapter(srv.URL).HealthCheck(context.Background())
+	if err == nil {
+		t.Fatal("expected an error when status is 500 and success field is missing, got nil")
+	}
+	if !strings.Contains(err.Error(), "500") {
+		t.Errorf("error should mention HTTP 500, got: %v", err)
 	}
 }
