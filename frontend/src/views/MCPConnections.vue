@@ -27,7 +27,7 @@
               <template v-if="parseJSON(client.redirect_uris).length">
                 <v-chip v-for="uri in parseJSON(client.redirect_uris)" :key="uri" size="x-small" variant="tonal" class="mr-1 mb-1">{{ uri }}</v-chip>
               </template>
-              <span v-else class="text-grey text-caption">Chưa cấu hình</span>
+              <span v-else class="text-medium-emphasis text-caption">Chưa cấu hình</span>
             </td>
             <td>
               <v-chip v-for="scope in parseJSON(client.scopes)" :key="scope" size="x-small" variant="tonal" color="primary" class="mr-1">{{ scope }}</v-chip>
@@ -43,8 +43,8 @@
       </v-table>
     </v-card>
     <div v-else class="text-center pa-8">
-      <v-icon size="48" color="grey-lighten-1" class="mb-3">mdi-connection</v-icon>
-      <div class="text-grey-darken-1 mb-2">Kết nối MCP cho phép Claude Web/Desktop truy vấn dữ liệu qua giao thức MCP.</div>
+      <v-icon size="48" color="muted-foreground" class="mb-3">mdi-connection</v-icon>
+      <div class="text-medium-emphasis mb-2">Kết nối MCP cho phép Claude Web/Desktop truy vấn dữ liệu qua giao thức MCP.</div>
       <v-btn color="primary" prepend-icon="mdi-plus" @click="createDialog = true">Tạo kết nối</v-btn>
     </div>
 
@@ -78,9 +78,9 @@
         />
 
         <div v-if="generatedSecret" class="bg-grey-lighten-4 pa-4 rounded mt-4">
-          <div class="text-caption text-grey mb-1">{{ $t('client_id') }}</div>
+          <div class="text-caption text-medium-emphasis mb-1">{{ $t('client_id') }}</div>
           <div class="font-mono text-body-2 mb-3">{{ generatedClientId }}</div>
-          <div class="text-caption text-grey mb-1">{{ $t('client_secret') }}</div>
+          <div class="text-caption text-medium-emphasis mb-1">{{ $t('client_secret') }}</div>
           <div class="font-mono text-body-2 text-error mb-2">{{ generatedSecret }}</div>
           <v-alert type="warning" variant="tonal" density="compact">
             Secret chỉ hiện 1 lần. Hãy copy ngay!

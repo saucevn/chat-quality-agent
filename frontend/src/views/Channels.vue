@@ -19,30 +19,30 @@
               <v-chip size="x-small" :color="channelColor(ch.channel_type)" variant="tonal">
                 {{ channelLabel(ch.channel_type) }}
               </v-chip>
-              <div v-if="ch.channel_type === 'zalo_oa' && ch.external_id" class="text-caption text-grey mt-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <div v-if="ch.channel_type === 'zalo_oa' && ch.external_id" class="text-caption text-medium-emphasis mt-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 OA: {{ ch.external_id }}
               </div>
             </div>
             <div class="text-right">
               <div class="text-h6 font-weight-bold">{{ ch.conversation_count || 0 }}</div>
-              <div class="text-caption text-grey">cuộc chat</div>
+              <div class="text-caption text-medium-emphasis">cuộc chat</div>
             </div>
           </div>
 
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-grey">{{ $t('status') }}</span>
+            <span class="text-caption text-medium-emphasis">{{ $t('status') }}</span>
             <v-chip size="x-small" :color="ch.is_active ? 'success' : 'grey'" variant="tonal">
               {{ ch.is_active ? $t('active') : $t('inactive') }}
             </v-chip>
           </div>
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-caption text-grey">{{ $t('sync_status') }}</span>
+            <span class="text-caption text-medium-emphasis">{{ $t('sync_status') }}</span>
             <v-chip size="x-small" :color="syncColor(ch.last_sync_status)" variant="tonal">
               {{ ch.last_sync_status || '—' }}
             </v-chip>
           </div>
           <div class="d-flex align-center justify-space-between mb-3">
-            <span class="text-caption text-grey">{{ $t('last_sync') }}</span>
+            <span class="text-caption text-medium-emphasis">{{ $t('last_sync') }}</span>
             <span class="text-body-2">{{ ch.last_sync_at ? new Date(ch.last_sync_at).toLocaleString() : '—' }}</span>
           </div>
 
@@ -68,9 +68,9 @@
     </v-row>
 
     <div v-if="!channelStore.channels.length" class="text-center mt-12 pa-8">
-      <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-chat-plus</v-icon>
-      <div class="text-h6 text-grey-darken-1 mb-2">Chưa có kênh chat nào</div>
-      <div class="text-body-2 text-grey mb-4" style="max-width: 500px; margin: 0 auto;">
+      <v-icon size="64" color="muted-foreground" class="mb-4">mdi-chat-plus</v-icon>
+      <div class="text-h6 text-medium-emphasis mb-2">Chưa có kênh chat nào</div>
+      <div class="text-body-2 text-medium-emphasis mb-4" style="max-width: 500px; margin: 0 auto;">
         Kết nối kênh chat Facebook, Zalo OA để hệ thống đồng bộ tin nhắn và AI phân tích chất lượng CSKH.
       </div>
       <v-btn color="primary" prepend-icon="mdi-plus" @click="showDialog = true">Kết nối kênh</v-btn>
@@ -95,7 +95,7 @@
           </v-btn>
           <v-text-field v-model="newChannel.creds.app_id" :label="$t('zalo_app_id')" density="compact" class="mb-2" hint="Lấy từ Cài đặt ứng dụng trên Zalo Developers" persistent-hint />
           <v-text-field v-model="newChannel.creds.app_secret" :label="$t('zalo_app_secret')" type="password" density="compact" class="mb-2" />
-          <div class="text-caption text-grey-darken-1 mb-2">
+          <div class="text-caption text-medium-emphasis mb-2">
             <v-icon size="14" class="mr-1">mdi-information-outline</v-icon>
             Nếu ứng dụng Zalo có nhiều OA, bước tiếp theo sẽ mở trang Zalo để chọn OA — hãy chọn <b>đúng OA</b> tương ứng với kênh này.
           </div>

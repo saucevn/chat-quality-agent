@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3 class="text-h6 mb-2">{{ $t('job_wizard_step_analysis_schedule') }}</h3>
-    <p class="text-body-2 text-grey mb-4">{{ $t('analysis_schedule_desc') }}</p>
+    <p class="text-body-2 text-medium-emphasis mb-4">{{ $t('analysis_schedule_desc') }}</p>
 
     <v-radio-group v-model="form.schedule_type">
       <v-radio value="cron" :label="$t('schedule_cron')" />

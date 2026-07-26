@@ -40,7 +40,7 @@
               <template #label>
                 <div>
                   <div class="font-weight-medium">Chạy cho những cuộc chat chưa được đánh giá</div>
-                  <div class="text-caption text-grey">Đánh giá tất cả cuộc chat chưa được công việc này phân tích lần nào, bất kể thời gian.</div>
+                  <div class="text-caption text-medium-emphasis">Đánh giá tất cả cuộc chat chưa được công việc này phân tích lần nào, bất kể thời gian.</div>
                 </div>
               </template>
             </v-radio>
@@ -48,7 +48,7 @@
               <template #label>
                 <div>
                   <div class="font-weight-medium">Chạy từ lần gần nhất</div>
-                  <div class="text-caption text-grey">Lấy cuộc chat gần nhất đã đánh giá làm mốc. Cuộc chat cũ hơn mốc sẽ không được đánh giá dù chưa phân tích.</div>
+                  <div class="text-caption text-medium-emphasis">Lấy cuộc chat gần nhất đã đánh giá làm mốc. Cuộc chat cũ hơn mốc sẽ không được đánh giá dù chưa phân tích.</div>
                 </div>
               </template>
             </v-radio>
@@ -56,7 +56,7 @@
               <template #label>
                 <div>
                   <div class="font-weight-medium">Chạy theo điều kiện</div>
-                  <div class="text-caption text-grey">Chọn điều kiện thời gian và/hoặc giới hạn số cuộc chat. Phải có ít nhất một điều kiện.</div>
+                  <div class="text-caption text-medium-emphasis">Chọn điều kiện thời gian và/hoặc giới hạn số cuộc chat. Phải có ít nhất một điều kiện.</div>
                 </div>
               </template>
             </v-radio>
@@ -114,48 +114,48 @@
       </div>
       <v-row dense>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">{{ $t('job_type') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ $t('job_type') }}</div>
           <v-chip size="small" :color="job.job_type === 'qc_analysis' ? 'primary' : 'secondary'" variant="tonal">
             {{ job.job_type === 'qc_analysis' ? $t('job_qc') : $t('job_classification') }}
           </v-chip>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">{{ $t('ai_model') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ $t('ai_model') }}</div>
           <div class="text-body-2">{{ tenantAIProvider }} / {{ tenantAIModel }}</div>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">{{ $t('job_wizard_step_analysis_schedule') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ $t('job_wizard_step_analysis_schedule') }}</div>
           <div class="text-body-2">{{ formatSchedule(job.schedule_type, job.schedule_cron) }}</div>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">{{ $t('status') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ $t('status') }}</div>
           <v-chip size="small" :color="job.is_active ? 'success' : 'grey'" variant="tonal">
             {{ job.is_active ? $t('active') : $t('inactive') }}
           </v-chip>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">{{ $t('job_input_channels') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ $t('job_input_channels') }}</div>
           <div class="text-body-2">{{ parsedChannelCount }} kênh</div>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">{{ $t('job_output') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ $t('job_output') }}</div>
           <div class="d-flex flex-wrap ga-1">
             <v-chip v-for="(o, i) in parsedOutputs" :key="i" size="x-small" variant="tonal" :prepend-icon="o.type === 'telegram' ? 'mdi-send' : 'mdi-email'">
               {{ o.type === 'telegram' ? 'Telegram' : 'Email' }}
             </v-chip>
-            <span v-if="!parsedOutputs.length" class="text-body-2 text-grey">—</span>
+            <span v-if="!parsedOutputs.length" class="text-body-2 text-medium-emphasis">—</span>
           </div>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">{{ $t('job_last_run') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ $t('job_last_run') }}</div>
           <div class="text-body-2" v-if="job.last_run_at">
             {{ formatDateTime(job.last_run_at) }}
             <v-chip size="x-small" :color="statusColor(job.last_run_status)" variant="tonal" class="ml-1">{{ job.last_run_status }}</v-chip>
           </div>
-          <div v-else class="text-body-2 text-grey">—</div>
+          <div v-else class="text-body-2 text-medium-emphasis">—</div>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">{{ $t('job_created_at') }}</div>
+          <div class="text-caption text-medium-emphasis">{{ $t('job_created_at') }}</div>
           <div class="text-body-2">{{ formatDateTime(job.created_at) }}</div>
         </v-col>
       </v-row>
@@ -177,7 +177,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">{{ $t('conversations_analyzed') }}</div>
+              <div class="text-body-2 text-medium-emphasis">{{ $t('conversations_analyzed') }}</div>
               <div class="text-h5 font-weight-bold mt-1">{{ aggregateStats.analyzed }}</div>
             </div>
             <v-icon color="primary" size="32" class="opacity-50">mdi-message-text</v-icon>
@@ -188,7 +188,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">{{ $t('job_pass_rate') }}</div>
+              <div class="text-body-2 text-medium-emphasis">{{ $t('job_pass_rate') }}</div>
               <div class="text-h5 font-weight-bold mt-1">{{ aggregateStats.passRate }}%</div>
             </div>
             <v-icon color="success" size="32" class="opacity-50">mdi-check-circle</v-icon>
@@ -199,7 +199,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">{{ $t('issues_found') }}</div>
+              <div class="text-body-2 text-medium-emphasis">{{ $t('issues_found') }}</div>
               <div class="text-h5 font-weight-bold mt-1">{{ aggregateStats.issues }}</div>
             </div>
             <v-icon color="error" size="32" class="opacity-50">mdi-alert-circle</v-icon>
@@ -210,7 +210,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">{{ $t('job_avg_score') }}</div>
+              <div class="text-body-2 text-medium-emphasis">{{ $t('job_avg_score') }}</div>
               <div class="text-h5 font-weight-bold mt-1">{{ aggregateStats.avgScore }}/100</div>
             </div>
             <v-icon color="warning" size="32" class="opacity-50">mdi-star</v-icon>
@@ -225,7 +225,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">Tổng cuộc chat</div>
+              <div class="text-body-2 text-medium-emphasis">Tổng cuộc chat</div>
               <div class="text-h5 font-weight-bold mt-1">{{ groupedResults.length }}</div>
             </div>
             <v-icon color="primary" size="32" class="opacity-50">mdi-message-text</v-icon>
@@ -236,7 +236,7 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">Đã phân loại</div>
+              <div class="text-body-2 text-medium-emphasis">Đã phân loại</div>
               <div class="text-h5 font-weight-bold mt-1">{{ groupedResults.filter(g => g.verdict !== 'SKIP').length }}</div>
             </div>
             <v-icon color="secondary" size="32" class="opacity-50">mdi-tag-check</v-icon>
@@ -247,10 +247,10 @@
         <v-card class="pa-4">
           <div class="d-flex justify-space-between align-center">
             <div>
-              <div class="text-body-2 text-grey">Bỏ qua</div>
+              <div class="text-body-2 text-medium-emphasis">Bỏ qua</div>
               <div class="text-h5 font-weight-bold mt-1">{{ groupedResults.filter(g => g.verdict === 'SKIP').length }}</div>
             </div>
-            <v-icon color="grey" size="32" class="opacity-50">mdi-tag-off</v-icon>
+            <v-icon color="muted-foreground" size="32" class="opacity-50">mdi-tag-off</v-icon>
           </div>
         </v-card>
       </v-col>
@@ -336,7 +336,7 @@
           </v-btn>
         </div>
 
-        <div v-if="!filteredGroupedResults.length" class="text-center text-grey pa-4">
+        <div v-if="!filteredGroupedResults.length" class="text-center text-medium-emphasis pa-4">
           {{ $t('no_issues') }}
         </div>
         <!-- Table view: Classification -->
@@ -390,7 +390,7 @@
                   <v-chip v-if="group.score != null" size="x-small" :color="group.score >= 80 ? 'success' : group.score >= 50 ? 'warning' : 'error'" variant="tonal">
                     {{ group.score }}/100
                   </v-chip>
-                  <span v-else class="text-grey">—</span>
+                  <span v-else class="text-medium-emphasis">—</span>
                 </td>
                 <td class="text-body-2">{{ group.violations.length > 0 ? group.violations.length + ' vấn đề' : '—' }}</td>
               </tr>
@@ -404,17 +404,17 @@
             <div class="d-flex align-center pa-3" style="cursor: pointer" @click="toggleExpand(group.conversationId)">
               <!-- Classification card header -->
               <template v-if="isClassification">
-                <v-chip v-if="group.verdict === 'SKIP'" size="small" color="grey" variant="tonal" class="mr-3">Bỏ qua</v-chip>
+                <v-chip v-if="group.verdict === 'SKIP'" size="small" color="muted-foreground" variant="tonal" class="mr-3">Bỏ qua</v-chip>
                 <v-chip v-else size="small" color="success" variant="tonal" class="mr-3">Đã phân loại</v-chip>
                 <div class="flex-grow-1">
                   <div class="d-flex align-center ga-2">
                     <span class="font-weight-medium text-body-2">{{ group.customerName || group.conversationId.substring(0, 8) + '...' }}</span>
-                    <span class="text-caption text-grey">{{ formatTime(group.conversationDate) }}</span>
+                    <span class="text-caption text-medium-emphasis">{{ formatTime(group.conversationDate) }}</span>
                   </div>
                   <div v-if="group.tags.length" class="d-flex flex-wrap ga-1 mt-1">
                     <v-chip v-for="tag in group.tags" :key="tag" size="x-small" :color="tagColor(tag)" variant="tonal">{{ tag }}</v-chip>
                   </div>
-                  <div v-if="classificationSummary(group) !== '—'" class="text-caption text-grey-darken-1 mt-1" style="max-width: 600px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ classificationSummary(group) }}</div>
+                  <div v-if="classificationSummary(group) !== '—'" class="text-caption text-medium-emphasis mt-1" style="max-width: 600px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ classificationSummary(group) }}</div>
                 </div>
               </template>
               <!-- QC card header -->
@@ -425,15 +425,15 @@
                 <div class="flex-grow-1">
                   <div class="d-flex align-center ga-2">
                     <span class="font-weight-medium text-body-2">{{ group.customerName || group.conversationId.substring(0, 8) + '...' }}</span>
-                    <span class="text-caption text-grey">{{ formatTime(group.conversationDate) }}</span>
+                    <span class="text-caption text-medium-emphasis">{{ formatTime(group.conversationDate) }}</span>
                   </div>
-                  <div v-if="group.review" class="text-caption text-grey-darken-1 mt-1" style="max-width: 600px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ group.review }}</div>
+                  <div v-if="group.review" class="text-caption text-medium-emphasis mt-1" style="max-width: 600px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ group.review }}</div>
                 </div>
                 <v-chip v-if="group.score != null" size="x-small" :color="group.score >= 80 ? 'success' : group.score >= 50 ? 'warning' : 'error'" variant="tonal" class="mr-2">
                   {{ group.score }}/100
                 </v-chip>
               </template>
-              <span class="text-caption text-grey mr-2">{{ group.violations.length }} {{ $t('issues_label') }}</span>
+              <span class="text-caption text-medium-emphasis mr-2">{{ group.violations.length }} {{ $t('issues_label') }}</span>
               <v-icon>{{ expandedMap[group.conversationId] ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
             </div>
 
@@ -444,7 +444,7 @@
                 <!-- Left: Chat transcript -->
                 <v-col cols="12" md="7">
                   <div class="d-flex align-center mb-2">
-                    <div class="text-caption text-grey font-weight-bold">
+                    <div class="text-caption text-medium-emphasis font-weight-bold">
                       <v-icon size="x-small" class="mr-1">mdi-chat</v-icon>
                       Diễn biến cuộc chat
                     </div>
@@ -454,7 +454,7 @@
                   </div>
                   <div v-if="!chatMessages[group.conversationId]" class="text-center pa-4">
                     <v-progress-circular indeterminate size="24" />
-                    <div class="text-caption text-grey mt-2">Đang tải...</div>
+                    <div class="text-caption text-medium-emphasis mt-2">Đang tải...</div>
                   </div>
                   <div v-else class="chat-transcript pa-2 rounded" style="background: var(--muted); max-height: 500px; overflow-y: auto;">
                     <div v-for="msg in chatMessages[group.conversationId]" :key="msg.id" class="mb-2">
@@ -464,11 +464,11 @@
                         :style="isHighlighted(group, msg) ? 'border: 2px solid var(--amber);' : 'border: 1px solid var(--border);'"
                       >
                         <div class="d-flex align-center mb-1">
-                          <span class="text-caption font-weight-bold" :class="msg.sender_type === 'agent' ? 'text-blue' : 'text-grey-darken-2'">
+                          <span class="text-caption font-weight-bold" :class="msg.sender_type === 'agent' ? 'text-blue' : 'text-medium-emphasis'">
                             {{ msg.sender_name }}
                           </span>
                           <v-spacer />
-                          <span class="text-caption text-grey">{{ formatTime(msg.sent_at) }}</span>
+                          <span class="text-caption text-medium-emphasis">{{ formatTime(msg.sent_at) }}</span>
                         </div>
                         <div v-if="msg.content" class="text-body-2" style="font-size: 13px;">{{ msg.content }}</div>
                         <div v-if="msg.content_type === 'sticker'" class="text-caption font-italic">[Sticker]</div>
@@ -489,7 +489,7 @@
 
                 <!-- Right: Violations -->
                 <v-col cols="12" md="5">
-                  <div class="text-caption text-grey font-weight-bold mb-2">
+                  <div class="text-caption text-medium-emphasis font-weight-bold mb-2">
                     <v-icon size="x-small" class="mr-1">mdi-alert-circle</v-icon>
                     Đánh giá chi tiết
                   </div>
@@ -506,7 +506,7 @@
                     <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded mb-1" style="font-size: 13px; border-left: 3px solid var(--amber);">
                       {{ v.evidence }}
                     </div>
-                    <div v-if="parseDetail(v.detail)?.explanation" class="text-caption text-grey-darken-1">
+                    <div v-if="parseDetail(v.detail)?.explanation" class="text-caption text-medium-emphasis">
                       {{ parseDetail(v.detail).explanation }}
                     </div>
                     <div v-if="parseDetail(v.detail)?.suggestion" class="text-caption text-success mt-1">
@@ -514,7 +514,7 @@
                       {{ parseDetail(v.detail).suggestion }}
                     </div>
                   </div>
-                  <div v-if="!group.violations.length && group.verdict === 'PASS'" class="text-center text-grey pa-4">
+                  <div v-if="!group.violations.length && group.verdict === 'PASS'" class="text-center text-medium-emphasis pa-4">
                     <v-icon size="32" color="success">mdi-check-circle</v-icon>
                     <div class="text-body-2 mt-2">Cuộc chat đạt chất lượng</div>
                   </div>
@@ -556,7 +556,7 @@
               <td>{{ parseSummary(run.summary).conversations_analyzed || 0 }}</td>
               <td>
                 <span class="text-success font-weight-medium">{{ parseSummary(run.summary).conversations_passed || 0 }}</span>
-                <span class="text-grey"> / {{ parseSummary(run.summary).conversations_analyzed || 0 }}</span>
+                <span class="text-medium-emphasis"> / {{ parseSummary(run.summary).conversations_analyzed || 0 }}</span>
               </td>
               <td>{{ parseSummary(run.summary).issues_found || 0 }}</td>
               <td>
@@ -569,7 +569,7 @@
           </tbody>
         </v-table>
         <v-pagination v-if="totalRunPages > 1" v-model="runPage" :length="totalRunPages" :total-visible="7" density="compact" class="mt-2" />
-        <div v-if="!jobStore.jobRuns.length" class="text-center text-grey pa-4">{{ $t('no_runs') }}</div>
+        <div v-if="!jobStore.jobRuns.length" class="text-center text-medium-emphasis pa-4">{{ $t('no_runs') }}</div>
       </div>
     </v-card>
 
@@ -596,7 +596,7 @@
             {{ dialogGroup.verdict === 'PASS' ? 'Đạt' : dialogGroup.verdict === 'SKIP' ? 'Bỏ qua' : 'Không đạt' }}
           </v-chip>
           <span class="text-body-1 font-weight-bold">{{ dialogGroup.customerName || dialogGroup.conversationId.substring(0, 8) + '...' }}</span>
-          <span class="text-caption text-grey ml-2">{{ formatTime(dialogGroup.conversationDate) }}</span>
+          <span class="text-caption text-medium-emphasis ml-2">{{ formatTime(dialogGroup.conversationDate) }}</span>
           <v-chip v-if="dialogGroup.score != null" size="x-small" :color="dialogGroup.score >= 80 ? 'success' : dialogGroup.score >= 50 ? 'warning' : 'error'" variant="tonal" class="ml-auto">
             {{ dialogGroup.score }}/100
           </v-chip>
@@ -606,7 +606,7 @@
           <v-row>
             <v-col cols="12" md="7">
               <div class="d-flex align-center mb-2">
-                <div class="text-caption text-grey font-weight-bold">
+                <div class="text-caption text-medium-emphasis font-weight-bold">
                   <v-icon size="x-small" class="mr-1">mdi-chat</v-icon>
                   Diễn biến cuộc chat
                 </div>
@@ -616,7 +616,7 @@
               </div>
               <div v-if="!chatMessages[dialogGroup.conversationId]" class="text-center pa-4">
                 <v-progress-circular indeterminate size="24" />
-                <div class="text-caption text-grey mt-2">Đang tải...</div>
+                <div class="text-caption text-medium-emphasis mt-2">Đang tải...</div>
               </div>
               <div v-else class="chat-transcript pa-2 rounded" style="background: var(--muted); max-height: 450px; overflow-y: auto;">
                 <div v-for="msg in chatMessages[dialogGroup.conversationId]" :key="msg.id" class="mb-2">
@@ -626,9 +626,9 @@
                     :style="isHighlighted(dialogGroup, msg) ? 'border: 2px solid var(--amber);' : 'border: 1px solid var(--border);'"
                   >
                     <div class="d-flex align-center mb-1">
-                      <span class="text-caption font-weight-bold" :class="msg.sender_type === 'agent' ? 'text-blue' : 'text-grey-darken-2'">{{ msg.sender_name }}</span>
+                      <span class="text-caption font-weight-bold" :class="msg.sender_type === 'agent' ? 'text-blue' : 'text-medium-emphasis'">{{ msg.sender_name }}</span>
                       <v-spacer />
-                      <span class="text-caption text-grey">{{ formatTime(msg.sent_at) }}</span>
+                      <span class="text-caption text-medium-emphasis">{{ formatTime(msg.sent_at) }}</span>
                     </div>
                     <div v-if="msg.content" class="text-body-2" style="font-size: 13px;">{{ msg.content }}</div>
                     <div v-if="msg.content_type === 'sticker'" class="text-caption font-italic">[Sticker]</div>
@@ -647,7 +647,7 @@
               </div>
             </v-col>
             <v-col cols="12" md="5">
-              <div class="text-caption text-grey font-weight-bold mb-2">
+              <div class="text-caption text-medium-emphasis font-weight-bold mb-2">
                 <v-icon size="x-small" class="mr-1">mdi-alert-circle</v-icon>
                 Đánh giá chi tiết
               </div>
@@ -662,12 +662,12 @@
                   <span class="font-weight-medium text-body-2">{{ v.rule_name }}</span>
                 </div>
                 <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded mb-1" style="font-size: 13px; border-left: 3px solid var(--amber);">{{ v.evidence }}</div>
-                <div v-if="parseDetail(v.detail)?.explanation" class="text-caption text-grey-darken-1">{{ parseDetail(v.detail).explanation }}</div>
+                <div v-if="parseDetail(v.detail)?.explanation" class="text-caption text-medium-emphasis">{{ parseDetail(v.detail).explanation }}</div>
                 <div v-if="parseDetail(v.detail)?.suggestion" class="text-caption text-success mt-1">
                   <v-icon size="x-small" class="mr-1">mdi-lightbulb</v-icon>{{ parseDetail(v.detail).suggestion }}
                 </div>
               </div>
-              <div v-if="!dialogGroup.violations.length && dialogGroup.verdict === 'PASS'" class="text-center text-grey pa-4">
+              <div v-if="!dialogGroup.violations.length && dialogGroup.verdict === 'PASS'" class="text-center text-medium-emphasis pa-4">
                 <v-icon size="32" color="success">mdi-check-circle</v-icon>
                 <div class="text-body-2 mt-2">Cuộc chat đạt chất lượng</div>
               </div>
@@ -751,7 +751,7 @@ const isClassification = computed(() => job.value?.job_type === 'classification'
 
 // Cố ý không dùng design token: cần tối đa 10 màu riêng biệt để phân biệt các thẻ phân loại,
 // trong khi bảng token chỉ có --chart-1..5 (5 màu) — ép vào sẽ làm nhiều thẻ trùng màu.
-const TAG_COLORS = ['#7E57C2', '#1E88E5', '#00897B', '#FB8C00', '#D81B60', '#00ACC1', '#3949AB', '#E64A19', '#7CB342', '#6D4C41']
+const TAG_COLORS = ['chart-1', 'chart-2', 'chart-3', 'chart-4', 'chart-5']
 function tagColor(tag: string): string {
   const tags = availableTags.value
   const idx = tags.indexOf(tag)

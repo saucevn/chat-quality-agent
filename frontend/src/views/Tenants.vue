@@ -23,7 +23,7 @@
         </v-card>
       </v-col>
     </v-row>
-    <div v-if="!tenantStore.tenants.length" class="text-center text-grey mt-12">
+    <div v-if="!tenantStore.tenants.length" class="text-center text-medium-emphasis mt-12">
       {{ $t('no_data') }}
     </div>
 

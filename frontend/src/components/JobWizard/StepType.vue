@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="text-body-2 text-grey-darken-1 mb-4">
+    <div class="text-body-2 text-medium-emphasis mb-4">
       Đặt tên và chọn loại công việc phân tích.
     </div>
     <v-text-field
@@ -17,7 +17,7 @@
         <template #label>
           <div>
             <div class="font-weight-medium">Phân tích chất lượng CSKH</div>
-            <div class="text-caption text-grey">Đánh giá chất lượng trả lời của nhân viên, phát hiện vi phạm quy tắc.</div>
+            <div class="text-caption text-medium-emphasis">Đánh giá chất lượng trả lời của nhân viên, phát hiện vi phạm quy tắc.</div>
           </div>
         </template>
       </v-radio>
@@ -25,7 +25,7 @@
         <template #label>
           <div>
             <div class="font-weight-medium">Phân loại chat</div>
-            <div class="text-caption text-grey">Phân loại cuộc chat theo chủ đề (feedback, hỏi giá, khiếu nại...). Phù hợp gom phản hồi khách hàng.</div>
+            <div class="text-caption text-medium-emphasis">Phân loại cuộc chat theo chủ đề (feedback, hỏi giá, khiếu nại...). Phù hợp gom phản hồi khách hàng.</div>
           </div>
         </template>
       </v-radio>

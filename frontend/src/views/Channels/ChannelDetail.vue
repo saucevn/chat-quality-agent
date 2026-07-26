@@ -28,45 +28,45 @@
       </div>
       <v-row>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">Loại kênh</div>
+          <div class="text-caption text-medium-emphasis">Loại kênh</div>
           <v-chip size="small" :color="channel.channel_type === 'pancake' ? 'orange' : channel.channel_type === 'facebook' ? 'blue' : 'green'" variant="tonal">
             {{ channel.channel_type === 'pancake' ? $t('channel_pancake') : channel.channel_type === 'facebook' ? $t('channel_facebook') : $t('channel_zalo') }}
           </v-chip>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">Trạng thái</div>
+          <div class="text-caption text-medium-emphasis">Trạng thái</div>
           <v-chip size="small" :color="channel.is_active ? 'success' : 'grey'" variant="tonal">
             {{ channel.is_active ? 'Hoạt động' : 'Tạm dừng' }}
           </v-chip>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">Trạng thái đồng bộ</div>
+          <div class="text-caption text-medium-emphasis">Trạng thái đồng bộ</div>
           <v-chip size="small" :color="channel.last_sync_status === 'success' ? 'success' : channel.last_sync_status === 'error' ? 'error' : 'grey'" variant="tonal">
             {{ channel.last_sync_status === 'success' ? 'Thành công' : channel.last_sync_status === 'error' ? 'Lỗi' : 'Chưa đồng bộ' }}
           </v-chip>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">Đồng bộ lần cuối</div>
+          <div class="text-caption text-medium-emphasis">Đồng bộ lần cuối</div>
           <div>{{ channel.last_sync_at ? formatDateTime(channel.last_sync_at) : 'Chưa đồng bộ' }}</div>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">Tổng cuộc chat</div>
+          <div class="text-caption text-medium-emphasis">Tổng cuộc chat</div>
           <a href="#" class="text-primary font-weight-bold" @click.prevent="goToMessages">
             {{ channel.conversation_count || 0 }}
           </a>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">Chu kỳ đồng bộ</div>
+          <div class="text-caption text-medium-emphasis">Chu kỳ đồng bộ</div>
           <div>{{ formatSyncInterval(metadata.sync_interval) }}</div>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">Lưu file/ảnh</div>
+          <div class="text-caption text-medium-emphasis">Lưu file/ảnh</div>
           <v-chip size="small" :color="metadata.sync_files ? 'success' : 'grey'" variant="tonal">
             {{ metadata.sync_files ? 'Bật' : 'Tắt' }}
           </v-chip>
         </v-col>
         <v-col cols="6" sm="3">
-          <div class="text-caption text-grey">Ngày tạo</div>
+          <div class="text-caption text-medium-emphasis">Ngày tạo</div>
           <div>{{ formatDateTime(channel.created_at) }}</div>
         </v-col>
       </v-row>
@@ -105,7 +105,7 @@
           </tr>
         </tbody>
       </v-table>
-      <div v-else class="text-center text-grey pa-4">Chưa có lịch sử đồng bộ</div>
+      <div v-else class="text-center text-medium-emphasis pa-4">Chưa có lịch sử đồng bộ</div>
       <v-pagination
         v-if="syncTotalPages > 1"
         v-model="syncPage"

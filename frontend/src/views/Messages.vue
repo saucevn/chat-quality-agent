@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1 class="text-h5 font-weight-bold mb-4">{{ $t('nav_messages') }}
-      <span v-if="conversationStore.total" class="text-body-2 text-grey font-weight-regular ml-2">({{ conversationStore.total }})</span>
+      <span v-if="conversationStore.total" class="text-body-2 text-medium-emphasis font-weight-regular ml-2">({{ conversationStore.total }})</span>
     </h1>
 
     <v-row>
@@ -67,7 +67,7 @@
           <v-card>
             <v-card-title>Export tin nhắn</v-card-title>
             <v-card-text>
-              <div class="text-body-2 text-grey mb-3">Xuất toàn bộ cuộc chat trong khoảng thời gian để AI đọc và phân tích.</div>
+              <div class="text-body-2 text-medium-emphasis mb-3">Xuất toàn bộ cuộc chat trong khoảng thời gian để AI đọc và phân tích.</div>
               <v-row dense>
                 <v-col cols="6">
                   <v-text-field v-model="exportFrom" label="Từ ngày" type="date" density="compact" variant="outlined" hide-details />
@@ -141,8 +141,8 @@
           </v-list>
 
           <v-card-text v-else-if="!loading" class="text-center py-8">
-            <v-icon size="48" color="grey-lighten-1">mdi-message-text-outline</v-icon>
-            <div class="text-grey-darken-1 mt-2">Tin nhắn sẽ hiện ở đây sau khi kết nối và đồng bộ kênh chat.</div>
+            <v-icon size="48" color="muted-foreground">mdi-message-text-outline</v-icon>
+            <div class="text-medium-emphasis mt-2">Tin nhắn sẽ hiện ở đây sau khi kết nối và đồng bộ kênh chat.</div>
             <v-btn variant="text" color="primary" size="small" class="mt-2" :to="`/${tenantId}/channels`">Đi tới kênh chat</v-btn>
           </v-card-text>
 
@@ -173,7 +173,7 @@
               <div class="text-subtitle-1 font-weight-medium">
                 {{ conversationStore.currentConversation?.customer_name || $t('msg_unknown_customer') }}
               </div>
-              <div class="text-caption text-grey">
+              <div class="text-caption text-medium-emphasis">
                 {{ conversationStore.currentConversation?.message_count }} {{ $t('msg_messages_count') }}
               </div>
             </div>
@@ -237,7 +237,7 @@
                           @error="onImageError($event, att)"
                         />
                         <v-progress-circular v-else-if="authImageCache[getAttachmentUrl(att)] === 'loading'" indeterminate size="24" width="2" class="ma-2" />
-                        <v-chip v-else-if="!getAttachmentUrl(att)" size="x-small" variant="tonal" color="grey">
+                        <v-chip v-else-if="!getAttachmentUrl(att)" size="x-small" variant="tonal" color="muted-foreground">
                           <v-icon start size="12">mdi-image</v-icon>
                           {{ att.name || '[Ảnh]' }}
                         </v-chip>
@@ -249,7 +249,7 @@
                     </template>
                   </div>
                   <div v-if="!msg.content && msg.content_type === 'attachment' && !hasAttachments(msg)" class="text-caption font-italic">[File đính kèm]</div>
-                  <div class="mt-1" :class="msg.sender_type === 'agent' ? 'text-white-darken-2' : 'text-grey'" style="opacity: 0.6; font-size: 10px">
+                  <div class="mt-1" :class="msg.sender_type === 'agent' ? 'text-white-darken-2' : 'text-medium-emphasis'" style="opacity: 0.6; font-size: 10px">
                     {{ formatMessageTime(msg.sent_at) }}
                   </div>
                 </div>
@@ -263,8 +263,8 @@
               <v-progress-circular indeterminate />
             </div>
             <div v-else-if="qcGroups.length === 0" class="text-center py-8">
-              <v-icon size="48" color="grey-lighten-1">mdi-clipboard-text-off</v-icon>
-              <div class="text-grey mt-3">Cuộc chat này chưa được đánh giá chất lượng.</div>
+              <v-icon size="48" color="muted-foreground">mdi-clipboard-text-off</v-icon>
+              <div class="text-medium-emphasis mt-3">Cuộc chat này chưa được đánh giá chất lượng.</div>
             </div>
             <div v-else>
               <v-card v-for="g in qcGroups" :key="g.job_run_id" variant="outlined" class="mb-3">
@@ -275,9 +275,9 @@
                     </v-chip>
                     <v-chip v-if="getQcScore(g) != null" size="x-small" variant="tonal" class="mr-2">{{ getQcScore(g) }}/100</v-chip>
                     <span class="text-body-2 font-weight-medium flex-grow-1">{{ g.job_name }}</span>
-                    <span class="text-caption text-grey">{{ formatTime(g.evaluated_at) }}</span>
+                    <span class="text-caption text-medium-emphasis">{{ formatTime(g.evaluated_at) }}</span>
                   </div>
-                  <div v-if="getQcReview(g)" class="text-body-2 text-grey-darken-1 mb-2" style="font-size: 13px;">{{ getQcReview(g) }}</div>
+                  <div v-if="getQcReview(g)" class="text-body-2 text-medium-emphasis mb-2" style="font-size: 13px;">{{ getQcReview(g) }}</div>
                   <v-btn v-if="getQcViolations(g).length > 0" size="x-small" variant="text" color="primary" @click="toggleQcExpand(g.job_run_id)">
                     {{ expandedQc[g.job_run_id] ? 'Thu gọn' : `Xem chi tiết (${getQcViolations(g).length} vấn đề)` }}
                   </v-btn>
@@ -305,26 +305,26 @@
               <v-progress-circular indeterminate />
             </div>
             <div v-else-if="classGroups.length === 0" class="text-center py-8">
-              <v-icon size="48" color="grey-lighten-1">mdi-tag-off</v-icon>
-              <div class="text-grey mt-3">Cuộc chat này chưa được phân loại.</div>
+              <v-icon size="48" color="muted-foreground">mdi-tag-off</v-icon>
+              <div class="text-medium-emphasis mt-3">Cuộc chat này chưa được phân loại.</div>
             </div>
             <div v-else>
               <v-card v-for="g in classGroups" :key="g.job_run_id" variant="outlined" class="mb-3">
                 <v-card-text class="pa-3">
                   <div class="d-flex align-center mb-2">
                     <span class="text-body-2 font-weight-medium flex-grow-1">{{ g.job_name }}</span>
-                    <span class="text-caption text-grey">{{ formatTime(g.evaluated_at) }}</span>
+                    <span class="text-caption text-medium-emphasis">{{ formatTime(g.evaluated_at) }}</span>
                   </div>
                   <div class="d-flex flex-wrap ga-1 mb-2">
                     <v-chip v-for="tag in getClassTags(g)" :key="tag" size="small" :color="msgTagColor(tag)" variant="tonal">
                       <v-icon start size="small">mdi-tag</v-icon>
                       {{ tag }}
                     </v-chip>
-                    <v-chip v-if="getClassTags(g).length === 0" size="small" color="grey" variant="tonal">
+                    <v-chip v-if="getClassTags(g).length === 0" size="small" color="muted-foreground" variant="tonal">
                       Không phân loại được
                     </v-chip>
                   </div>
-                  <div v-if="getClassSummary(g)" class="text-body-2 text-grey-darken-1" style="font-size: 13px;">{{ getClassSummary(g) }}</div>
+                  <div v-if="getClassSummary(g)" class="text-body-2 text-medium-emphasis" style="font-size: 13px;">{{ getClassSummary(g) }}</div>
                 </v-card-text>
               </v-card>
             </div>
@@ -478,7 +478,7 @@ const classGroups = computed(() => {
 
 // Cố ý không dùng design token: cần tối đa 10 màu riêng biệt để phân biệt các thẻ phân loại,
 // trong khi bảng token chỉ có --chart-1..5 (5 màu) — ép vào sẽ làm nhiều thẻ trùng màu.
-const MSG_TAG_COLORS = ['#7E57C2', '#1E88E5', '#00897B', '#FB8C00', '#D81B60', '#00ACC1', '#3949AB', '#E64A19', '#7CB342', '#6D4C41']
+const MSG_TAG_COLORS = ['chart-1', 'chart-2', 'chart-3', 'chart-4', 'chart-5']
 const allClassTags = computed(() => {
   const tagSet = new Set<string>()
   for (const g of classGroups.value) {
