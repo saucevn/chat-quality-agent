@@ -279,3 +279,87 @@ func TestFetchRecentConversationsRespectsLimit(t *testing.T) {
 		t.Errorf("limit must be honoured, got %d", len(convs))
 	}
 }
+
+func TestFetchRecentConversationsHandlesAllMissingIDs(t *testing.T) {
+	// Test that if a full page of 60 items all lack the "id" field,
+	// the function detects pagination stall (cursor didn't advance)
+	// and returns without infinite loop.
+	// Using context.Background() proves the function exits on its own,
+	// not via timeout.
+	page := make([]map[string]interface{}, pancakeConvPageSize)
+	for i := range page {
+		page[i] = map[string]interface{}{
+			// Deliberately omit "id" field
+			"type":       "INBOX",
+			"updated_at": "2026-07-20T10:00:00.000000",
+			"from":       map[string]interface{}{"id": "psid", "name": "K"},
+		}
+	}
+
+	var requestCount int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		if requestCount > 2 {
+			t.Fatal("too many requests; infinite loop detected (expected <=2)")
+		}
+		resp, _ := json.Marshal(map[string]interface{}{"conversations": page})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	convs, err := newTestAdapter(srv.URL).FetchRecentConversations(context.Background(), time.Time{}, 0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// No conversations should be returned because none have valid IDs
+	if len(convs) != 0 {
+		t.Errorf("expected 0 conversations (all had missing IDs), got %d", len(convs))
+	}
+	// Should exit after first request detects cursor stall
+	if requestCount > 1 {
+		t.Errorf("should detect cursor stall after 1 request, made %d requests", requestCount)
+	}
+}
+
+func TestFetchRecentConversationsHandlesRepeatingPages(t *testing.T) {
+	// Test that if the server returns the exact same page regardless of
+	// last_conversation_id parameter, the function detects cursor stall
+	// and exits instead of looping infinitely.
+	// Using context.Background() proves the function exits on its own.
+	page := make([]map[string]interface{}, pancakeConvPageSize)
+	for i := range page {
+		page[i] = map[string]interface{}{
+			"id":         fmt.Sprintf("c%d", i),
+			"type":       "INBOX",
+			"updated_at": "2026-07-20T10:00:00.000000",
+			"from":       map[string]interface{}{"id": "psid", "name": "K"},
+		}
+	}
+
+	var requestCount int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		if requestCount > 2 {
+			t.Fatal("too many requests; infinite loop detected (expected <=2)")
+		}
+		// Always return the same page, ignoring last_conversation_id
+		resp, _ := json.Marshal(map[string]interface{}{"conversations": page})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	convs, err := newTestAdapter(srv.URL).FetchRecentConversations(context.Background(), time.Time{}, 0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Function must exit without infinite loop; exact conversation count
+	// depends on when cursor stall is detected (may include duplicates from
+	// broken server, but we prevent the infinite loop).
+	if len(convs) == 0 {
+		t.Errorf("expected at least one conversation, got none")
+	}
+	// Should make exactly 2 requests: first page + second page where cursor stalls
+	if requestCount != 2 {
+		t.Errorf("expected 2 requests (first page + stall detection), made %d", requestCount)
+	}
+}

@@ -120,7 +120,11 @@ func (p *PancakeAdapter) HealthCheck(ctx context.Context) error {
 	return err
 }
 
-const pancakeConvPageSize = 60
+const (
+	pancakeConvPageSize     = 60
+	pancakeMaxConvPages     = 200 // safety net against malformed pagination responses
+)
+
 
 // parsePancakeTime parses Pancake timestamps.
 //
@@ -153,8 +157,16 @@ func parsePancakeTime(v interface{}) time.Time {
 func (p *PancakeAdapter) FetchRecentConversations(ctx context.Context, since time.Time, limit int) ([]SyncedConversation, error) {
 	var out []SyncedConversation
 	lastID := ""
+	pageCount := 0
 
 	for {
+		// Safety check: if cursor didn't advance despite a full page, something is wrong
+		prevLastID := lastID
+		pageCount++
+		if pageCount > pancakeMaxConvPages {
+			break
+		}
+
 		params := url.Values{}
 		// VERIFY-2: the spec's Conversation.type enum (INBOX/COMMENT/LIVESTREAM)
 		// disagrees with the query param docs (INBOX/COMMENT/COMMENT_LIVESTREAM/POST).
@@ -216,6 +228,11 @@ func (p *PancakeAdapter) FetchRecentConversations(ctx context.Context, since tim
 			if limit > 0 && len(out) >= limit {
 				return out, nil
 			}
+		}
+
+		// Detect pagination stall: cursor didn't advance despite a full page
+		if prevLastID == lastID && len(raw) > 0 {
+			break
 		}
 
 		if len(raw) < pancakeConvPageSize {
