@@ -16,6 +16,12 @@ Nếu cuộc chat thỏa mãn bất kỳ điều kiện nào trên, trả về v
 
 	return fmt.Sprintf(`Bạn là chuyên gia đánh giá chất lượng chăm sóc khách hàng (CSKH).
 
+## Vai trò người gửi trong đoạn chat:
+Mỗi dòng có định dạng "[giờ] Tên (vai trò): nội dung". Vai trò gồm:
+- "khách hàng": khách hàng.
+- "nhân viên": nhân viên CSKH — ĐÂY LÀ ĐỐI TƯỢNG DUY NHẤT cần đánh giá.
+- "tin tự động, KHÔNG tính vào đánh giá nhân viên": tin do hệ thống/chatbot/automation tự động gửi, KHÔNG PHẢI do nhân viên tự gõ — dù tên hiển thị có thể trùng với tên một nhân viên thật. TUYỆT ĐỐI KHÔNG dùng các tin này để tính điểm, tìm vi phạm hay khen ngợi nhân viên.
+
 ## Quy định CSKH cần tuân thủ:
 %s
 %s
@@ -96,6 +102,29 @@ Format: [{"conversation_id": "xxx", ...kết quả...}, ...]
 CHỈ trả về JSON array, không thêm text khác.`, basePrompt, count, count)
 }
 
+// senderRoleLabel returns a short Vietnamese role annotation for a
+// ChatMessage's SenderType so the transcript handed to the AI makes the
+// sender's role unambiguous.
+//
+// This matters because bot/automation messages (sender_type="system") are
+// attributed by some channels (e.g. Pancake, see classifyPancakeSender in
+// channels/pancake.go) to a staff display name — SenderName alone cannot
+// distinguish "Lan the agent" from "an automated reply sent under Lan's
+// account". Without this label the AI has no way to tell them apart and
+// would score automated messages as if an employee wrote them.
+func senderRoleLabel(senderType string) string {
+	switch senderType {
+	case "customer":
+		return "khách hàng"
+	case "agent":
+		return "nhân viên"
+	case "system":
+		return "tin tự động, KHÔNG tính vào đánh giá nhân viên"
+	default:
+		return ""
+	}
+}
+
 // FormatChatTranscript formats messages into a readable transcript for AI analysis.
 func FormatChatTranscript(messages []ChatMessage) string {
 	result := ""
@@ -103,6 +132,9 @@ func FormatChatTranscript(messages []ChatMessage) string {
 		label := msg.SenderName
 		if label == "" {
 			label = msg.SenderType
+		}
+		if role := senderRoleLabel(msg.SenderType); role != "" {
+			label = fmt.Sprintf("%s (%s)", label, role)
 		}
 		result += fmt.Sprintf("[%s] %s: %s\n", msg.SentAt, label, msg.Content)
 	}
