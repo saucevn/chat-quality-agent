@@ -39,3 +39,25 @@ func TestNewAdapterInvalidJSON(t *testing.T) {
 		t.Fatal("Should fail for invalid JSON")
 	}
 }
+
+func TestNewAdapterSupportsPancake(t *testing.T) {
+	creds := []byte(`{"page_id":"p1","page_access_token":"tok123"}`)
+
+	adapter, err := NewAdapter("pancake", creds)
+	if err != nil {
+		t.Fatalf("pancake should be a supported channel type, got: %v", err)
+	}
+	pa, ok := adapter.(*PancakeAdapter)
+	if !ok {
+		t.Fatalf("expected *PancakeAdapter, got %T", adapter)
+	}
+	if pa.creds.PageID != "p1" || pa.creds.PageAccessToken != "tok123" {
+		t.Errorf("credentials not unmarshalled: %+v", pa.creds)
+	}
+}
+
+func TestNewAdapterRejectsBadPancakeCredentials(t *testing.T) {
+	if _, err := NewAdapter("pancake", []byte(`not json`)); err == nil {
+		t.Error("expected an error for malformed pancake credentials")
+	}
+}
