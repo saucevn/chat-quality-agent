@@ -289,7 +289,7 @@
                         </v-chip>
                         <span class="font-weight-medium text-body-2">{{ v.rule_name }}</span>
                       </div>
-                      <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded" style="font-size: 13px; border-left: 3px solid #ff9800;">
+                      <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded" style="font-size: 13px; border-left: 3px solid var(--amber);">
                         {{ v.evidence }}
                       </div>
                     </div>
@@ -476,6 +476,8 @@ const classGroups = computed(() => {
   return evaluation.value.groups.filter((g: any) => g.job_type === 'classification')
 })
 
+// Cố ý không dùng design token: cần tối đa 10 màu riêng biệt để phân biệt các thẻ phân loại,
+// trong khi bảng token chỉ có --chart-1..5 (5 màu) — ép vào sẽ làm nhiều thẻ trùng màu.
 const MSG_TAG_COLORS = ['#7E57C2', '#1E88E5', '#00897B', '#FB8C00', '#D81B60', '#00ACC1', '#3949AB', '#E64A19', '#7CB342', '#6D4C41']
 const allClassTags = computed(() => {
   const tagSet = new Set<string>()

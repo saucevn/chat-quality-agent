@@ -38,7 +38,7 @@
             <tr v-if="expandedId === log.id">
               <td colspan="5" class="bg-grey-lighten-5 pa-4">
                 <div class="text-caption text-grey mb-2">Nội dung đã gửi:</div>
-                <div class="text-body-2 pa-3 rounded" style="background: white; border: 1px solid #e0e0e0; white-space: pre-wrap;">{{ log.body }}</div>
+                <div class="text-body-2 pa-3 rounded" style="background: var(--card); border: 1px solid var(--border); white-space: pre-wrap;">{{ log.body }}</div>
                 <div v-if="log.subject" class="text-caption text-grey mt-2">Tiêu đề: {{ log.subject }}</div>
                 <div v-if="log.error_message" class="text-error text-body-2 mt-2">
                   Lỗi: {{ log.error_message }}

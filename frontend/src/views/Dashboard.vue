@@ -132,7 +132,7 @@
               :key="item.id"
               class="d-flex align-center pa-2 mb-1 rounded"
               style="cursor: pointer"
-              :style="{ background: item._type === 'qc' ? '#fff5f5' : '#f8f8fc' }"
+              :style="{ background: item._type === 'qc' ? 'var(--destructive-bg)' : 'var(--primary-mist)' }"
               @click="goToConversation(item.conversation_id, item._type === 'qc' ? 'evaluation' : 'classification')"
             >
               <!-- QC Alert row -->
@@ -248,15 +248,18 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useTheme } from 'vuetify'
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend } from 'chart.js'
 import api from '../api'
+import { chartTokens } from '../design/chart-tokens'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend)
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const theme = useTheme()
 const tenantId = computed(() => route.params.tenantId as string)
 
 function channelLabel(type: string) {
@@ -376,45 +379,54 @@ function formatChartDate(dateStr: string) {
   return dateStr
 }
 
-const messagesChartData = computed(() => ({
-  labels: messagesByDay.value.map(d => formatChartDate(d.date)),
-  datasets: [
-    {
-      label: 'Tổng tin nhắn',
-      data: messagesByDay.value.map(d => d.count),
-      borderColor: '#5C6BC0',
-      backgroundColor: 'rgba(92,107,192,0.1)',
-      fill: false,
-      tension: 0.3,
-    },
-    {
-      label: 'Cuộc chat',
-      data: messagesByDay.value.map(d => d.chat_count || 0),
-      borderColor: '#66BB6A',
-      fill: false,
-      tension: 0.3,
-    },
-    {
-      label: 'Trả lời NV',
-      data: messagesByDay.value.map(d => d.reply_count || 0),
-      borderColor: '#FFA726',
-      fill: false,
-      tension: 0.3,
-    },
-  ],
-}))
+const messagesChartData = computed(() => {
+  // Phụ thuộc theme để biểu đồ vẽ lại khi đổi light/dark (chart.js cần chuỗi màu đã tính, không nhận biến CSS)
+  void theme.global.name.value
+  const ct = chartTokens()
+  return {
+    labels: messagesByDay.value.map(d => formatChartDate(d.date)),
+    datasets: [
+      {
+        label: 'Tổng tin nhắn',
+        data: messagesByDay.value.map(d => d.count),
+        borderColor: ct.c1,
+        backgroundColor: 'rgba(92,107,192,0.1)',
+        fill: false,
+        tension: 0.3,
+      },
+      {
+        label: 'Cuộc chat',
+        data: messagesByDay.value.map(d => d.chat_count || 0),
+        borderColor: ct.c4,
+        fill: false,
+        tension: 0.3,
+      },
+      {
+        label: 'Trả lời NV',
+        data: messagesByDay.value.map(d => d.reply_count || 0),
+        borderColor: ct.c2,
+        fill: false,
+        tension: 0.3,
+      },
+    ],
+  }
+})
 
-const costChartData = computed(() => ({
-  labels: [...costByDay.value].reverse().map(d => formatChartDate(d.date)),
-  datasets: [{
-    label: 'Chi phí (VNĐ)',
-    data: [...costByDay.value].reverse().map(d => Math.round(d.total_cost * exchangeRate.value)),
-    borderColor: '#FFA726',
-    backgroundColor: 'rgba(255,167,38,0.1)',
-    fill: true,
-    tension: 0.3,
-  }],
-}))
+const costChartData = computed(() => {
+  void theme.global.name.value
+  const ct = chartTokens()
+  return {
+    labels: [...costByDay.value].reverse().map(d => formatChartDate(d.date)),
+    datasets: [{
+      label: 'Chi phí (VNĐ)',
+      data: [...costByDay.value].reverse().map(d => Math.round(d.total_cost * exchangeRate.value)),
+      borderColor: ct.c2,
+      backgroundColor: 'rgba(255,167,38,0.1)',
+      fill: true,
+      tension: 0.3,
+    }],
+  }
+})
 
 const chartOptions = {
   responsive: true,
