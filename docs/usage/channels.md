@@ -2,6 +2,10 @@
 
 CQA hỗ trợ 2 kênh chat: **Zalo OA** và **Facebook Messenger**. Bạn có thể kết nối nhiều kênh cùng lúc.
 
+::: tip Đã dùng Pancake?
+Nếu bạn đang quản lý tin nhắn qua [Pancake](https://pancake.vn), có thể kết nối nhanh hơn qua đó thay vì kết nối trực tiếp từng nền tảng bên dưới. Xem [Kết nối Pancake](/usage/pancake).
+:::
+
 ## Thêm kênh
 
 Vào menu **Kênh chat** ở sidebar, bấm **Thêm kênh**.

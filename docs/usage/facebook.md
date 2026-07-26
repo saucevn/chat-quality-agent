@@ -2,6 +2,10 @@
 
 CQA cần **Page ID** và **Page Access Token** của fanpage để lấy tin nhắn từ Messenger.
 
+::: tip Đã dùng Pancake?
+Nếu bạn đang quản lý fanpage qua [Pancake](https://pancake.vn), có thể kết nối nhanh hơn qua đó thay vì làm theo các bước OAuth bên dưới. Xem [Kết nối Pancake](/usage/pancake).
+:::
+
 ## Bạn thuộc trường hợp nào?
 
 | Trường hợp | Đặc điểm | Đi đến |

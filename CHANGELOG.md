@@ -1,5 +1,16 @@
 # Changelog
 
+## v2026.07.26.3
+
+### Tính năng mới
+- **Kênh Pancake**: Kết nối một lúc đến ~20 nền tảng (Facebook, Instagram, TikTok Business, Zalo, Shopee, Lazada, Telegram, v.v.) — chỉ hỗ trợ hội thoại inbox
+- **Môi trường phát triển**: `make setup` và `make dev` cho người đóng góp code — MySQL trong Docker, backend/frontend native
+
+### Sửa lỗi
+- **Đồng bộ kênh**: Sửa lỗi `last_sync_at` cập nhật ngay cả khi đồng bộ thất bại — khiến tin nhắn tới trong lúc trục trặc bị bỏ qua vĩnh viễn (Zalo OA, Facebook, Pancake)
+
+---
+
 ## v2026.03.30
 
 ### Tính năng mới
