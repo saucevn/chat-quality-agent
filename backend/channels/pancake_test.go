@@ -682,3 +682,52 @@ func TestFetchMessagesDetectsCursorStall(t *testing.T) {
 		t.Errorf("expected %d requests (page limit), made %d", pancakeMaxMsgPages, requestCount)
 	}
 }
+
+// TestFetchMessagesReturnsPartialMessagesOnLaterPageError is the I1
+// regression test: FetchMessages must return whatever it already fetched
+// from earlier successful pages alongside a non-nil error, matching
+// facebook.go/zalo_oa.go, instead of discarding everything with (nil, err).
+//
+// engine/sync.go treats a FetchMessages error as non-fatal — it logs and
+// moves to the next conversation — but still finishes the channel sync as
+// "success" and advances last_sync_at. Before this fix, any messages already
+// fetched from pages preceding the failing one were silently thrown away and
+// permanently unreachable on the next sync, without ever surfacing an error.
+func TestFetchMessagesReturnsPartialMessagesOnLaterPageError(t *testing.T) {
+	firstPage := make([]map[string]interface{}, pancakeMsgPageSize)
+	for i := range firstPage {
+		firstPage[i] = map[string]interface{}{
+			"id": fmt.Sprintf("m%d", i), "inserted_at": "2026-07-20T12:00:00.000000",
+			"original_message": "ok",
+			"from":             map[string]interface{}{"id": "psid", "name": "K"},
+		}
+	}
+
+	var requestCount int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		if r.URL.Query().Get("current_count") == "" {
+			// First page: full page, succeeds — pagination continues because
+			// len(raw) == pancakeMsgPageSize.
+			resp, _ := json.Marshal(map[string]interface{}{"success": true, "messages": firstPage})
+			w.Write(resp)
+			return
+		}
+		// Second page: server error, no "success" field.
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, `{"message":"boom"}`)
+	}))
+	defer srv.Close()
+
+	msgs, err := newTestAdapter(srv.URL).FetchMessages(context.Background(), "conv1", time.Time{})
+
+	if err == nil {
+		t.Fatal("expected a non-nil error from the failed second page")
+	}
+	if len(msgs) != pancakeMsgPageSize {
+		t.Fatalf("expected the %d messages from the successful first page to be preserved, got %d", pancakeMsgPageSize, len(msgs))
+	}
+	if requestCount != 2 {
+		t.Errorf("expected 2 requests (successful first page + failing second page), made %d", requestCount)
+	}
+}

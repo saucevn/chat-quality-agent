@@ -395,7 +395,12 @@ func (p *PancakeAdapter) FetchMessages(ctx context.Context, conversationID strin
 		path := p.v1("/conversations/" + url.PathEscape(conversationID) + "/messages")
 		body, err := p.doRequest(ctx, path, params)
 		if err != nil {
-			return nil, err
+			// Return what was already fetched from earlier pages alongside the
+			// error, matching facebook.go/zalo_oa.go. The caller (engine/sync.go)
+			// currently drops messages entirely on a non-nil error, but any
+			// future caller — or a fix to that drop — should not lose whole
+			// pages of already-fetched messages just because a later page failed.
+			return out, err
 		}
 
 		raw, _ := body["messages"].([]interface{})
