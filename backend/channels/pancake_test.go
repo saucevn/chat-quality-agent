@@ -415,6 +415,18 @@ func TestClassifyPancakeSender(t *testing.T) {
 			content:  "[Botcake Reply] Xin chào bạn",
 			wantType: "system", wantID: "uuid-4", wantName: "Page",
 		},
+		{
+			name:     "from nil → system",
+			from:     nil,
+			content:  "any content",
+			wantType: "system", wantID: "", wantName: "",
+		},
+		{
+			name:     "from không có id, uid, admin_id → system",
+			from:     map[string]interface{}{"name": "Unknown"},
+			content:  "any content",
+			wantType: "system", wantID: "", wantName: "Unknown",
+		},
 	}
 
 	for _, tc := range cases {
@@ -508,6 +520,48 @@ func TestFetchMessagesStopsAtSinceWatermark(t *testing.T) {
 	}
 }
 
+func TestFetchMessagesPreservesMessagesWithUnparseableInsertedAt(t *testing.T) {
+	// Test that messages with unparseable inserted_at are preserved.
+	// parsePancakeTime returns zero time for unparseable values, and zero time
+	// comparisons should not filter out the message.
+	page := []map[string]interface{}{
+		{
+			"id":               "m1",
+			"inserted_at":      "garbage-not-a-timestamp",
+			"original_message": "tin với inserted_at không parse",
+			"from":             map[string]interface{}{"id": "psid", "name": "K"},
+		},
+		{
+			"id":               "m2",
+			"inserted_at":      "2026-07-20T12:00:00.000000",
+			"original_message": "tin bình thường",
+			"from":             map[string]interface{}{"id": "psid", "name": "K"},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp, _ := json.Marshal(map[string]interface{}{"success": true, "messages": page})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	msgs, err := newTestAdapter(srv.URL).FetchMessages(context.Background(), "conv1", time.Time{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Both messages should be preserved despite first one having unparseable timestamp
+	if len(msgs) != 2 {
+		t.Fatalf("expected 2 messages (including unparseable), got %d", len(msgs))
+	}
+	if msgs[0].ExternalID != "m1" || msgs[0].Content != "tin với inserted_at không parse" {
+		t.Errorf("unparseable message should still be kept: %+v", msgs[0])
+	}
+	if msgs[0].SentAt != (time.Time{}) {
+		t.Errorf("unparseable inserted_at should result in zero time, got %v", msgs[0].SentAt)
+	}
+}
+
 func TestFetchMessagesPaginatesWithCurrentCount(t *testing.T) {
 	full := make([]map[string]interface{}, pancakeMsgPageSize)
 	for i := range full {
@@ -538,5 +592,88 @@ func TestFetchMessagesPaginatesWithCurrentCount(t *testing.T) {
 	}
 	if len(gotCounts) != 2 || gotCounts[0] != "" || gotCounts[1] != "30" {
 		t.Errorf("current_count sequence wrong: %v", gotCounts)
+	}
+}
+
+func TestFetchMessagesStopsOnInfiniteLoop(t *testing.T) {
+	// Test that if the server returns exactly pancakeMsgPageSize messages
+	// regardless of current_count, FetchMessages stops after pancakeMaxMsgPages
+	// to prevent infinite loops. Using context.Background() (no timeout) proves
+	// the function exits on its own via the page limit, not via timeout.
+	full := make([]map[string]interface{}, pancakeMsgPageSize)
+	for i := range full {
+		full[i] = map[string]interface{}{
+			"id": fmt.Sprintf("m%d", i), "inserted_at": "2026-07-20T12:00:00.000000",
+			"original_message": fmt.Sprintf("msg%d", i),
+			"from":             map[string]interface{}{"id": "psid", "name": "K"},
+		}
+	}
+
+	var requestCount int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		if requestCount > pancakeMaxMsgPages+1 {
+			t.Fatalf("too many requests: made %d (expected <= %d); infinite loop detected", requestCount, pancakeMaxMsgPages)
+		}
+		// Always return the same full page, ignoring current_count (broken server)
+		body := map[string]interface{}{"success": true, "messages": full}
+		resp, _ := json.Marshal(body)
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	msgs, err := newTestAdapter(srv.URL).FetchMessages(context.Background(), "conv1", time.Time{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Should exit at pancakeMaxMsgPages, accumulating messages until then
+	expectedMessages := pancakeMsgPageSize * pancakeMaxMsgPages
+	if len(msgs) != expectedMessages {
+		t.Errorf("expected %d messages (full pages * max pages), got %d", expectedMessages, len(msgs))
+	}
+	// Should make exactly pancakeMaxMsgPages requests before bailing out
+	if requestCount != pancakeMaxMsgPages {
+		t.Errorf("expected %d requests, made %d", pancakeMaxMsgPages, requestCount)
+	}
+}
+
+func TestFetchMessagesDetectsCursorStall(t *testing.T) {
+	// Test that FetchMessages stops when the page limit is reached, even if
+	// the server returns identical full pages. The page count limit acts as a
+	// safety net against cursor stall (server ignoring current_count param).
+	full := make([]map[string]interface{}, pancakeMsgPageSize)
+	for i := range full {
+		full[i] = map[string]interface{}{
+			"id": fmt.Sprintf("m%d", i), "inserted_at": "2026-07-20T12:00:00.000000",
+			"original_message": "x",
+			"from":             map[string]interface{}{"id": "psid", "name": "K"},
+		}
+	}
+
+	var requestCount int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		// Always return the same page regardless of current_count (broken server)
+		body := map[string]interface{}{"success": true, "messages": full}
+		resp, _ := json.Marshal(body)
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	msgs, err := newTestAdapter(srv.URL).FetchMessages(context.Background(), "conv1", time.Time{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// With a page limit of pancakeMaxMsgPages and full pages always returned,
+	// we should accumulate pancakeMsgPageSize * pancakeMaxMsgPages messages
+	// and stop after pancakeMaxMsgPages requests.
+	expectedMessages := pancakeMsgPageSize * pancakeMaxMsgPages
+	if len(msgs) != expectedMessages {
+		t.Errorf("expected %d messages (full pages * max), got %d", expectedMessages, len(msgs))
+	}
+	if requestCount != pancakeMaxMsgPages {
+		t.Errorf("expected %d requests (page limit), made %d", pancakeMaxMsgPages, requestCount)
 	}
 }

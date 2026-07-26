@@ -163,7 +163,6 @@ func (p *PancakeAdapter) FetchRecentConversations(ctx context.Context, since tim
 	for {
 		// Safety check: if cursor didn't advance despite a full page, something is wrong
 		prevLastID := lastID
-		pageCount++
 		if pageCount > pancakeMaxConvPages {
 			break
 		}
@@ -379,7 +378,6 @@ func (p *PancakeAdapter) FetchMessages(ctx context.Context, conversationID strin
 	pageCount := 0
 
 	for {
-		pageCount++
 		if pageCount > pancakeMaxMsgPages {
 			break
 		}
