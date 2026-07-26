@@ -1,0 +1,192 @@
+{
+  "$schema": "https://schemas.tokens.studio/latest/tokens-schema.json",
+  "$metadata": {
+    "tokenSetOrder": ["core", "light", "dark", "component"],
+    "version": "2.0.0",
+    "name": "ERP Design System",
+    "description": "OKLCH-based tokens for a neutral ERP system. Primary Indigo (hue 277) · neutral hue 285 · system font stack (no webfont) · shadcn/ui + Tailwind v4 structure. Import via Tokens Studio for Figma plugin.",
+    "lastUpdated": "2026-07-03"
+  },
+  "core": {
+    "font": {
+      "body":    { "$value": "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif", "$type": "fontFamilies", "$description": "Primary typeface — UI, body, labels. System stack, no webfont load." },
+      "display": { "$value": "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif", "$type": "fontFamilies", "$description": "Display role — headings, KPI numbers. Same system stack; differentiated by weight + tracking-tight, not a separate family." },
+      "mono":    { "$value": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", "$type": "fontFamilies", "$description": "Monospace — IDs, codes, kbd, tabular helpers." }
+    },
+    "fontWeight": {
+      "regular":  { "$value": 400, "$type": "fontWeights" },
+      "medium":   { "$value": 500, "$type": "fontWeights" },
+      "semibold": { "$value": 600, "$type": "fontWeights" },
+      "bold":     { "$value": 700, "$type": "fontWeights" }
+    },
+    "fontSize": {
+      "display-lg": { "$value": "48px", "$type": "fontSizes", "$description": "Marketing / empty-hero only" },
+      "heading-1":  { "$value": "30px", "$type": "fontSizes", "$description": "Page title h1 · KPI value" },
+      "heading-2":  { "$value": "24px", "$type": "fontSizes", "$description": "Section title h2" },
+      "heading-3":  { "$value": "20px", "$type": "fontSizes", "$description": "Card / dialog title h3" },
+      "body-lg":    { "$value": "18px", "$type": "fontSizes", "$description": "Intro, callout body" },
+      "body-base":  { "$value": "16px", "$type": "fontSizes", "$description": "Default body" },
+      "body-sm":    { "$value": "14px", "$type": "fontSizes", "$description": "Label, nav item, table cell — most-used size" },
+      "label":      { "$value": "12px", "$type": "fontSizes", "$description": "Badge, table header, group label — uppercase" }
+    },
+    "lineHeight": {
+      "heading-1":  { "$value": "36px", "$type": "lineHeights" },
+      "heading-2":  { "$value": "32px", "$type": "lineHeights" },
+      "heading-3":  { "$value": "28px", "$type": "lineHeights" },
+      "body-lg":    { "$value": "28px", "$type": "lineHeights" },
+      "body-base":  { "$value": "24px", "$type": "lineHeights" },
+      "body-sm":    { "$value": "20px", "$type": "lineHeights" },
+      "label":      { "$value": "16px", "$type": "lineHeights" }
+    },
+    "letterSpacing": {
+      "tight":  { "$value": "-0.025em", "$type": "letterSpacing", "$description": "KPI value + heading" },
+      "snug":   { "$value": "-0.01em",  "$type": "letterSpacing", "$description": "Section title" },
+      "normal": { "$value": "0",         "$type": "letterSpacing" },
+      "wide":   { "$value": "0.06em",   "$type": "letterSpacing", "$description": "Uppercase labels" }
+    },
+    "spacing": {
+      "0":  { "$value": "0",     "$type": "spacing" },
+      "1":  { "$value": "4px",   "$type": "spacing" },
+      "2":  { "$value": "8px",   "$type": "spacing" },
+      "3":  { "$value": "12px",  "$type": "spacing" },
+      "4":  { "$value": "16px",  "$type": "spacing" },
+      "5":  { "$value": "20px",  "$type": "spacing" },
+      "6":  { "$value": "24px",  "$type": "spacing" },
+      "8":  { "$value": "32px",  "$type": "spacing" },
+      "10": { "$value": "40px",  "$type": "spacing" },
+      "12": { "$value": "48px",  "$type": "spacing" },
+      "16": { "$value": "64px",  "$type": "spacing", "$description": "Header height — locked" },
+      "72": { "$value": "288px", "$type": "spacing", "$description": "Sidebar width — locked" }
+    },
+    "radius": {
+      "sm":   { "$value": "6px",    "$type": "borderRadius", "$description": "Badge, kbd, chip, small control" },
+      "md":   { "$value": "8px",    "$type": "borderRadius", "$description": "Button, input, select — DEFAULT control radius" },
+      "lg":   { "$value": "10px",   "$type": "borderRadius", "$description": "Dropdown, popover, dialog body (= --radius base)" },
+      "xl":   { "$value": "14px",   "$type": "borderRadius", "$description": "Card, KPI card, panel" },
+      "chip": { "$value": "16px",   "$type": "borderRadius", "$description": "Icon chip, agent squircle" },
+      "full": { "$value": "9999px", "$type": "borderRadius", "$description": "Pill badge, human avatar circle, toggle" }
+    },
+    "shadow": {
+      "xs":    { "$value": { "x": "0", "y": "1px",  "blur": "2px",  "spread": "0",    "color": "oklch(15% 0.02 285 / 0.06)" }, "$type": "boxShadow" },
+      "card":  { "$value": { "x": "0", "y": "1px",  "blur": "3px",  "spread": "0",    "color": "oklch(15% 0.02 285 / 0.10)" }, "$type": "boxShadow", "$description": "Default card / KPI elevation" },
+      "md":    { "$value": { "x": "0", "y": "4px",  "blur": "6px",  "spread": "-1px", "color": "oklch(15% 0.02 285 / 0.10)" }, "$type": "boxShadow", "$description": "Dropdown, popover, tooltip" },
+      "pop":   { "$value": { "x": "0", "y": "10px", "blur": "30px", "spread": "-8px", "color": "oklch(15% 0.02 285 / 0.18)" }, "$type": "boxShadow", "$description": "Dialog, command palette, hover-lift tile" },
+      "focus": { "$value": { "x": "0", "y": "0",    "blur": "0",    "spread": "3px",  "color": "oklch(54% 0.25 277 / 0.35)" }, "$type": "boxShadow", "$description": "Focus ring glow — pair with outline" }
+    },
+    "duration": {
+      "instant": { "$value": "100ms", "$type": "duration" },
+      "fast":    { "$value": "200ms", "$type": "duration" },
+      "medium":  { "$value": "320ms", "$type": "duration" },
+      "slow":    { "$value": "480ms", "$type": "duration" }
+    },
+    "easing": {
+      "out":    { "$value": "cubic-bezier(0.16, 1, 0.3, 1)",     "$type": "cubicBezier" },
+      "inOut":  { "$value": "cubic-bezier(0.65, 0, 0.35, 1)",    "$type": "cubicBezier" },
+      "spring": { "$value": "cubic-bezier(0.34, 1.56, 0.64, 1)", "$type": "cubicBezier" }
+    }
+  },
+  "light": {
+    "background":           { "$value": "oklch(99% 0 0)",           "$type": "color", "$description": "Page background — near-white, no pure #FFF" },
+    "card":                 { "$value": "oklch(100% 0 0)",          "$type": "color", "$description": "Card / KPI surface — pure white for elevation over page" },
+    "popover":              { "$value": "oklch(100% 0 0)",          "$type": "color" },
+    "foreground":           { "$value": "oklch(15% 0.02 285)",      "$type": "color", "$description": "Body text · 16.9:1 AAA on card" },
+    "card-foreground":      { "$value": "oklch(15% 0.02 285)",      "$type": "color" },
+    "popover-foreground":   { "$value": "oklch(15% 0.02 285)",      "$type": "color" },
+    "muted-foreground":     { "$value": "oklch(48% 0.02 285)",      "$type": "color", "$description": "Secondary text, placeholder, caption · 6.9:1 AA" },
+    "primary":              { "$value": "oklch(54% 0.25 277)",      "$type": "color", "$description": "Indigo — CTA, active nav, link, chart-1, focus ring" },
+    "primary-foreground":   { "$value": "oklch(99% 0 0)",           "$type": "color", "$description": "Near-white text on primary · 6.4:1 AA" },
+    "primary-deep":         { "$value": "oklch(46% 0.24 277)",      "$type": "color", "$description": "Primary hover / pressed" },
+    "primary-mist":         { "$value": "oklch(96% 0.03 285)",      "$type": "color", "$description": "Selected-row bg, insight tint, AI highlight" },
+    "amber":                { "$value": "oklch(66.6% 0.179 58.318)","$type": "color", "$description": "Warning accent — max 10% area" },
+    "amber-foreground":     { "$value": "oklch(20% 0.02 285)",      "$type": "color", "$description": "Dark text on solid amber" },
+    "amber-bg":             { "$value": "oklch(98.7% 0.022 95.277)","$type": "color", "$description": "Warning banner / tint bg" },
+    "amber-border":         { "$value": "oklch(92.4% 0.12 95.746)", "$type": "color", "$description": "Warning banner border" },
+    "success":              { "$value": "oklch(50.8% 0.118 165.612)","$type": "color", "$description": "Online dot, success icon, chart positive" },
+    "success-bg":           { "$value": "oklch(95% 0.052 163.051)", "$type": "color", "$description": "Tint badge bg" },
+    "success-fg":           { "$value": "oklch(32% 0.11 165)",      "$type": "color", "$description": "Tint badge text · 5.6:1 AA on success-bg" },
+    "destructive":          { "$value": "oklch(57.7% 0.245 27.325)","$type": "color", "$description": "Error, destructive fill, solid critical badge" },
+    "destructive-foreground":{ "$value": "oklch(99% 0 0)",          "$type": "color" },
+    "destructive-bg":       { "$value": "oklch(95% 0.03 25)",       "$type": "color" },
+    "destructive-fg":       { "$value": "oklch(40% 0.2 27)",        "$type": "color", "$description": "Tint badge text · 5.0:1 AA on destructive-bg" },
+    "solid-badge-fg":       { "$value": "oklch(99% 0 0)",           "$type": "color", "$description": "Near-white on solid badge fill" },
+    "secondary":            { "$value": "oklch(96% 0.02 285)",      "$type": "color" },
+    "secondary-foreground": { "$value": "oklch(15% 0.02 285)",      "$type": "color" },
+    "muted":                { "$value": "oklch(96% 0.02 285)",      "$type": "color", "$description": "Skeleton base, disabled bg, table header" },
+    "accent":               { "$value": "oklch(96% 0.02 285)",      "$type": "color", "$description": "Hover bg — nav, ghost button, table row" },
+    "accent-foreground":    { "$value": "oklch(15% 0.02 285)",      "$type": "color" },
+    "border":               { "$value": "oklch(90% 0.02 285)",      "$type": "color" },
+    "input":                { "$value": "oklch(90% 0.02 285)",      "$type": "color" },
+    "ring":                 { "$value": "oklch(54% 0.25 277)",      "$type": "color", "$description": "Focus ring = primary" },
+    "sidebar":              { "$value": "oklch(98% 0.01 285)",      "$type": "color" },
+    "sidebar-fg":           { "$value": "oklch(15% 0.02 285)",      "$type": "color" },
+    "sidebar-border":       { "$value": "oklch(90% 0.02 285)",      "$type": "color" },
+    "sidebar-accent":       { "$value": "oklch(96% 0.02 285)",      "$type": "color" },
+    "chart-1":              { "$value": "oklch(54% 0.25 277)",      "$type": "color", "$description": "Indigo · primary series" },
+    "chart-2":              { "$value": "oklch(65% 0.13 320)",      "$type": "color", "$description": "Magenta · secondary" },
+    "chart-3":              { "$value": "oklch(40% 0.22 276)",      "$type": "color", "$description": "Deep indigo · tertiary" },
+    "chart-4":              { "$value": "oklch(70% 0.16 165)",      "$type": "color", "$description": "Mint · positive" },
+    "chart-5":              { "$value": "oklch(65% 0.18 310)",      "$type": "color", "$description": "Purple · fifth only" }
+  },
+  "dark": {
+    "background":           { "$value": "oklch(12% 0.02 285)",      "$type": "color" },
+    "card":                 { "$value": "oklch(16% 0.02 285)",      "$type": "color", "$description": "Lighter than page for elevation" },
+    "popover":              { "$value": "oklch(16% 0.02 285)",      "$type": "color" },
+    "foreground":           { "$value": "oklch(95% 0.02 285)",      "$type": "color" },
+    "card-foreground":      { "$value": "oklch(95% 0.02 285)",      "$type": "color" },
+    "popover-foreground":   { "$value": "oklch(95% 0.02 285)",      "$type": "color" },
+    "muted-foreground":     { "$value": "oklch(72% 0.02 257)",      "$type": "color", "$description": "6.2:1 AA — 72% locked, never 65%" },
+    "primary":              { "$value": "oklch(70% 0.22 277)",      "$type": "color", "$description": "Brighter indigo for dark bg" },
+    "primary-foreground":   { "$value": "oklch(20% 0.02 285)",      "$type": "color", "$description": "Dark text on bright primary · 5.6:1 AA" },
+    "primary-deep":         { "$value": "oklch(62% 0.22 277)",      "$type": "color" },
+    "primary-mist":         { "$value": "oklch(28% 0.08 277)",      "$type": "color" },
+    "amber":                { "$value": "oklch(80% 0.15 70)",       "$type": "color" },
+    "amber-foreground":     { "$value": "oklch(20% 0.02 285)",      "$type": "color" },
+    "amber-bg":             { "$value": "oklch(28% 0.05 75)",       "$type": "color" },
+    "amber-border":         { "$value": "oklch(40% 0.09 75)",       "$type": "color" },
+    "success":              { "$value": "oklch(80% 0.14 165)",      "$type": "color" },
+    "success-bg":           { "$value": "oklch(28% 0.06 165)",      "$type": "color" },
+    "success-fg":           { "$value": "oklch(88% 0.13 165)",      "$type": "color", "$description": "5.4:1 AA in dark" },
+    "destructive":          { "$value": "oklch(70.4% 0.191 22.216)","$type": "color" },
+    "destructive-foreground":{ "$value": "oklch(15% 0.02 285)",     "$type": "color" },
+    "destructive-bg":       { "$value": "oklch(30% 0.1 25)",        "$type": "color" },
+    "destructive-fg":       { "$value": "oklch(88% 0.16 27)",       "$type": "color", "$description": "5.6:1 AA in dark" },
+    "solid-badge-fg":       { "$value": "oklch(99% 0 0)",           "$type": "color" },
+    "secondary":            { "$value": "oklch(22% 0.02 285)",      "$type": "color" },
+    "secondary-foreground": { "$value": "oklch(95% 0.02 285)",      "$type": "color" },
+    "muted":                { "$value": "oklch(22% 0.02 285)",      "$type": "color" },
+    "accent":               { "$value": "oklch(22% 0.02 285)",      "$type": "color" },
+    "accent-foreground":    { "$value": "oklch(95% 0.02 285)",      "$type": "color" },
+    "border":               { "$value": "oklch(25% 0.02 285)",      "$type": "color" },
+    "input":                { "$value": "oklch(25% 0.02 285)",      "$type": "color" },
+    "ring":                 { "$value": "oklch(70% 0.22 277)",      "$type": "color" },
+    "sidebar":              { "$value": "oklch(14% 0.02 285)",      "$type": "color" },
+    "sidebar-fg":           { "$value": "oklch(95% 0.02 285)",      "$type": "color" },
+    "sidebar-border":       { "$value": "oklch(25% 0.02 285)",      "$type": "color" },
+    "sidebar-accent":       { "$value": "oklch(22% 0.02 285)",      "$type": "color" },
+    "chart-1":              { "$value": "oklch(70% 0.22 277)",      "$type": "color" },
+    "chart-2":              { "$value": "oklch(72% 0.13 320)",      "$type": "color" },
+    "chart-3":              { "$value": "oklch(60% 0.22 276)",      "$type": "color" },
+    "chart-4":              { "$value": "oklch(74% 0.16 165)",      "$type": "color" },
+    "chart-5":              { "$value": "oklch(72% 0.18 310)",      "$type": "color" }
+  },
+  "component": {
+    "agent": {
+      "ring-color-light":  { "$value": "oklch(54% 0.25 277)",       "$type": "color", "$description": "Indigo ring around automation-agent avatar" },
+      "ring-color-dark":   { "$value": "oklch(70% 0.22 277)",       "$type": "color" },
+      "ring-width":        { "$value": "2px",                       "$type": "borderWidth" },
+      "dot-running-light": { "$value": "oklch(66.6% 0.179 58.318)", "$type": "color", "$description": "Amber pulse when agent is running" },
+      "dot-running-dark":  { "$value": "oklch(80% 0.15 70)",        "$type": "color" },
+      "dot-online-light":  { "$value": "oklch(50.8% 0.118 165.612)","$type": "color", "$description": "Success dot when agent online / idle" },
+      "dot-online-dark":   { "$value": "oklch(80% 0.14 165)",       "$type": "color" },
+      "dot-error-light":   { "$value": "oklch(57.7% 0.245 27.325)", "$type": "color" },
+      "dot-error-dark":    { "$value": "oklch(70.4% 0.191 22.216)", "$type": "color" },
+      "dot-offline-light": { "$value": "oklch(60% 0.02 285)",       "$type": "color" },
+      "dot-offline-dark":  { "$value": "oklch(55% 0.02 285)",       "$type": "color" }
+    },
+    "insight": {
+      "gradient-from-light": { "$value": "oklch(54% 0.25 277 / 0.08)", "$type": "color", "$description": "Insight callout gradient start" },
+      "gradient-from-dark":  { "$value": "oklch(70% 0.22 277 / 0.12)", "$type": "color" },
+      "gradient-to":         { "$value": "{card}",                     "$type": "color", "$description": "Gradient end = card surface" }
+    }
+  }
+}
