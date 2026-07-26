@@ -11,13 +11,13 @@
       <v-col v-for="ch in channelStore.channels" :key="ch.id" cols="12" sm="6" md="4">
         <v-card class="pa-4" style="cursor: pointer" @click="router.push(`/${tenantId}/channels/${ch.id}`)">
           <div class="d-flex align-center mb-3">
-            <v-icon :color="ch.channel_type === 'zalo_oa' ? 'blue' : 'indigo'" size="32" class="mr-3">
-              {{ ch.channel_type === 'zalo_oa' ? 'mdi-message-text' : 'mdi-facebook-messenger' }}
+            <v-icon :color="channelColor(ch.channel_type)" size="32" class="mr-3">
+              {{ channelIcon(ch.channel_type) }}
             </v-icon>
             <div class="flex-grow-1">
               <div class="text-subtitle-1 font-weight-bold">{{ ch.name }}</div>
-              <v-chip size="x-small" :color="ch.channel_type === 'zalo_oa' ? 'blue' : 'indigo'" variant="tonal">
-                {{ ch.channel_type === 'zalo_oa' ? $t('channel_zalo') : $t('channel_facebook') }}
+              <v-chip size="x-small" :color="channelColor(ch.channel_type)" variant="tonal">
+                {{ channelLabel(ch.channel_type) }}
               </v-chip>
               <div v-if="ch.channel_type === 'zalo_oa' && ch.external_id" class="text-caption text-grey mt-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 OA: {{ ch.external_id }}
@@ -51,8 +51,10 @@
             <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-sync" :loading="syncing === ch.id" @click="syncNow(ch.id)">
               {{ $t('sync_now') }}
             </v-btn>
-            <v-btn v-if="ch.last_sync_status === 'error'" size="small" variant="tonal" color="warning" prepend-icon="mdi-link-variant" :loading="reauthing === ch.id" @click="reauthChannel(ch.id)">
-              Kết nối lại
+            <!-- Pancake dùng page_access_token không hết hạn nên không có luồng
+                 reauth; backend sẽ trả "Channel type does not support re-auth". -->
+            <v-btn v-if="ch.last_sync_status === 'error' && ch.channel_type !== 'pancake'" size="small" variant="tonal" color="warning" prepend-icon="mdi-link-variant" :loading="reauthing === ch.id" @click="reauthChannel(ch.id)">
+              {{ $t('reconnect') }}
             </v-btn>
             <v-btn size="small" variant="text" color="primary" @click="testConn(ch.id)">
               {{ $t('test_connection') }}
@@ -81,7 +83,7 @@
         <v-select
           v-model="newChannel.channel_type"
           :label="$t('channel_type')"
-          :items="[{ title: $t('channel_zalo'), value: 'zalo_oa' }, { title: $t('channel_facebook'), value: 'facebook' }]"
+          :items="[{ title: $t('channel_zalo'), value: 'zalo_oa' }, { title: $t('channel_facebook'), value: 'facebook' }, { title: $t('channel_pancake'), value: 'pancake' }]"
           class="mb-3"
         />
         <v-text-field v-model="newChannel.name" :label="$t('channel_name')" class="mb-3" />
@@ -100,12 +102,34 @@
         </template>
 
         <!-- Facebook -->
-        <template v-else>
+        <template v-else-if="newChannel.channel_type === 'facebook'">
           <v-btn variant="tonal" color="info" prepend-icon="mdi-book-open-variant" href="https://tanviet12.github.io/chat-quality-agent/usage/facebook.html" target="_blank" class="mb-3">
             Hướng dẫn kết nối Facebook Fanpage
           </v-btn>
           <v-text-field v-model="newChannel.creds.page_id" :label="$t('fb_page_id')" density="compact" class="mb-2" hint="Page ID từ Cài đặt trang Facebook" persistent-hint />
           <v-text-field v-model="newChannel.creds.access_token" :label="$t('fb_access_token')" density="compact" class="mb-2" hint="Page Access Token (nên dùng long-lived token)" persistent-hint />
+        </template>
+
+        <!-- Pancake -->
+        <template v-else-if="newChannel.channel_type === 'pancake'">
+          <v-form ref="pancakeFormRef">
+            <v-text-field
+              v-model="newChannel.creds.page_id"
+              :label="$t('pancake_page_id')"
+              density="compact"
+              class="mb-2"
+              :rules="[v => !!v || $t('validation_required')]"
+            />
+            <v-text-field
+              v-model="newChannel.creds.page_access_token"
+              :label="$t('pancake_page_access_token')"
+              density="compact"
+              class="mb-2"
+              :hint="$t('pancake_hint')"
+              persistent-hint
+              :rules="[v => !!v || $t('validation_required')]"
+            />
+          </v-form>
         </template>
 
         <!-- Sync settings -->
@@ -144,11 +168,20 @@
             {{ $t('zalo_authorize') }}
           </v-btn>
           <v-btn
-            v-else
+            v-else-if="newChannel.channel_type === 'facebook'"
             color="indigo"
             :loading="creating"
             :disabled="!newChannel.name || !newChannel.creds.page_id || !newChannel.creds.access_token"
             @click="createFacebook"
+          >
+            {{ $t('create') }}
+          </v-btn>
+          <v-btn
+            v-else-if="newChannel.channel_type === 'pancake'"
+            color="orange"
+            :loading="creating"
+            :disabled="!newChannel.name || !newChannel.creds.page_id || !newChannel.creds.page_access_token"
+            @click="createPancake"
           >
             {{ $t('create') }}
           </v-btn>
@@ -210,6 +243,23 @@ const reauthing = ref('')
 const snackbar = ref(false)
 const snackText = ref('')
 const snackColor = ref('success')
+const pancakeFormRef = ref<any>(null)
+
+function channelColor(type: string) {
+  if (type === 'zalo_oa') return 'blue'
+  if (type === 'pancake') return 'orange'
+  return 'indigo'
+}
+function channelIcon(type: string) {
+  if (type === 'zalo_oa') return 'mdi-message-text'
+  if (type === 'pancake') return 'mdi-storefront'
+  return 'mdi-facebook-messenger'
+}
+function channelLabel(type: string) {
+  if (type === 'zalo_oa') return t('channel_zalo')
+  if (type === 'pancake') return t('channel_pancake')
+  return t('channel_facebook')
+}
 
 const newChannel = reactive({
   channel_type: 'zalo_oa',
@@ -304,6 +354,33 @@ async function createFacebook() {
   }
 }
 
+
+async function createPancake() {
+  const { valid } = await pancakeFormRef.value?.validate() || {}
+  if (!valid) return
+
+  creating.value = true
+  try {
+    await channelStore.createChannel(tenantId.value, {
+      channel_type: newChannel.channel_type,
+      name: newChannel.name,
+      credentials: {
+        page_id: newChannel.creds.page_id,
+        page_access_token: newChannel.creds.page_access_token,
+      },
+      metadata: JSON.stringify({ sync_files: newChannel.sync_files, sync_interval: newChannel.sync_interval }),
+    })
+    showDialog.value = false
+    newChannel.name = ''
+    newChannel.creds = {}
+    showSnack(t('success'), 'success')
+    await channelStore.fetchChannels(tenantId.value)
+  } catch {
+    showSnack(t('error'), 'error')
+  } finally {
+    creating.value = false
+  }
+}
 
 async function syncNow(channelId: string) {
   syncing.value = channelId

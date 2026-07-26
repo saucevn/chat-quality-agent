@@ -39,3 +39,9 @@ code-review-*
 .claude/
 CLAUDE.md
 THAM-KHAO-MCP/
+
+# Backup/scratch files (fix subagents đã từng commit nhầm .bak vào repo)
+*.bak
+*.bak[0-9]
+*.broken
+*.orig

@@ -44,7 +44,10 @@ func (f *FacebookAdapter) doRequest(ctx context.Context, url string) (map[string
 
 	resp, err := f.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("facebook api request failed: %w", err)
+		// err is typically a *url.Error whose Error() embeds the full request
+		// URL, access_token included — must be redacted before it can be
+		// stored in channels.last_sync_error or shown in the UI (see C2).
+		return nil, fmt.Errorf("facebook api request failed: %s", redactSecrets(err.Error()))
 	}
 	defer resp.Body.Close()
 
@@ -177,22 +180,25 @@ func (f *FacebookAdapter) FetchMessages(ctx context.Context, conversationID stri
 			// Determine sender type
 			senderType := "customer"
 			senderName := ""
+			senderExternalID := ""
 			if from, ok := msg["from"].(map[string]interface{}); ok {
 				fromID, _ := from["id"].(string)
 				senderName, _ = from["name"].(string)
+				senderExternalID = fromID
 				if fromID == f.creds.PageID {
 					senderType = "agent"
 				}
 			}
 
 			syncedMsg := SyncedMessage{
-				ExternalID:  msgID,
-				SenderType:  senderType,
-				SenderName:  senderName,
-				Content:     content,
-				ContentType: "text",
-				SentAt:      sentAt,
-				RawData:     msg,
+				ExternalID:       msgID,
+				SenderType:       senderType,
+				SenderName:       senderName,
+				SenderExternalID: senderExternalID,
+				Content:          content,
+				ContentType:      "text",
+				SentAt:           sentAt,
+				RawData:          msg,
 			}
 
 			// Parse attachments

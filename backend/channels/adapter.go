@@ -16,14 +16,22 @@ type SyncedConversation struct {
 
 // SyncedMessage represents a message fetched from an external channel.
 type SyncedMessage struct {
-	ExternalID  string
-	SenderType  string // "customer" | "agent" | "system"
-	SenderName  string
-	Content     string
-	ContentType string // "text" | "image" | "file" | "sticker" | "gif"
-	Attachments []Attachment
-	SentAt      time.Time
-	RawData     map[string]interface{}
+	ExternalID string
+	SenderType string // "customer" | "agent" | "system"
+	SenderName string
+	// SenderExternalID is the platform-side identity of whoever sent the
+	// message, as reported by that platform. Granularity differs per channel:
+	//   - Pancake: the staff UUID, so replies can be attributed per agent.
+	//   - Zalo OA: the shared OA account id — Zalo does not expose which staff
+	//     member typed the reply, so per-agent scoring is impossible there.
+	//   - Facebook: the page id for agent messages.
+	// Customer messages carry the customer id/PSID on every channel.
+	SenderExternalID string
+	Content          string
+	ContentType      string // "text" | "image" | "file" | "sticker" | "gif"
+	Attachments      []Attachment
+	SentAt           time.Time
+	RawData          map[string]interface{}
 }
 
 // Attachment represents a media attachment in a message.
