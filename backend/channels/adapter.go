@@ -19,9 +19,13 @@ type SyncedMessage struct {
 	ExternalID string
 	SenderType string // "customer" | "agent" | "system"
 	SenderName string
-	// SenderExternalID is the platform-side identity of the sender: the staff
-	// UUID for agent messages, the customer id/PSID for customer messages.
-	// Required for per-agent quality scoring.
+	// SenderExternalID is the platform-side identity of whoever sent the
+	// message, as reported by that platform. Granularity differs per channel:
+	//   - Pancake: the staff UUID, so replies can be attributed per agent.
+	//   - Zalo OA: the shared OA account id — Zalo does not expose which staff
+	//     member typed the reply, so per-agent scoring is impossible there.
+	//   - Facebook: the page id for agent messages.
+	// Customer messages carry the customer id/PSID on every channel.
 	SenderExternalID string
 	Content          string
 	ContentType      string // "text" | "image" | "file" | "sticker" | "gif"
