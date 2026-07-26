@@ -82,4 +82,4 @@ Form Pancake trong `Channels.vue` được bọc trong `<v-form ref="pancakeForm
 
 Không thêm dependency npm mới. Không đụng `backend/`. Chỉ sửa 7 file trong `frontend/src` (đúng phạm vi brief).
 
-Hash commit: xem `git log -1` sau khi commit (ghi trong response cuối).
+Hash commit: `e718a80ee161e3d6633b71b744e11f0c7295cc36`
