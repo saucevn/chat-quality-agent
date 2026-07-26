@@ -456,12 +456,12 @@
                     <v-progress-circular indeterminate size="24" />
                     <div class="text-caption text-grey mt-2">Đang tải...</div>
                   </div>
-                  <div v-else class="chat-transcript pa-2 rounded" style="background: #f5f5f5; max-height: 500px; overflow-y: auto;">
+                  <div v-else class="chat-transcript pa-2 rounded" style="background: var(--muted); max-height: 500px; overflow-y: auto;">
                     <div v-for="msg in chatMessages[group.conversationId]" :key="msg.id" class="mb-2">
                       <div
                         class="pa-2 rounded"
                         :class="msg.sender_type === 'agent' ? 'bg-blue-lighten-5 ml-8' : 'bg-white mr-8'"
-                        :style="isHighlighted(group, msg) ? 'border: 2px solid #ff9800;' : 'border: 1px solid #e0e0e0;'"
+                        :style="isHighlighted(group, msg) ? 'border: 2px solid var(--amber);' : 'border: 1px solid var(--border);'"
                       >
                         <div class="d-flex align-center mb-1">
                           <span class="text-caption font-weight-bold" :class="msg.sender_type === 'agent' ? 'text-blue' : 'text-grey-darken-2'">
@@ -503,7 +503,7 @@
                       </v-chip>
                       <span class="font-weight-medium text-body-2">{{ v.rule_name }}</span>
                     </div>
-                    <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded mb-1" style="font-size: 13px; border-left: 3px solid #ff9800;">
+                    <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded mb-1" style="font-size: 13px; border-left: 3px solid var(--amber);">
                       {{ v.evidence }}
                     </div>
                     <div v-if="parseDetail(v.detail)?.explanation" class="text-caption text-grey-darken-1">
@@ -618,12 +618,12 @@
                 <v-progress-circular indeterminate size="24" />
                 <div class="text-caption text-grey mt-2">Đang tải...</div>
               </div>
-              <div v-else class="chat-transcript pa-2 rounded" style="background: #f5f5f5; max-height: 450px; overflow-y: auto;">
+              <div v-else class="chat-transcript pa-2 rounded" style="background: var(--muted); max-height: 450px; overflow-y: auto;">
                 <div v-for="msg in chatMessages[dialogGroup.conversationId]" :key="msg.id" class="mb-2">
                   <div
                     class="pa-2 rounded"
                     :class="msg.sender_type === 'agent' ? 'bg-blue-lighten-5 ml-8' : 'bg-white mr-8'"
-                    :style="isHighlighted(dialogGroup, msg) ? 'border: 2px solid #ff9800;' : 'border: 1px solid #e0e0e0;'"
+                    :style="isHighlighted(dialogGroup, msg) ? 'border: 2px solid var(--amber);' : 'border: 1px solid var(--border);'"
                   >
                     <div class="d-flex align-center mb-1">
                       <span class="text-caption font-weight-bold" :class="msg.sender_type === 'agent' ? 'text-blue' : 'text-grey-darken-2'">{{ msg.sender_name }}</span>
@@ -661,7 +661,7 @@
                   </v-chip>
                   <span class="font-weight-medium text-body-2">{{ v.rule_name }}</span>
                 </div>
-                <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded mb-1" style="font-size: 13px; border-left: 3px solid #ff9800;">{{ v.evidence }}</div>
+                <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded mb-1" style="font-size: 13px; border-left: 3px solid var(--amber);">{{ v.evidence }}</div>
                 <div v-if="parseDetail(v.detail)?.explanation" class="text-caption text-grey-darken-1">{{ parseDetail(v.detail).explanation }}</div>
                 <div v-if="parseDetail(v.detail)?.suggestion" class="text-caption text-success mt-1">
                   <v-icon size="x-small" class="mr-1">mdi-lightbulb</v-icon>{{ parseDetail(v.detail).suggestion }}
@@ -727,17 +727,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useDisplay } from 'vuetify'
+import { useDisplay, useTheme } from 'vuetify'
 import { useJobStore, type JobResult } from '../../stores/jobs'
 import { useAuthStore } from '../../stores/auth'
 import api from '../../api'
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Filler, Legend } from 'chart.js'
+import { chartTokens } from '../../design/chart-tokens'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Filler, Legend)
 
 const route = useRoute()
 const { mdAndUp } = useDisplay()
+const theme = useTheme()
 const jobStore = useJobStore()
 const authStore = useAuthStore()
 const tenantId = computed(() => route.params.tenantId as string)
@@ -747,6 +749,8 @@ const tenantAIProvider = ref('')
 const tenantAIModel = ref('')
 const isClassification = computed(() => job.value?.job_type === 'classification')
 
+// Cố ý không dùng design token: cần tối đa 10 màu riêng biệt để phân biệt các thẻ phân loại,
+// trong khi bảng token chỉ có --chart-1..5 (5 màu) — ép vào sẽ làm nhiều thẻ trùng màu.
 const TAG_COLORS = ['#7E57C2', '#1E88E5', '#00897B', '#FB8C00', '#D81B60', '#00ACC1', '#3949AB', '#E64A19', '#7CB342', '#6D4C41']
 function tagColor(tag: string): string {
   const tags = availableTags.value
@@ -918,11 +922,14 @@ const trendChartData = computed(() => {
     byDate.set(sortKey, existing)
   }
   const sorted = [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  // Phụ thuộc theme để biểu đồ vẽ lại khi đổi light/dark (chart.js cần chuỗi màu đã tính, không nhận biến CSS)
+  void theme.global.name.value
+  const ct = chartTokens()
   return {
     labels: sorted.map(([, v]) => v.label),
     datasets: [
-      { label: 'Đạt', data: sorted.map(([, v]) => v.passed), borderColor: '#66BB6A', backgroundColor: '#66BB6A', fill: false, tension: 0.3, pointRadius: 4 },
-      { label: 'Không đạt', data: sorted.map(([, v]) => v.failed), borderColor: '#EF5350', backgroundColor: '#EF5350', fill: false, tension: 0.3, pointRadius: 4 },
+      { label: 'Đạt', data: sorted.map(([, v]) => v.passed), borderColor: ct.success, backgroundColor: ct.success, fill: false, tension: 0.3, pointRadius: 4 },
+      { label: 'Không đạt', data: sorted.map(([, v]) => v.failed), borderColor: ct.destructive, backgroundColor: ct.destructive, fill: false, tension: 0.3, pointRadius: 4 },
     ],
   }
 })
