@@ -3,12 +3,14 @@ package channels
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 // newTestAdapter wires an adapter to a stub server.
@@ -162,5 +164,118 @@ func TestPancakeErrorOnHTTPErrorWithoutSuccessField(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "500") {
 		t.Errorf("error should mention HTTP 500, got: %v", err)
+	}
+}
+
+func TestParsePancakeTimeHandlesMissingTimezone(t *testing.T) {
+	// VERIFY-3: Pancake returns no timezone suffix; we assume UTC.
+	got := parsePancakeTime("2024-12-25T11:06:07.000000")
+	want := time.Date(2024, 12, 25, 11, 6, 7, 0, time.UTC)
+	if !got.Equal(want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+	if !parsePancakeTime("").IsZero() {
+		t.Error("empty string should yield zero time")
+	}
+	if !parsePancakeTime(nil).IsZero() {
+		t.Error("nil should yield zero time")
+	}
+}
+
+func TestFetchRecentConversationsPaginatesAndFiltersInbox(t *testing.T) {
+	firstPage := make([]map[string]interface{}, pancakeConvPageSize)
+	for i := range firstPage {
+		firstPage[i] = map[string]interface{}{
+			"id":         fmt.Sprintf("c%d", i),
+			"type":       "INBOX",
+			"updated_at": "2026-07-20T10:00:00.000000",
+			"from":       map[string]interface{}{"id": "psid1", "name": "Khách A"},
+		}
+	}
+	secondPage := []map[string]interface{}{
+		{
+			"id":         "c60",
+			"type":       "INBOX",
+			"updated_at": "2026-07-19T10:00:00.000000",
+			"from":       map[string]interface{}{"id": "psid2", "name": "Khách B"},
+		},
+		{
+			// must be dropped — VERIFY-2, defence in depth against the type filter
+			"id":         "c61",
+			"type":       "COMMENT",
+			"updated_at": "2026-07-19T09:00:00.000000",
+			"from":       map[string]interface{}{"id": "psid3", "name": "Khách C"},
+		},
+	}
+
+	var gotQueries []url.Values
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotQueries = append(gotQueries, r.URL.Query())
+		if r.URL.Query().Get("last_conversation_id") != "" {
+			resp, _ := json.Marshal(map[string]interface{}{"conversations": secondPage})
+			w.Write(resp)
+			return
+		}
+		resp, _ := json.Marshal(map[string]interface{}{"conversations": firstPage})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	since := time.Date(2026, 7, 1, 0, 0, 0, 0, time.UTC)
+	convs, err := newTestAdapter(srv.URL).FetchRecentConversations(context.Background(), since, 0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(convs) != pancakeConvPageSize+1 {
+		t.Fatalf("expected %d inbox conversations, got %d", pancakeConvPageSize+1, len(convs))
+	}
+	if convs[0].ExternalID != "c0" || convs[0].ExternalUserID != "psid1" || convs[0].CustomerName != "Khách A" {
+		t.Errorf("bad mapping on first conversation: %+v", convs[0])
+	}
+	if convs[0].LastMessageAt.IsZero() {
+		t.Error("LastMessageAt should be parsed from updated_at")
+	}
+
+	if len(gotQueries) != 2 {
+		t.Fatalf("expected 2 requests, got %d", len(gotQueries))
+	}
+	q := gotQueries[0]
+	if q.Get("type") != "INBOX" {
+		t.Errorf("must request type=INBOX, got %q", q.Get("type"))
+	}
+	if q.Get("order_by") != "updated_at" {
+		t.Errorf("must request order_by=updated_at, got %q", q.Get("order_by"))
+	}
+	if q.Get("since") != fmt.Sprint(since.Unix()) {
+		t.Errorf("since must be unix seconds, got %q", q.Get("since"))
+	}
+	if gotQueries[1].Get("last_conversation_id") != "c59" {
+		t.Errorf("second page must cursor on the last id, got %q", gotQueries[1].Get("last_conversation_id"))
+	}
+}
+
+func TestFetchRecentConversationsRespectsLimit(t *testing.T) {
+	page := make([]map[string]interface{}, pancakeConvPageSize)
+	for i := range page {
+		page[i] = map[string]interface{}{
+			"id":         fmt.Sprintf("c%d", i),
+			"type":       "INBOX",
+			"updated_at": "2026-07-20T10:00:00.000000",
+			"from":       map[string]interface{}{"id": "psid", "name": "K"},
+		}
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp, _ := json.Marshal(map[string]interface{}{"conversations": page})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	convs, err := newTestAdapter(srv.URL).FetchRecentConversations(context.Background(), time.Time{}, 10)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(convs) != 10 {
+		t.Errorf("limit must be honoured, got %d", len(convs))
 	}
 }

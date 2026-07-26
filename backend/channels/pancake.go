@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -117,4 +118,110 @@ func (p *PancakeAdapter) doRequest(ctx context.Context, path string, params url.
 func (p *PancakeAdapter) HealthCheck(ctx context.Context) error {
 	_, err := p.doRequest(ctx, p.v1("/tags"), nil)
 	return err
+}
+
+const pancakeConvPageSize = 60
+
+// parsePancakeTime parses Pancake timestamps.
+//
+// VERIFY-3: the API returns "2024-12-25T11:06:07.000000" with no timezone
+// suffix. The webhook spec says UTC; the REST spec does not. Layouts without a
+// zone are parsed as UTC by time.Parse, matching that assumption. Returns zero
+// time on anything unparseable.
+func parsePancakeTime(v interface{}) time.Time {
+	s, ok := v.(string)
+	if !ok || s == "" {
+		return time.Time{}
+	}
+	for _, layout := range []string{
+		time.RFC3339Nano,
+		time.RFC3339,
+		"2006-01-02T15:04:05.000000",
+		"2006-01-02T15:04:05",
+	} {
+		if t, err := time.Parse(layout, s); err == nil {
+			return t.UTC()
+		}
+	}
+	return time.Time{}
+}
+
+// FetchRecentConversations returns inbox conversations updated since `since`.
+//
+// Pagination is a cursor on the last conversation id, 60 per page. The API
+// exposes no "has more" flag, so a short page is the only end-of-data signal.
+func (p *PancakeAdapter) FetchRecentConversations(ctx context.Context, since time.Time, limit int) ([]SyncedConversation, error) {
+	var out []SyncedConversation
+	lastID := ""
+
+	for {
+		params := url.Values{}
+		// VERIFY-2: the spec's Conversation.type enum (INBOX/COMMENT/LIVESTREAM)
+		// disagrees with the query param docs (INBOX/COMMENT/COMMENT_LIVESTREAM/POST).
+		// Ask for INBOX and filter again below rather than trust either one.
+		params.Set("type", "INBOX")
+		// VERIFY-1: the spec does not say whether since/until apply to
+		// inserted_at or updated_at. Pairing with order_by=updated_at is the
+		// reading that matches incremental sync.
+		params.Set("order_by", "updated_at")
+		if !since.IsZero() {
+			params.Set("since", strconv.FormatInt(since.Unix(), 10))
+		}
+		if lastID != "" {
+			params.Set("last_conversation_id", lastID)
+		}
+
+		body, err := p.doRequest(ctx, p.v2("/conversations"), params)
+		if err != nil {
+			return nil, err
+		}
+
+		raw, _ := body["conversations"].([]interface{})
+		if len(raw) == 0 {
+			break
+		}
+
+		for _, item := range raw {
+			conv, ok := item.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			id, _ := conv["id"].(string)
+			if id == "" {
+				continue
+			}
+			// advance the cursor even for rows we skip, or pagination stalls
+			lastID = id
+
+			if t, _ := conv["type"].(string); t != "" && t != "INBOX" {
+				continue
+			}
+
+			from, _ := conv["from"].(map[string]interface{})
+			userID, _ := from["id"].(string)
+			name, _ := from["name"].(string)
+
+			out = append(out, SyncedConversation{
+				ExternalID:     id,
+				ExternalUserID: userID,
+				CustomerName:   name,
+				LastMessageAt:  parsePancakeTime(conv["updated_at"]),
+				Metadata: map[string]interface{}{
+					"pancake_customer_id":   conv["customer_id"],
+					"pancake_assignee_ids":  conv["assignee_ids"],
+					"pancake_message_count": conv["message_count"],
+				},
+			})
+
+			if limit > 0 && len(out) >= limit {
+				return out, nil
+			}
+		}
+
+		if len(raw) < pancakeConvPageSize {
+			break
+		}
+	}
+
+	return out, nil
 }
