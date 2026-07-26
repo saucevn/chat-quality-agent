@@ -51,8 +51,10 @@
             <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-sync" :loading="syncing === ch.id" @click="syncNow(ch.id)">
               {{ $t('sync_now') }}
             </v-btn>
-            <v-btn v-if="ch.last_sync_status === 'error'" size="small" variant="tonal" color="warning" prepend-icon="mdi-link-variant" :loading="reauthing === ch.id" @click="reauthChannel(ch.id)">
-              Kết nối lại
+            <!-- Pancake dùng page_access_token không hết hạn nên không có luồng
+                 reauth; backend sẽ trả "Channel type does not support re-auth". -->
+            <v-btn v-if="ch.last_sync_status === 'error' && ch.channel_type !== 'pancake'" size="small" variant="tonal" color="warning" prepend-icon="mdi-link-variant" :loading="reauthing === ch.id" @click="reauthChannel(ch.id)">
+              {{ $t('reconnect') }}
             </v-btn>
             <v-btn size="small" variant="text" color="primary" @click="testConn(ch.id)">
               {{ $t('test_connection') }}

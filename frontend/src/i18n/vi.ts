@@ -58,6 +58,7 @@ export default {
   channel_zalo: 'Zalo OA',
   channel_facebook: 'Facebook Fanpage',
   channel_pancake: 'Pancake',
+  reconnect: 'Kết nối lại',
   last_sync: 'Đồng bộ lần cuối',
   sync_status: 'Trạng thái đồng bộ',
   test_connection: 'Kiểm tra kết nối',
