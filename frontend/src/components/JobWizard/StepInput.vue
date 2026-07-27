@@ -12,7 +12,7 @@
         </template>
         <v-list-item-title>{{ ch.name }}</v-list-item-title>
         <v-list-item-subtitle>
-          <v-chip size="x-small" :color="ch.channel_type === 'zalo_oa' ? 'blue' : ch.channel_type === 'pancake' ? 'orange' : 'indigo'" variant="tonal" class="mr-1">
+          <v-chip size="x-small" :color="ch.channel_type === 'zalo_oa' ? 'channel-zalo' : ch.channel_type === 'pancake' ? 'channel-pancake' : 'channel-facebook'" variant="tonal" class="mr-1">
             {{ ch.channel_type === 'zalo_oa' ? 'Zalo OA' : ch.channel_type === 'pancake' ? $t('channel_pancake') : 'Facebook' }}
           </v-chip>
           <v-chip size="x-small" :color="ch.is_active ? 'success' : 'grey'" variant="tonal">

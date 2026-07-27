@@ -1,5 +1,5 @@
 <template>
-  <v-sheet v-if="visible" color="indigo-lighten-5" rounded class="d-flex align-center pa-2 mb-4 ga-2">
+  <v-sheet v-if="visible" color="primary-mist" rounded class="d-flex align-center pa-2 mb-4 ga-2">
     <v-icon color="primary" class="flex-shrink-0">mdi-rocket-launch</v-icon>
     <div class="onboarding-steps d-flex align-center ga-1">
       <span class="text-body-2 font-weight-medium" style="white-space: nowrap;">Bắt đầu:</span>

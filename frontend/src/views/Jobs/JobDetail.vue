@@ -719,7 +719,7 @@
     <!-- Lightbox overlay for image zoom -->
     <div v-if="lightboxSrc" class="lightbox-overlay" @click="lightboxSrc = ''">
       <img :src="lightboxSrc" class="lightbox-img" @click.stop />
-      <v-btn icon="mdi-close" variant="flat" color="white" size="small" class="lightbox-close" @click="lightboxSrc = ''" />
+      <v-btn icon="mdi-close" variant="flat" color="solid-badge-fg" size="small" class="lightbox-close" @click="lightboxSrc = ''" />
     </div>
   </div>
 </template>

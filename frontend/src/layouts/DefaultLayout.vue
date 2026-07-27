@@ -60,7 +60,7 @@
     </v-dialog>
     <v-list-item v-if="tenantId && isRail" class="px-2 py-1" density="compact">
       <v-avatar size="28" color="secondary" style="cursor: pointer" @click="router.push('/')">
-        <span class="text-white text-caption">{{ currentTenantInitial }}</span>
+        <span class="text-caption">{{ currentTenantInitial }}</span>
       </v-avatar>
     </v-list-item>
 
@@ -109,7 +109,7 @@
         <!-- User info with clickable avatar for profile -->
         <div v-if="!isRail" class="mt-2 d-flex align-center">
           <v-avatar size="32" color="primary" class="mr-2 cursor-pointer" style="cursor: pointer" @click="profileDialog = true">
-            <span class="text-white text-caption">{{ userInitials }}</span>
+            <span class="text-caption">{{ userInitials }}</span>
           </v-avatar>
           <div class="text-body-2 text-truncate flex-grow-1 cursor-pointer" style="cursor: pointer" @click="profileDialog = true">
             {{ authStore.user?.name || authStore.user?.email }}
@@ -119,7 +119,7 @@
 
         <!-- Avatar when rail mode (clickable for profile) -->
         <v-avatar v-if="isRail" size="28" color="primary" class="mt-2" style="cursor: pointer" @click="profileDialog = true">
-          <span class="text-white text-caption">{{ userInitials }}</span>
+          <span class="text-caption">{{ userInitials }}</span>
         </v-avatar>
 
         <!-- Expand rail -->
