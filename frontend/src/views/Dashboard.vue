@@ -268,9 +268,9 @@ function channelLabel(type: string) {
   return 'Zalo OA'
 }
 function channelColor(type: string) {
-  if (type === 'pancake') return 'orange'
-  if (type === 'facebook') return 'blue'
-  return 'green'
+  if (type === 'pancake') return 'channel-pancake'
+  if (type === 'facebook') return 'channel-facebook'
+  return 'channel-zalo'
 }
 function channelIcon(type: string) {
   if (type === 'pancake') return 'mdi-storefront'

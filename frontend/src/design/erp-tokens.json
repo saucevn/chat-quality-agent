@@ -125,7 +125,10 @@
     "chart-2":              { "$value": "oklch(65% 0.13 320)",      "$type": "color", "$description": "Magenta · secondary" },
     "chart-3":              { "$value": "oklch(40% 0.22 276)",      "$type": "color", "$description": "Deep indigo · tertiary" },
     "chart-4":              { "$value": "oklch(70% 0.16 165)",      "$type": "color", "$description": "Mint · positive" },
-    "chart-5":              { "$value": "oklch(65% 0.18 310)",      "$type": "color", "$description": "Purple · fifth only" }
+    "chart-5":              { "$value": "oklch(65% 0.18 310)",      "$type": "color", "$description": "Purple · fifth only" },
+    "channel-zalo":         { "$value": "oklch(50% 0.16 250)", "$type": "color", "$description": "Zalo OA · đủ AA làm chữ trên nền tonal 12%" },
+    "channel-facebook":     { "$value": "oklch(51% 0.16 285)", "$type": "color", "$description": "Facebook · đủ AA làm chữ trên nền tonal 12%" },
+    "channel-pancake":      { "$value": "oklch(50% 0.14 55)", "$type": "color", "$description": "Pancake/Shopee · đủ AA làm chữ trên nền tonal 12%" }
   },
   "dark": {
     "background":           { "$value": "oklch(12% 0.02 285)",      "$type": "color" },
@@ -167,7 +170,10 @@
     "chart-2":              { "$value": "oklch(72% 0.13 320)",      "$type": "color" },
     "chart-3":              { "$value": "oklch(60% 0.22 276)",      "$type": "color" },
     "chart-4":              { "$value": "oklch(74% 0.16 165)",      "$type": "color" },
-    "chart-5":              { "$value": "oklch(72% 0.18 310)",      "$type": "color" }
+    "chart-5":              { "$value": "oklch(72% 0.18 310)",      "$type": "color" },
+    "channel-zalo":         { "$value": "oklch(64% 0.16 250)", "$type": "color" },
+    "channel-facebook":     { "$value": "oklch(65% 0.16 285)", "$type": "color" },
+    "channel-pancake":      { "$value": "oklch(65% 0.14 55)", "$type": "color" }
   },
   "component": {
     "agent": {

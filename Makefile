@@ -34,7 +34,8 @@ CLEAN_ENV := env $(foreach v,$(CONFIG_VARS),-u $(v))
 
 .DEFAULT_GOAL := help
 .PHONY: help check setup db-up db-down db-reset db-shell db-logs \
-        backend frontend dev seed test test-go test-fe init-storage clean
+        backend frontend dev seed test test-go test-fe test-contrast \
+        contrast-baseline init-storage clean
 
 help: ## Hiện danh sách lệnh
 	@echo "Chat Quality Agent - lệnh dev"
@@ -117,6 +118,14 @@ test-go: ## Test backend (env sạch, xem CONFIG_VARS ở trên)
 
 test-fe: ## Test frontend
 	@cd frontend && npx vitest run
+
+# Không gộp vào `make test`: cần tải sẵn Chromium (~150MB) bằng
+# `cd frontend && npx playwright install chromium`, nên tách ra chạy riêng.
+test-contrast: ## Test tương phản AA trên DOM thật (Playwright + Chromium)
+	@cd frontend && npx playwright test
+
+contrast-baseline: ## Chốt lại baseline tương phản sau khi đổi màu có chủ đích
+	@cd frontend && npm run contrast:baseline
 
 init-storage: ## Tạo /var/lib/cqa/files (cần sudo, chỉ khi test upload file)
 	@echo "==> Cần quyền sudo để tạo /var/lib/cqa/files"

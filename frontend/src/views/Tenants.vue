@@ -16,7 +16,7 @@
             <v-chip size="small" color="primary" variant="tonal">
               {{ $t('channels_count', { count: tenant.channels_count || 0 }) }}
             </v-chip>
-            <v-chip size="small" color="secondary" variant="tonal">
+            <v-chip size="small" color="secondary" variant="flat">
               {{ $t('jobs_count', { count: tenant.jobs_count || 0 }) }}
             </v-chip>
           </v-card-text>

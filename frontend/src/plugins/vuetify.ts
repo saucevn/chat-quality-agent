@@ -30,7 +30,15 @@ function withVuetifyAliases(c: Record<string, string>): Record<string, string> {
     'on-secondary': c['secondary-foreground'],
     'on-error': c['destructive-foreground'],
     'on-warning': c['amber-foreground'],
-    'on-success': c['solid-badge-fg'],
+    // KHÔNG dùng solid-badge-fg ở đây: nó là #FCFCFC ở cả hai theme, mà `success`
+    // dark lại là xanh sáng (#51DAA7) — chữ gần trắng trên nền đó chỉ 1.71:1.
+    // `primary-foreground` mới là cặp đảo theo theme (sáng ở light, tối ở dark).
+    'on-success': c['primary-foreground'],
+    // Màu nhận diện kênh còn dùng làm nền đặc (avatar), nên phải khai báo chữ
+    // đặt trên nó. `solid-badge-fg` là #FCFCFC ở cả hai theme nên không phân nhánh.
+    'on-channel-zalo': c['solid-badge-fg'],
+    'on-channel-facebook': c['solid-badge-fg'],
+    'on-channel-pancake': c['solid-badge-fg'],
   }
 }
 

@@ -41,7 +41,10 @@ export const lightColors: Record<string, string> = {
   "chart-2": "#B273C0",
   "chart-3": "#3520BA",
   "chart-4": "#00BC85",
-  "chart-5": "#B16AE0"
+  "chart-5": "#B16AE0",
+  "channel-zalo": "#0064B9",
+  "channel-facebook": "#6052BC",
+  "channel-pancake": "#9D4700"
 }
 
 export const darkColors: Record<string, string> = {
@@ -84,5 +87,8 @@ export const darkColors: Record<string, string> = {
   "chart-2": "#C889D7",
   "chart-3": "#6368FF",
   "chart-4": "#00CA91",
-  "chart-5": "#C780F7"
+  "chart-5": "#C780F7",
+  "channel-zalo": "#2C90E8",
+  "channel-facebook": "#877DEB",
+  "channel-pancake": "#CF752D"
 }

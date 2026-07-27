@@ -117,7 +117,7 @@
               >
                 <template #prepend>
                   <v-avatar :color="channelColor(conv.channel_type)" size="32" class="mr-3">
-                    <v-icon color="white" size="16">
+                    <v-icon color="solid-badge-fg" size="16">
                       {{ channelIcon(conv.channel_type) }}
                     </v-icon>
                   </v-avatar>
@@ -165,7 +165,7 @@
           <v-card-title class="d-flex align-center pa-4">
             <v-btn icon="mdi-arrow-left" variant="text" size="small" class="d-md-none mr-2" @click="selectedConvId = null" />
             <v-avatar :color="channelColor(selectedConvChannelType)" size="36" class="mr-3">
-              <v-icon color="white" size="18">
+              <v-icon color="solid-badge-fg" size="18">
                 {{ channelIcon(selectedConvChannelType) }}
               </v-icon>
             </v-avatar>
@@ -217,11 +217,11 @@
               >
                 <div
                   class="pa-2 rounded-lg"
-                  :class="msg.sender_type === 'agent' ? 'bg-primary text-white' : 'bg-surface'"
+                  :class="msg.sender_type === 'agent' ? 'bg-primary' : 'bg-surface'"
                   style="max-width: 75%; word-break: break-word"
                   :style="msg.sender_type !== 'agent' ? 'border: 1px solid rgba(0,0,0,0.12)' : ''"
                 >
-                  <div class="text-caption font-weight-medium" :class="msg.sender_type === 'agent' ? 'text-white' : 'text-primary'" style="font-size: 11px">
+                  <div class="text-caption font-weight-medium" :class="msg.sender_type === 'agent' ? '' : 'text-primary'" style="font-size: 11px">
                     {{ msg.sender_name }}
                   </div>
                   <div v-if="msg.content" class="text-body-2" style="white-space: pre-wrap; font-size: 13px; line-height: 1.4">{{ msg.content }}</div>
@@ -249,7 +249,7 @@
                     </template>
                   </div>
                   <div v-if="!msg.content && msg.content_type === 'attachment' && !hasAttachments(msg)" class="text-caption font-italic">[File đính kèm]</div>
-                  <div class="mt-1" :class="msg.sender_type === 'agent' ? 'text-white-darken-2' : 'text-medium-emphasis'" style="opacity: 0.6; font-size: 10px">
+                  <div class="mt-1" :class="msg.sender_type === 'agent' ? '' : 'text-medium-emphasis'" style="opacity: 0.6; font-size: 10px">
                     {{ formatMessageTime(msg.sent_at) }}
                   </div>
                 </div>
@@ -337,7 +337,7 @@
     <!-- Lightbox overlay -->
     <div v-if="lightboxSrc" class="lightbox-overlay" @click="lightboxSrc = ''">
       <img :src="lightboxSrc" class="lightbox-img" @click.stop />
-      <v-btn icon="mdi-close" variant="flat" color="white" size="small" class="lightbox-close" @click="lightboxSrc = ''" />
+      <v-btn icon="mdi-close" variant="flat" color="solid-badge-fg" size="small" class="lightbox-close" @click="lightboxSrc = ''" />
     </div>
   </div>
 </template>
@@ -362,9 +362,9 @@ const authStore = useAuthStore()
 const tenantId = computed(() => route.params.tenantId as string)
 
 function channelColor(type: string) {
-  if (type === 'facebook') return 'blue'
-  if (type === 'pancake') return 'orange'
-  return 'green'
+  if (type === 'facebook') return 'channel-facebook'
+  if (type === 'pancake') return 'channel-pancake'
+  return 'channel-zalo'
 }
 function channelIcon(type: string) {
   if (type === 'facebook') return 'mdi-facebook-messenger'

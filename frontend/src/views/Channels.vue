@@ -160,7 +160,7 @@
           <v-btn variant="text" @click="showDialog = false">{{ $t('cancel') }}</v-btn>
           <v-btn
             v-if="newChannel.channel_type === 'zalo_oa'"
-            color="blue"
+            color="channel-zalo"
             :loading="creating"
             :disabled="!newChannel.name || !newChannel.creds.app_id || !newChannel.creds.app_secret"
             @click="createAndAuthZalo"
@@ -246,9 +246,9 @@ const snackColor = ref('success')
 const pancakeFormRef = ref<any>(null)
 
 function channelColor(type: string) {
-  if (type === 'zalo_oa') return 'blue'
-  if (type === 'pancake') return 'orange'
-  return 'indigo'
+  if (type === 'zalo_oa') return 'channel-zalo'
+  if (type === 'pancake') return 'channel-pancake'
+  return 'channel-facebook'
 }
 function channelIcon(type: string) {
   if (type === 'zalo_oa') return 'mdi-message-text'
