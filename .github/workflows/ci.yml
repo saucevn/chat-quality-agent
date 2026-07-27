@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (Go)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          # Lấy version từ chính go.mod, khỏi phải sửa hai nơi khi nâng Go.
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Build
+        working-directory: backend
+        run: go build ./...
+
+      - name: Vet
+        working-directory: backend
+        run: go vet ./...
+
+      # Chạy qua `make` chứ không `go test ./...` trần: target test-go gỡ các
+      # biến trong CONFIG_VARS khỏi môi trường (CLEAN_ENV), vì
+      # backend/config/config_test.go kiểm tra giá trị mặc định của config.Load().
+      - name: Test
+        run: make test-go
+
+  frontend:
+    name: Frontend (Vue)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Vite 8 cần Node ^20.19 hoặc >=22.12.
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Test
+        working-directory: frontend
+        run: npx vitest run
+
+      # `npm run build` = vue-tsc -b && vite build, nên bước này vừa type-check
+      # vừa dựng bundle.
+      - name: Build
+        working-directory: frontend
+        run: npm run build

@@ -137,7 +137,11 @@ func TestCalculateCostUSD(t *testing.T) {
 		maxCost  float64
 	}{
 		{"claude sonnet small", "claude", "claude-sonnet-4-6", 1000, 500, 0.01, 0.02},
-		{"claude haiku cheap", "claude", "claude-haiku-3-5", 1000, 500, 0.001, 0.005},
+		{"claude haiku cheap", "claude", "claude-haiku-4-5", 1000, 500, 0.001, 0.005},
+		// Opus 4.6 và Opus 4.0 có đơn giá khác hẳn nhau. Hai case dưới khoá lại
+		// việc gộp chung — bug cũ: 4.6 ăn giá của 4.0, đội chi phí lên gấp 3.
+		{"claude opus 4.6", "claude", "claude-opus-4-6", 1000, 500, 0.015, 0.02},
+		{"claude opus 4.0 đắt hơn", "claude", "claude-opus-4", 1000, 500, 0.05, 0.055},
 		{"gemini flash very cheap", "gemini", "gemini-2.0-flash", 1000, 500, 0.0001, 0.001},
 		{"zero tokens", "claude", "claude-sonnet-4-6", 0, 0, 0, 0},
 	}

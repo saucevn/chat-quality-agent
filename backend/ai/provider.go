@@ -35,10 +35,13 @@ func CalculateCostUSD(provider, model string, inputTokens, outputTokens int) flo
 	case "claude":
 		switch model {
 		case "claude-haiku-4-5-20251001", "claude-haiku-4-5":
-			inputRate, outputRate = 0.80, 4.00
+			inputRate, outputRate = 1.00, 5.00
 		case "claude-sonnet-4-6", "claude-sonnet-4-20250514", "claude-sonnet-4-5-20250929":
 			inputRate, outputRate = 3.00, 15.00
-		case "claude-opus-4", "claude-opus-4-6":
+		case "claude-opus-4-6":
+			// Opus 4.6 rẻ hơn Opus 4.0 rất nhiều — phải tách case, đừng gộp chung.
+			inputRate, outputRate = 5.00, 25.00
+		case "claude-opus-4":
 			inputRate, outputRate = 15.00, 75.00
 		default:
 			inputRate, outputRate = 3.00, 15.00 // default sonnet pricing
