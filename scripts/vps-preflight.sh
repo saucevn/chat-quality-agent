@@ -79,13 +79,21 @@ port_busy() {
   return 1
 }
 
+WEB_PORT_BUSY=0
 for p in 80 443; do
   if port_busy "$p"; then
-    fail ":$p đang bị chiếm — CQA nginx không bind được. Xem ai giữ: sudo ss -ltnp 'sport = :$p'"
+    WEB_PORT_BUSY=1
+    fail ":$p đang bị chiếm. Xem ai giữ: sudo ss -ltnp 'sport = :$p'"
   else
     ok ":$p trống"
   fi
 done
+
+if [ "$WEB_PORT_BUSY" -eq 1 ]; then
+  warn "Máy đã có reverse proxy — ĐỪNG giành 80/443 của nó. Cách đi: đặt"
+  warn "HTTP_PORT/HTTPS_PORT trong .env, ĐỂ TRỐNG LEGO_DOMAIN (để proxy sẵn có lo"
+  warn "TLS), rồi khai báo CQA ở proxy đó. Xem mục 'Khi 80/443 đã bị chiếm' trong runbook."
+fi
 
 if port_busy 3306; then
   warn ":3306 đang bị chiếm — đặt DB_PORT_HOST=3307 (hoặc số khác) trong .env"
@@ -115,15 +123,19 @@ if [ -z "$DOMAIN" ]; then
   warn "chưa truyền domain — bỏ qua. Dùng: $0 cqa.example.com"
 else
   RESOLVED=$(dig +short "$DOMAIN" A 2>/dev/null | tail -1)
-  PUBIP=$(curl -s --max-time 5 https://ifconfig.me 2>/dev/null)
-  echo "  $DOMAIN -> ${RESOLVED:-(không phân giải được)}"
-  echo "  IP công khai của máy này -> ${PUBIP:-(không lấy được)}"
+  # -4 là bắt buộc: máy có IPv6 thì ifconfig.me trả về địa chỉ v6, đem so với
+  # bản ghi A (v4) sẽ báo lệch oan.
+  PUBIP4=$(curl -4 -s --max-time 5 https://ifconfig.me 2>/dev/null)
+  echo "  $DOMAIN (bản ghi A) -> ${RESOLVED:-(không phân giải được)}"
+  echo "  IPv4 công khai của máy này -> ${PUBIP4:-(không lấy được)}"
   if [ -z "$RESOLVED" ]; then
     fail "DNS chưa trỏ. lego sẽ thất bại và nginx vào vòng lặp crash — thêm A record TRƯỚC khi bật SSL"
-  elif [ -n "$PUBIP" ] && [ "$RESOLVED" != "$PUBIP" ]; then
-    fail "DNS trỏ về $RESOLVED nhưng máy này là $PUBIP. Nếu đang bật proxy Cloudflare (mây cam), tắt về 'DNS only' để lấy chứng chỉ lần đầu"
+  elif [ -z "$PUBIP4" ]; then
+    warn "không lấy được IPv4 của máy — tự đối chiếu $RESOLVED bằng tay (ip -4 addr)"
+  elif [ "$RESOLVED" != "$PUBIP4" ]; then
+    fail "DNS trỏ về $RESOLVED nhưng IPv4 máy này là $PUBIP4. Nếu đang bật proxy Cloudflare (mây cam), tắt về 'DNS only' để lấy chứng chỉ lần đầu"
   else
-    ok "DNS khớp IP máy này"
+    ok "DNS khớp IPv4 máy này"
   fi
 fi
 
