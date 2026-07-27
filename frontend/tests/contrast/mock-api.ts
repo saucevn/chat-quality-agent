@@ -137,7 +137,7 @@ const ROUTES: Array<[RegExp, unknown]> = [
     messages: [
       { id: 'm1', sender_type: 'customer', sender_name: 'Khách A', content: 'Shop ơi còn hàng không ạ?', content_type: 'text', attachments: '[]', sent_at: iso('20') },
       { id: 'm2', sender_type: 'agent', sender_name: 'Nhân viên', content: 'Dạ còn ạ, bên em giao trong 2 ngày.', content_type: 'text', attachments: '[]', sent_at: iso('20') },
-      { id: 'm3', sender_type: 'system', sender_name: '', content: 'Ngọc Mai đã tham gia cuộc trò chuyện.', content_type: 'text', attachments: '[]', sent_at: iso('20') },
+      { id: 'm3', sender_type: 'system', sender_name: '', content: 'Nguyễn Văn A đã tham gia cuộc trò chuyện.', content_type: 'text', attachments: '[]', sent_at: iso('20') },
     ],
   }],
   [/\/tenants\/[^/]+\/conversations\/[^/]+\/evaluations$/, {

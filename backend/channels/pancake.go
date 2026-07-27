@@ -263,7 +263,7 @@ const (
 )
 
 // shopeeSystemEventRe khớp dòng sự kiện Shopee chèn thẳng vào luồng tin nhắn,
-// ví dụ "Ngọc Mai đã tham gia cuộc trò chuyện."
+// ví dụ "Nguyễn Văn A đã tham gia cuộc trò chuyện."
 //
 // Vì sao phải khớp chữ thay vì đọc metadata: trên Shopee, `from` CHỈ có `id` và
 // `name`, và `from.id == page_id` y hệt một câu trả lời thật của nhân viên.

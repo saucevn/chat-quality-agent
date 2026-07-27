@@ -884,15 +884,15 @@ func TestClassifyPancakeSenderSystemEvent(t *testing.T) {
 		wantType string
 	}{
 		// Hai biến thể quan sát được thật trên page Shopee.
-		{"nhân viên tham gia", "Ngọc Mai đã tham gia cuộc trò chuyện.", "system"},
-		{"tên có dấu hai chấm", "thichcayvn:main đã tham gia cuộc trò chuyện.", "system"},
-		{"không có dấu chấm cuối", "Ngọc Mai đã tham gia cuộc trò chuyện", "system"},
+		{"nhân viên tham gia", "Nguyễn Văn A đã tham gia cuộc trò chuyện.", "system"},
+		{"tên có dấu hai chấm", "shopdemo:main đã tham gia cuộc trò chuyện.", "system"},
+		{"không có dấu chấm cuối", "Nguyễn Văn A đã tham gia cuộc trò chuyện", "system"},
 
 		// Ranh giới: chỉ khớp khi TOÀN BỘ tin là câu sự kiện. Nhân viên nhắc lại
 		// cụm đó trong một câu dài vẫn phải tính là tin nhân viên.
 		{
 			"nhắc cụm giữa câu vẫn là nhân viên",
-			"dạ chị Ngọc Mai đã tham gia cuộc trò chuyện rồi ạ, chị chờ em chút nhé",
+			"dạ chị Nguyễn Văn A đã tham gia cuộc trò chuyện rồi ạ, chị chờ em chút nhé",
 			"agent",
 		},
 		{
