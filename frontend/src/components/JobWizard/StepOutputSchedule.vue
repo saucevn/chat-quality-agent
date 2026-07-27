@@ -2,7 +2,7 @@
   <div>
     <!-- Analysis Schedule -->
     <h3 class="text-h6 mb-2">{{ $t('job_wizard_step_analysis_schedule') }}</h3>
-    <p class="text-body-2 text-grey mb-4">{{ $t('analysis_schedule_desc') }}</p>
+    <p class="text-body-2 text-medium-emphasis mb-4">{{ $t('analysis_schedule_desc') }}</p>
 
     <v-radio-group v-model="form.schedule_type">
       <v-radio value="cron" :label="$t('schedule_cron')" />
@@ -20,7 +20,7 @@
 
     <!-- Output Schedule -->
     <h3 class="text-h6 mb-2">{{ $t('job_wizard_step_output_schedule') }}</h3>
-    <p class="text-body-2 text-grey mb-4">{{ $t('output_schedule_desc') }}</p>
+    <p class="text-body-2 text-medium-emphasis mb-4">{{ $t('output_schedule_desc') }}</p>
 
     <v-radio-group v-model="form.output_schedule">
       <v-radio value="none" :label="$t('output_none')" />

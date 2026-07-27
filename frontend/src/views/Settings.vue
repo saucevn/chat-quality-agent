@@ -60,7 +60,7 @@
             hide-details
             class="mt-1 mb-2"
           />
-          <div v-if="!useCustomBaseUrl" class="text-caption text-grey mb-2">Bật khi cần dùng proxy (OpenRouter, LiteLLM) hoặc self-hosted</div>
+          <div v-if="!useCustomBaseUrl" class="text-caption text-medium-emphasis mb-2">Bật khi cần dùng proxy (OpenRouter, LiteLLM) hoặc self-hosted</div>
 
           <v-text-field
             v-if="useCustomBaseUrl"

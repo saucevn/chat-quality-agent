@@ -616,6 +616,91 @@ func TestFetchMessagesKeepsNewMessagesWhenPageIsOldestFirst(t *testing.T) {
 	}
 }
 
+// Tin chỉ có ảnh: original_message rỗng, message là vỏ HTML rỗng. Fallback thẳng
+// sang message làm cột content lưu "<div></div>", và rác đó đi vào transcript
+// gửi AI chấm điểm. Quan sát thật: 75/469 tin (16%) của một page rơi vào đây.
+func TestPancakeMessageTextBoQuaHTMLRong(t *testing.T) {
+	cases := []struct {
+		name string
+		m    map[string]interface{}
+		want string
+	}{
+		{
+			name: "có text thô thì dùng nguyên",
+			m:    map[string]interface{}{"original_message": "xin chào", "message": "<div>xin chào</div>"},
+			want: "xin chào",
+		},
+		{
+			name: "tin chỉ có ảnh -> rỗng, không phải <div></div>",
+			m:    map[string]interface{}{"original_message": "", "message": "<div></div>"},
+			want: "",
+		},
+		{
+			name: "vỏ thẻ lồng nhau cũng coi là rỗng",
+			m:    map[string]interface{}{"message": "<div><span></span></div>"},
+			want: "",
+		},
+		{
+			name: "chỉ khoảng trắng giữa thẻ cũng là rỗng",
+			m:    map[string]interface{}{"message": "<div>   </div>"},
+			want: "",
+		},
+		{
+			name: "message có chữ thật thì giữ lại",
+			m:    map[string]interface{}{"message": "<div>nội dung thật</div>"},
+			want: "<div>nội dung thật</div>",
+		},
+		{
+			name: "original_message chỉ toàn khoảng trắng -> rơi xuống message",
+			m:    map[string]interface{}{"original_message": "   ", "message": "<div></div>"},
+			want: "",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := pancakeMessageText(tc.m); got != tc.want {
+				t.Errorf("pancakeMessageText() = %q, muốn %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestFetchMessagesTinChiCoAnhKhongLuuHTMLRac(t *testing.T) {
+	page := []map[string]interface{}{
+		{
+			"id": "m1", "inserted_at": "2026-07-20T12:00:00.000000",
+			"original_message": "",
+			"message":          "<div></div>",
+			"from":             map[string]interface{}{"id": "psid", "name": "Khách"},
+			"attachments": []interface{}{
+				map[string]interface{}{"type": "photo", "url": "https://x/a.jpg"},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp, _ := json.Marshal(map[string]interface{}{"success": true, "messages": page})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	msgs, err := newTestAdapter(srv.URL).FetchMessages(context.Background(), "conv1", time.Time{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(msgs) != 1 {
+		t.Fatalf("expected 1 message, got %d", len(msgs))
+	}
+	if msgs[0].Content != "" {
+		t.Errorf("tin chỉ có ảnh phải có Content rỗng, không phải %q", msgs[0].Content)
+	}
+	if msgs[0].ContentType != "attachment" {
+		t.Errorf("ContentType = %q, muốn attachment", msgs[0].ContentType)
+	}
+	if len(msgs[0].Attachments) != 1 {
+		t.Errorf("phải giữ được ảnh đính kèm, got %d", len(msgs[0].Attachments))
+	}
+}
+
 func TestFetchMessagesPaginatesWithCurrentCount(t *testing.T) {
 	full := make([]map[string]interface{}, pancakeMsgPageSize)
 	for i := range full {

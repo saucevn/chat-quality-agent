@@ -1,7 +1,7 @@
 <template>
   <v-card class="pa-6" elevation="2">
     <v-card-title class="text-h6 text-center pb-2">Chat Quality Agent</v-card-title>
-    <p class="text-body-2 text-center text-grey mb-4">Tạo tài khoản quản trị viên đầu tiên</p>
+    <p class="text-body-2 text-center text-medium-emphasis mb-4">Tạo tài khoản quản trị viên đầu tiên</p>
     <v-form @submit.prevent="handleSetup">
       <v-text-field
         v-model="email"

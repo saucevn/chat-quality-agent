@@ -23,7 +23,7 @@
               <router-link :to="`/${tenantId}/jobs/${job.id}`" class="text-primary font-weight-medium text-decoration-none">
                 {{ job.name }}
               </router-link>
-              <div class="text-caption text-grey">{{ job.description }}</div>
+              <div class="text-caption text-medium-emphasis">{{ job.description }}</div>
             </td>
             <td>
               <v-chip size="small" :color="job.is_active ? 'success' : 'grey'" variant="tonal">
@@ -37,7 +37,7 @@
                   {{ job.last_run_status }}
                 </v-chip>
               </span>
-              <span v-else class="text-grey text-body-2">—</span>
+              <span v-else class="text-medium-emphasis text-body-2">—</span>
             </td>
             <td>
               <v-btn icon="mdi-pencil" size="small" variant="text" :to="`/${tenantId}/jobs/${job.id}/edit`" />
@@ -47,8 +47,8 @@
         </tbody>
       </v-table>
       <div v-else class="text-center pa-8">
-        <v-icon size="48" color="grey-lighten-1" class="mb-3">mdi-briefcase-plus</v-icon>
-        <div class="text-grey-darken-1 mb-2">Tạo công việc phân tích để AI đánh giá chất lượng CSKH hoặc phân loại cuộc chat tự động.</div>
+        <v-icon size="48" color="muted-foreground" class="mb-3">mdi-briefcase-plus</v-icon>
+        <div class="text-medium-emphasis mb-2">Tạo công việc phân tích để AI đánh giá chất lượng CSKH hoặc phân loại cuộc chat tự động.</div>
         <v-btn color="primary" prepend-icon="mdi-plus" :to="`/${tenantId}/jobs/create`" size="small">Tạo công việc</v-btn>
       </div>
     </v-card>

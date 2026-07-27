@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3 class="text-h6 mb-2">{{ $t('job_summary') }}</h3>
-    <div class="text-body-2 text-grey-darken-1 mb-4">Kiểm tra lại thông tin trước khi tạo công việc.</div>
+    <div class="text-body-2 text-medium-emphasis mb-4">Kiểm tra lại thông tin trước khi tạo công việc.</div>
 
     <v-table density="compact">
       <tbody>

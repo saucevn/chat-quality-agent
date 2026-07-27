@@ -277,3 +277,49 @@ Những điểm spec không nói rõ hoặc mâu thuẫn:
 | Phạm vi loại hội thoại | **Chỉ `type=INBOX`** cho v1 |
 | Tin bot/automation | Map sang **`sender_type = "system"`**, vẫn lưu để giữ ngữ cảnh, không tính điểm nhân viên |
 | Cơ chế sync | **Polling**, không dùng webhook ở v1 |
+
+## 12. Xác minh bằng token thật (2026-07-26 → 27)
+
+Đã chạy thử với ba page thật: một Facebook, một Zalo, một Shopee. Những điều
+dưới đây **quan sát trực tiếp**, không phải đọc từ tài liệu.
+
+### Tài liệu sai ở bốn chỗ
+
+| Tài liệu nói | Thực tế |
+|---|---|
+| `since` và `until` đều tuỳ chọn | `since` đơn độc bị từ chối: `Since must be provided with until` |
+| Messages sắp xếp "newest to oldest" | Mỗi trang trả **cũ → mới**, còn `current_count` lùi dần về quá khứ |
+| `Conversation.type` ∈ `INBOX/COMMENT/LIVESTREAM` | Shopee còn trả **`RATING`** (đánh giá sàn), không có trong enum |
+| `from` có `is_automated`, `admin_id` | Cả hai **không xuất hiện** trong response thật. Chỉ có `uid`, `admin_name`, `ai_generated` — và Shopee thì không có cả ba |
+
+### `message_count` không dùng được làm điều kiện dừng
+
+Cả 13 hội thoại của page Shopee đều trả `message_count: 0`, trong khi hội thoại
+thật có 8 tin. Plan ban đầu từng đề xuất dùng trường này làm mốc dừng phân trang
+— may là code cuối cùng dùng "trang ngắn hơn 30", nếu không đã không lấy được
+tin nào trên Shopee.
+
+### Page ID có tiền tố theo nền tảng
+
+Không phải lúc nào cũng là chuỗi số: `spo_950683608` (Shopee),
+`zl_3373773340310816362` (Zalo), `tt_...` (TikTok), số thuần (Facebook). Page ID
+nằm trong payload JWT của chính token.
+
+Người dùng nhầm slug với Page ID **hai lần** trong quá trình thử (`nhabepduide`,
+`spo_ThchCayVitNam1785`), lần nào Pancake cũng trả `Invalid access_token` — thông
+báo khiến người ta đi sửa token thay vì sửa id. Với Shopee, `spo_ThchCayVitNam1785`
+chính là `from.name` của gian hàng, nên rất dễ tưởng đó là định danh page.
+
+### Tin chỉ có ảnh làm hỏng nội dung
+
+`original_message` rỗng, `message` là `<div></div>`. Fallback thẳng sang `message`
+khiến 75/469 tin (16%) của một page lưu rác HTML — và rác đó vào transcript gửi
+AI. Đã sửa: bỏ thẻ rồi kiểm còn chữ hay không.
+
+### Phân loại người gửi trên Shopee
+
+Không có `uid`/`admin_id`, nên chỉ dựa được vào `from.id == page_id`. Cách này
+**hoạt động đúng** (kiểm trên một hội thoại: 4 khách / 4 gian hàng), nhưng kéo
+theo hai hệ quả: không chấm điểm theo từng nhân viên được, và tin phát hàng loạt
+cùng sự kiện hệ thống (*"… đã tham gia cuộc trò chuyện"*) bị tính là tin nhân
+viên. Đây là vấn đề chất lượng dữ liệu chưa có lời giải.

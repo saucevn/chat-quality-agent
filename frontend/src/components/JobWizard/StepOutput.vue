@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3 class="text-h6 mb-2">{{ $t('job_wizard_step_output') }}</h3>
-    <div class="text-body-2 text-grey-darken-1 mb-4">Cấu hình nơi nhận kết quả phân tích. Bỏ qua nếu chỉ muốn xem trên hệ thống.</div>
+    <div class="text-body-2 text-medium-emphasis mb-4">Cấu hình nơi nhận kết quả phân tích. Bỏ qua nếu chỉ muốn xem trên hệ thống.</div>
 
     <v-card v-for="(output, idx) in outputs" :key="idx" variant="outlined" class="pa-4 mb-3">
       <div class="d-flex align-center mb-3">

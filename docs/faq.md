@@ -53,10 +53,14 @@ Nhược điểm: lịch sử tin nhắn phụ thuộc vào lịch sử lưu tr�
 
 ### Vì sao nhập token Pancake lại báo "Invalid access_token"?
 
-Nguyên nhân phổ biến: nhập **slug Pancake** (ký tự chữ thường từ URL) thay vì **Page ID** (chuỗi số).
+Nguyên nhân phổ biến: nhập **slug / tên shop** thay vì **Page ID**. Token vẫn đúng, chỉ Page ID sai — nhưng Pancake báo lỗi như thể token hỏng.
 
-**Ví dụ sai**: nhập `nhabepduide` → báo lỗi `Invalid access_token`  
-**Đúng**: nhập `151780661361876` (Page ID dạng số)
+| Nhập sai (slug) | Nhập đúng (Page ID) | Nền tảng |
+|---|---|---|
+| `nhabepduide` | `151780661361876` | Facebook |
+| `spo_ThchCayVitNam1785` | `spo_950683608` | Shopee |
+
+Lưu ý Page ID **không phải lúc nào cũng toàn số** — Shopee, Zalo, TikTok có tiền tố nền tảng (`spo_`, `zl_`, `tt_`). Dấu hiệu nhận biết: slug đọc lên nghe như tên cửa hàng, Page ID là mã máy sinh.
 
 **Cách tìm Page ID**:
 - Tại Pancake, vào Cài đặt > Công cụ > Page Access Token — payload token chứa sẵn Page ID

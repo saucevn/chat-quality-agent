@@ -1,8 +1,8 @@
 <template>
   <div>
     <h3 class="text-h6 mb-2">{{ $t('select_channels') }}</h3>
-    <div class="text-body-2 text-grey-darken-1 mb-4">Chọn kênh chat cần phân tích. Hệ thống sẽ lấy cuộc hội thoại từ các kênh này.</div>
-    <div v-if="!channels.length" class="text-center text-grey py-8">
+    <div class="text-body-2 text-medium-emphasis mb-4">Chọn kênh chat cần phân tích. Hệ thống sẽ lấy cuộc hội thoại từ các kênh này.</div>
+    <div v-if="!channels.length" class="text-center text-medium-emphasis py-8">
       {{ $t('no_data') }}
     </div>
     <v-list v-else>
