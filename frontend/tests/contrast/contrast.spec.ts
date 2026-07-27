@@ -121,7 +121,13 @@ for (const route of ROUTES) {
               ),
             ).length >= min,
           route.minNodes,
-          { timeout: 10_000 },
+          // 30s chứ không phải 10s: `make test-contrast` khởi động Vite mới, và
+          // lần đầu vào một route nặng (job-detail có chart) Vite phải transform
+          // on-demand cả nhánh module. Chạy song song nhiều worker trên server
+          // nguội đã từng vượt 10s và làm chốt minNodes báo đỏ oan (28/29).
+          // Con số này chỉ ảnh hưởng nhánh thất bại: trang lành trả về ngay khi
+          // điều kiện đúng, nên chạy nóng không chậm đi.
+          { timeout: 30_000 },
         )
         // Hết giờ thì vẫn đo tiếp: assertion minNodes bên dưới sẽ báo lỗi kèm
         // số đếm thật, hữu ích hơn là timeout trần của waitForFunction.
