@@ -15,7 +15,16 @@ Trong Pancake, vào **Cài đặt** → **Công cụ** → **Page Access Token**
 
 ## Bước 2: Lấy Page ID
 
-Page ID là chuỗi **số** Pancake gán cho page, ví dụ `151780661361876`. Có thể lấy bằng một trong hai cách:
+Page ID là mã Pancake gán cho page. **Định dạng khác nhau tuỳ nền tảng** — Facebook là chuỗi số thuần, các nền tảng khác có tiền tố:
+
+| Nền tảng | Ví dụ Page ID |
+|---|---|
+| Facebook | `151780661361876` |
+| Zalo | `zl_3373773340310816362` |
+| Shopee | `spo_950683608` |
+| TikTok | `tt_6711731671916708866` |
+
+Có thể lấy bằng một trong hai cách:
 
 - **Trong payload của Page Access Token** vừa lấy ở Bước 1 — Page ID được mã hoá sẵn trong token.
 - **Gọi API `GET /pages`** của Pancake: `https://pages.fm/api/v1/pages?access_token=...` — kết quả trả về danh sách page bạn quản lý, mỗi page có trường `id` dạng số, đó chính là Page ID.
@@ -27,7 +36,9 @@ Nếu bạn dán nhầm slug này vào ô Page ID khi kết nối CQA, Pancake s
 
 > `Invalid access_token`
 
-Thông báo này dễ khiến bạn tưởng **Page Access Token bị sai hoặc hỏng** — nhưng thực chất token vẫn đúng, chỉ là **Page ID sai**. Luôn kiểm tra lại: Page ID phải là một chuỗi số, không lẫn chữ.
+Thông báo này dễ khiến bạn tưởng **Page Access Token bị sai hoặc hỏng** — nhưng thực chất token vẫn đúng, chỉ là **Page ID sai**.
+
+Cách phân biệt chắc chắn nhất: slug là **tên shop/trang dễ đọc** (`nhabepduide`, `spo_ThchCayVitNam1785`), còn Page ID là **mã máy sinh** — hoặc toàn số, hoặc tiền tố nền tảng cộng chuỗi số (`spo_950683608`). Nếu chuỗi bạn đang cầm đọc lên nghe như tên cửa hàng thì đó là slug.
 :::
 
 ## Bước 3: Tạo kênh trong CQA
@@ -77,6 +88,21 @@ Có 2 trường hợp CQA **không tách được** là tin tự động, do gi�
 - Tin auto-reply do chính Page cấu hình gửi tự động.
 
 Vì CQA không phát hiện được hai trường hợp này, tin có thể bị chấm điểm như tin do nhân viên viết.
+
+## Riêng Shopee
+
+**Số hội thoại trong CQA sẽ ít hơn trong Pancake.** Shopee trả về cả hội thoại
+đánh giá (`RATING`) lẫn chat inbox. CQA chỉ lấy inbox, nên nếu Pancake hiển thị
+60 hội thoại mà CQA chỉ đồng bộ 13 thì đó là đúng, không phải mất dữ liệu.
+
+**Không phân biệt được tin tự động.** Shopee không cho biết tin nào do hệ thống
+hoặc chương trình gửi. Hệ quả: tin phát thông báo hàng loạt (kiểu *"THÔNG BÁO
+LỊCH HOẠT ĐỘNG TẾT"*) và sự kiện hệ thống (*"… đã tham gia cuộc trò chuyện"*)
+đều bị tính là tin của nhân viên khi chấm điểm. Nếu shop dùng nhiều tin phát
+hàng loạt, hãy tính đến điều này khi đọc kết quả đánh giá.
+
+**Không chấm điểm theo từng nhân viên được** — giống Zalo, Shopee chỉ trả về id
+của gian hàng chứ không cho biết nhân viên nào trả lời.
 
 ## Zalo qua Pancake không chấm theo từng nhân viên
 

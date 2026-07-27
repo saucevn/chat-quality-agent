@@ -1,5 +1,16 @@
 # Changelog
 
+## v2026.07.27
+
+### Sửa lỗi
+- **Tin Pancake chỉ có ảnh lưu nhầm HTML**: `original_message` rỗng nên code lấy `message` — vốn là bản đã render — khiến nội dung tin thành `<div></div>`. Đo trên dữ liệu thật: 75/469 tin (16%). Rác này đi thẳng vào transcript gửi AI chấm điểm, không chỉ hiển thị sai
+- **Chữ phụ khó đọc**: nhãn và chú thích dùng màu Material cứng (`#9E9E9E`) đi vòng qua theme — tương phản 2,68:1, dưới chuẩn AA. Nay dùng token, đạt 5,22:1
+- **Chip phân loại tàng hình ở chế độ tối**: màu tím Material nằm trên nền cùng sắc, tương phản 1,04:1
+
+### Tài liệu
+- Hướng dẫn Pancake: sửa mô tả sai rằng Page ID luôn là chuỗi số — Shopee, Zalo, TikTok có tiền tố nền tảng (`spo_`, `zl_`, `tt_`). Theo mô tả cũ, người dùng Shopee sẽ loại bỏ đúng Page ID vì thấy có chữ
+- Bổ sung mục riêng cho Shopee: số hội thoại trong CQA ít hơn Pancake do lọc bỏ đánh giá, và không phân biệt được tin tự động
+
 ## v2026.07.26.3
 
 ### Tính năng mới
