@@ -262,6 +262,24 @@ const (
 	botcakePrefix = "[Botcake"
 )
 
+// shopeeSystemEventRe khớp dòng sự kiện Shopee chèn thẳng vào luồng tin nhắn,
+// ví dụ "Ngọc Mai đã tham gia cuộc trò chuyện."
+//
+// Vì sao phải khớp chữ thay vì đọc metadata: trên Shopee, `from` CHỈ có `id` và
+// `name`, và `from.id == page_id` y hệt một câu trả lời thật của nhân viên.
+// Đã đối chiếu toàn bộ raw_data đã đồng bộ (93 tin Shopee, 1047 tin Facebook):
+// không trường nào — `show_info`, `seen`, `type`, `can_*`, `rich_message` —
+// tách được sự kiện hệ thống khỏi tin nhân viên. Tài liệu Pancake nói `from` có
+// `is_automated`; thực tế nó không xuất hiện lần nào, kể cả trên Facebook.
+//
+// Neo hai đầu (`^...$`) là cố ý: chỉ khớp khi TOÀN BỘ tin là câu sự kiện, để
+// nhân viên nhắc lại cụm đó giữa câu vẫn được tính là tin nhân viên. Giới hạn
+// 60 ký tự chặn trường hợp một đoạn dài tình cờ kết thúc bằng cụm này.
+//
+// Giới hạn đã biết: mẫu này phụ thuộc ngôn ngữ. Page đặt Pancake sang tiếng
+// khác sẽ sinh câu khác và không khớp — lúc đó tin lại bị tính là nhân viên.
+var shopeeSystemEventRe = regexp.MustCompile(`^.{1,60} đã tham gia cuộc trò chuyện\.?$`)
+
 // classifyPancakeSender decides who sent a message and returns the platform
 // identity of that sender.
 //
@@ -296,7 +314,9 @@ func classifyPancakeSender(from map[string]interface{}, content, pageID string) 
 
 	aiGenerated, _ := from["ai_generated"].(bool)
 	isAutomated, _ := from["is_automated"].(bool)
-	if aiGenerated || isAutomated || strings.HasPrefix(strings.TrimSpace(content), botcakePrefix) {
+	trimmed := strings.TrimSpace(content)
+	if aiGenerated || isAutomated || strings.HasPrefix(trimmed, botcakePrefix) ||
+		shopeeSystemEventRe.MatchString(trimmed) {
 		return "system", uid, senderName
 	}
 

@@ -322,4 +322,64 @@ Không có `uid`/`admin_id`, nên chỉ dựa được vào `from.id == page_id`
 **hoạt động đúng** (kiểm trên một hội thoại: 4 khách / 4 gian hàng), nhưng kéo
 theo hai hệ quả: không chấm điểm theo từng nhân viên được, và tin phát hàng loạt
 cùng sự kiện hệ thống (*"… đã tham gia cuộc trò chuyện"*) bị tính là tin nhân
-viên. Đây là vấn đề chất lượng dữ liệu chưa có lời giải.
+viên. Mục 13 giải quyết một nửa vấn đề này.
+
+## 13. Sự kiện hệ thống và tin phát hàng loạt (2026-07-27)
+
+Đối chiếu trên toàn bộ dữ liệu đã đồng bộ: **93 tin Shopee** (17 hội thoại) và
+**1047 tin Facebook**, đọc thẳng `raw_data` trong DB chứ không đọc tài liệu.
+
+### Bức tranh thật của 52 tin "nhân viên" trên Shopee
+
+| Loại | Số tin | Thực chất |
+|---|---|---|
+| Trả lời thật của nhân viên | 23 | chấm được |
+| Sự kiện hệ thống (*"… đã tham gia cuộc trò chuyện."*) | 17 | không phải người viết |
+| Tin phát hàng loạt (*"THÔNG BÁO LỊCH HOẠT ĐỘNG TẾT 2026"*) | 12 | không phải người viết |
+
+**56% cái gọi là "tin nhân viên" trên page này không do nhân viên gõ ra.**
+
+### Không có trường metadata nào tách được chúng
+
+Đã đếm phân bố của `show_info`, `seen`, `type`, `can_hide`, `can_like`,
+`can_comment`, `can_reply_privately`, `is_parent`, `has_phone`, `rich_message`
+trên cả ba nhóm. Không trường nào tách được — ví dụ `show_info` là `true` ở
+7/12 tin phát hàng loạt, 8/17 sự kiện hệ thống và 19/23 tin nhân viên thật.
+
+Bổ sung cho bảng "tài liệu sai" ở mục 12: `from.is_automated` **không xuất hiện
+lần nào trong cả 1140 tin**, kể cả trên Facebook. Nhánh kiểm `is_automated` trong
+`classifyPancakeSender` trên thực tế là code chết. `ai_generated` thì có thật,
+nhưng chỉ trên Facebook (529/1047 tin) và không bao giờ có trên Shopee.
+
+### Đã xử lý: sự kiện hệ thống
+
+Chỉ còn cách khớp mẫu chữ — xem `shopeeSystemEventRe` trong
+`backend/channels/pancake.go`. Kiểm lại trên dữ liệu thật: đúng **17/17** sự kiện,
+**0** tin Facebook bị ảnh hưởng, **0** tin khách bị khớp nhầm.
+
+Giới hạn: mẫu phụ thuộc ngôn ngữ. Page đặt Pancake sang tiếng khác sẽ sinh câu
+khác và lọt lưới.
+
+### Chưa xử lý được: tin phát hàng loạt
+
+Ý tưởng trực giác — "cùng một nội dung gửi cho nhiều hội thoại thì là phát hàng
+loạt" — **bị chính dữ liệu bác bỏ**. Trên Shopee luật này trông rất sạch (đúng 12
+tin phát hàng loạt, không dính tin nào khác), nhưng đem sang page Facebook thì nó
+gắn cờ **237/693 tin nhân viên (34%)**: đó là các đoạn quảng cáo nhân viên dán
+lại nhiều lần (*"SỐT GỎI CAY – BÍ KÍP TRỘN GỎI…"* gửi cho 32 hội thoại,
+*"Anh/chị ơi, mình đã ưng được loại sốt nào chưa ạ?"* gửi cho 15). Nhiều tin trong
+số đó Pancake ghi rõ `ai_generated: false` — tức là người thật gõ.
+
+Lọc theo thời gian cũng không cứu được: tin phát hàng loạt Tết trải trên ~6 ngày,
+không dồn cục.
+
+**Kết luận: chấp nhận giới hạn.** Tin phát hàng loạt trên Shopee vẫn bị chấm như
+tin nhân viên. Muốn tách phải có tín hiệu từ phía Pancake (một cờ `broadcast`,
+hoặc `campaign_id`) — hiện API không trả gì tương tự.
+
+### Còn một chỗ nữa: `"Chat với Người bán"`
+
+15/17 hội thoại Shopee mở đầu bằng đúng chuỗi `"Chat với Người bán"`, kèm
+`rich_message.type == "shopee_product"`. Đây là nhãn nút bấm của giao diện Shopee,
+không phải câu khách gõ, nhưng đang được tính là **tin khách**. Nó làm phồng số
+tin khách và đẩy một dòng vô nghĩa vào transcript gửi cho AI. Chưa xử lý.

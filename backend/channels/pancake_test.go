@@ -865,3 +865,50 @@ func TestFetchMessagesReturnsPartialMessagesOnLaterPageError(t *testing.T) {
 		t.Errorf("expected 2 requests (successful first page + failing second page), made %d", requestCount)
 	}
 }
+
+// Sự kiện hệ thống trên Shopee: Shopee đẩy dòng "<tên> đã tham gia cuộc trò
+// chuyện." vào luồng tin với `from.id == page_id` — nghĩa là KHÔNG có bất kỳ
+// trường nào phân biệt nó với một câu trả lời thật của nhân viên. Đã đối chiếu
+// toàn bộ raw_data của 93 tin Shopee và 1047 tin Facebook đã đồng bộ: không có
+// trường nào (show_info, seen, type, can_*, rich_message) tách được hai loại.
+// Vì vậy chỉ còn cách khớp mẫu chữ.
+func TestClassifyPancakeSenderSystemEvent(t *testing.T) {
+	const pageID = "spo_950683608"
+	page := func() map[string]interface{} {
+		return map[string]interface{}{"id": pageID, "name": "spo_ThchCayVitNam1785"}
+	}
+
+	cases := []struct {
+		name     string
+		content  string
+		wantType string
+	}{
+		// Hai biến thể quan sát được thật trên page Shopee.
+		{"nhân viên tham gia", "Ngọc Mai đã tham gia cuộc trò chuyện.", "system"},
+		{"tên có dấu hai chấm", "thichcayvn:main đã tham gia cuộc trò chuyện.", "system"},
+		{"không có dấu chấm cuối", "Ngọc Mai đã tham gia cuộc trò chuyện", "system"},
+
+		// Ranh giới: chỉ khớp khi TOÀN BỘ tin là câu sự kiện. Nhân viên nhắc lại
+		// cụm đó trong một câu dài vẫn phải tính là tin nhân viên.
+		{
+			"nhắc cụm giữa câu vẫn là nhân viên",
+			"dạ chị Ngọc Mai đã tham gia cuộc trò chuyện rồi ạ, chị chờ em chút nhé",
+			"agent",
+		},
+		{
+			"tiền tố quá dài không phải tên người",
+			strings.Repeat("x", 80) + " đã tham gia cuộc trò chuyện.",
+			"agent",
+		},
+		{"tin thường của nhân viên", "dạ em chào khách ạ", "agent"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, _, _ := classifyPancakeSender(page(), tc.content, pageID)
+			if got != tc.wantType {
+				t.Errorf("classifyPancakeSender(%q) = %q, muốn %q", tc.content, got, tc.wantType)
+			}
+		})
+	}
+}
