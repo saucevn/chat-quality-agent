@@ -1,0 +1,212 @@
+[
+  {
+    "fg": "#FF9800",
+    "bg": "#FFF2E0",
+    "required": 4.5,
+    "ratio": 1.95,
+    "note": "notifications/light — \"email\""
+  },
+  {
+    "fg": "#57A394",
+    "bg": "#D9E1F2",
+    "required": 4.5,
+    "ratio": 2.26,
+    "note": "messages/light — \"Đạt\""
+  },
+  {
+    "fg": "#A7A7AA",
+    "bg": "#FFFFFF",
+    "required": 4.5,
+    "ratio": 2.4,
+    "note": "messages/light — \"T2 20/07 15:30\""
+  },
+  {
+    "fg": "#9E9E9E",
+    "bg": "#F3F3F3",
+    "required": 4.5,
+    "ratio": 2.41,
+    "note": "channels/light, job-detail/light, jobs/light — \"Không hoạt động\""
+  },
+  {
+    "fg": "#E17100",
+    "bg": "#FBD9C8",
+    "required": 4.5,
+    "ratio": 2.42,
+    "note": "dashboard/light — \"Cần cải thiện\""
+  },
+  {
+    "fg": "#9289FC",
+    "bg": "#EAE9FE",
+    "required": 4.5,
+    "ratio": 2.44,
+    "note": "messages/light — \"8 tin · 7 ngày trước\""
+  },
+  {
+    "fg": "#B9835E",
+    "bg": "#E4DDEC",
+    "required": 4.5,
+    "ratio": 2.45,
+    "note": "messages/light — \"Pancake\""
+  },
+  {
+    "fg": "#673AB7",
+    "bg": "#171129",
+    "required": 4.5,
+    "ratio": 2.49,
+    "note": "cost-logs/dark — \"claude\""
+  },
+  {
+    "fg": "#9C92D5",
+    "bg": "#F4F3FA",
+    "required": 4.5,
+    "ratio": 2.54,
+    "note": "messages/light — \"FB\""
+  },
+  {
+    "fg": "#5F9ED3",
+    "bg": "#EDF4FA",
+    "required": 4.5,
+    "ratio": 2.59,
+    "note": "messages/light — \"Zalo\""
+  },
+  {
+    "fg": "#E17100",
+    "bg": "#F8EBDD",
+    "required": 4.5,
+    "ratio": 2.73,
+    "note": "dashboard/light — \"Bạn đang sử dụng dữ liệu demo. Khi sẵn sàng, hãy xóa để bắt \""
+  },
+  {
+    "fg": "#B16AE0",
+    "bg": "#E8DFFB",
+    "required": 4.5,
+    "ratio": 2.73,
+    "note": "dashboard/light — \"Hỏi giá\""
+  },
+  {
+    "fg": "#2196F3",
+    "bg": "#E4F2FE",
+    "required": 4.5,
+    "ratio": 2.74,
+    "note": "cost-logs/light, notifications/light — \"gemini\""
+  },
+  {
+    "fg": "#E17100",
+    "bg": "#FBEEE0",
+    "required": 4.5,
+    "ratio": 2.8,
+    "note": "activity-logs/light, channel-detail/light, channels/light, cost-logs/light, dashboard/light, job-detail/light, job-edit/light, jobs/light, login/light, mcp/light, messages/light, notifications/light, settings/light, tenants/light, users/light — \"v1.0.0\""
+  },
+  {
+    "fg": "#F05F66",
+    "bg": "#FDEDEE",
+    "required": 4.5,
+    "ratio": 2.84,
+    "note": "messages/light — \"Không đạt\""
+  },
+  {
+    "fg": "#B9B4FB",
+    "bg": "#564AFA",
+    "required": 4.5,
+    "ratio": 2.92,
+    "note": "messages/light — \"T2 20/07 15:30\""
+  },
+  {
+    "fg": "#9D5C2E",
+    "bg": "#282231",
+    "required": 4.5,
+    "ratio": 2.94,
+    "note": "messages/dark — \"Pancake\""
+  },
+  {
+    "fg": "#404379",
+    "bg": "#8188FF",
+    "required": 4.5,
+    "ratio": 3,
+    "note": "messages/dark — \"T2 20/07 15:30\""
+  },
+  {
+    "fg": "#E17100",
+    "bg": "#FCFCFC",
+    "required": 4.5,
+    "ratio": 3.12,
+    "note": "channel-detail/light — \"Xóa cuộc chat\""
+  },
+  {
+    "fg": "#655EB0",
+    "bg": "#161527",
+    "required": 4.5,
+    "ratio": 3.23,
+    "note": "messages/dark — \"FB\""
+  },
+  {
+    "fg": "#236BAE",
+    "bg": "#0F1727",
+    "required": 4.5,
+    "ratio": 3.23,
+    "note": "messages/dark — \"Zalo\""
+  },
+  {
+    "fg": "#E7000B",
+    "bg": "#FCCBC9",
+    "required": 4.5,
+    "ratio": 3.3,
+    "note": "dashboard/light — \"Nghiêm trọng\""
+  },
+  {
+    "fg": "#6267C2",
+    "bg": "#1A1B32",
+    "required": 4.5,
+    "ratio": 3.4,
+    "note": "messages/dark — \"8 tin · 7 ngày trước\""
+  },
+  {
+    "fg": "#696976",
+    "bg": "#0C0C16",
+    "required": 4.5,
+    "ratio": 3.6,
+    "note": "messages/dark — \"T2 20/07 15:30\""
+  },
+  {
+    "fg": "#BC4B50",
+    "bg": "#20131C",
+    "required": 4.5,
+    "ratio": 3.64,
+    "note": "messages/dark — \"Không đạt\""
+  },
+  {
+    "fg": "#E7000B",
+    "bg": "#FCE0E1",
+    "required": 4.5,
+    "ratio": 3.84,
+    "note": "activity-logs/light, channel-detail/light, channels/light, job-detail/light, jobs/light, notifications/light — \"ai.error\""
+  },
+  {
+    "fg": "#7B7B80",
+    "bg": "#F6F6F7",
+    "required": 4.5,
+    "ratio": 3.9,
+    "note": "job-edit/light — \"Mô tả\""
+  },
+  {
+    "fg": "#7F7F84",
+    "bg": "#FFFFFF",
+    "required": 4.5,
+    "ratio": 3.98,
+    "note": "activity-logs/light, cost-logs/light, job-edit/light, login/light, messages/light, settings/light, tenants/light — \"Lọc\""
+  },
+  {
+    "fg": "#E7000B",
+    "bg": "#F8EBDD",
+    "required": 4.5,
+    "ratio": 4.07,
+    "note": "dashboard/light — \"Xóa dữ liệu demo\""
+  },
+  {
+    "fg": "#FF6467",
+    "bg": "#691A1C",
+    "required": 4.5,
+    "ratio": 4.12,
+    "note": "dashboard/dark — \"Nghiêm trọng\""
+  }
+]
