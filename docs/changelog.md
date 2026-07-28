@@ -7,6 +7,11 @@
 - **Bỏ Watchtower** khỏi tài liệu — nó chỉ hoạt động cùng đường Docker Hub vừa gỡ
 - Xoá file `VERSION` (chỉ `release.sh` đọc nó, và giá trị `1.0.0` đã lệch xa thực tế). Nhãn phiên bản của image nay đặt qua biến `CQA_VERSION` lúc build
 
+### Sửa lỗi
+- **Nút Docs, chip phiên bản và nút hướng dẫn kết nối kênh mở nhầm tài liệu của người khác**: 6 liên kết trong giao diện trỏ cứng sang `tanviet12.github.io`. Nay trỏ về trang tài liệu của chính hệ thống, và gom vào một hằng số duy nhất để không tái diễn
+- **Banner cập nhật đưa lệnh không chạy được**: ô lệnh kèm nút sao chép ghi `cd /opt/cqa && docker compose pull && docker compose up -d` — sai cả thư mục lẫn cách cập nhật kể từ khi chuyển sang build từ source. Nay là `cd ~/cqa && ./scripts/backup-db.sh && git pull && docker compose up -d --build`
+- **Gỡ liên kết "Cài Watchtower"** trong banner cập nhật: Watchtower đã bị bỏ, và liên kết đó trỏ tới một mục tài liệu không còn tồn tại
+
 ### Hạ tầng
 - Khôi phục workflow `Deploy Docs`: mỗi lần đẩy lên `main` có thay đổi trong `docs/`, site tài liệu tự build và publish lên GitHub Pages. Cần bật Settings > Pages > Source = "GitHub Actions" một lần
 

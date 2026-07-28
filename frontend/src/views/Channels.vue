@@ -90,7 +90,7 @@
 
         <!-- Zalo OA -->
         <template v-if="newChannel.channel_type === 'zalo_oa'">
-          <v-btn variant="tonal" color="info" prepend-icon="mdi-book-open-variant" href="https://tanviet12.github.io/chat-quality-agent/usage/channels.html#zalo-oa" target="_blank" class="mb-3">
+          <v-btn variant="tonal" color="info" prepend-icon="mdi-book-open-variant" :href="`${DOCS_URL}/usage/channels.html#zalo-oa`" target="_blank" class="mb-3">
             Hướng dẫn lấy App ID và Secret Key
           </v-btn>
           <v-text-field v-model="newChannel.creds.app_id" :label="$t('zalo_app_id')" density="compact" class="mb-2" hint="Lấy từ Cài đặt ứng dụng trên Zalo Developers" persistent-hint />
@@ -103,7 +103,7 @@
 
         <!-- Facebook -->
         <template v-else-if="newChannel.channel_type === 'facebook'">
-          <v-btn variant="tonal" color="info" prepend-icon="mdi-book-open-variant" href="https://tanviet12.github.io/chat-quality-agent/usage/facebook.html" target="_blank" class="mb-3">
+          <v-btn variant="tonal" color="info" prepend-icon="mdi-book-open-variant" :href="`${DOCS_URL}/usage/facebook.html`" target="_blank" class="mb-3">
             Hướng dẫn kết nối Facebook Fanpage
           </v-btn>
           <v-text-field v-model="newChannel.creds.page_id" :label="$t('fb_page_id')" density="compact" class="mb-2" hint="Page ID từ Cài đặt trang Facebook" persistent-hint />
@@ -228,6 +228,7 @@ import { useI18n } from 'vue-i18n'
 import { useChannelStore } from '../stores/channels'
 import { useAuthStore } from '../stores/auth'
 import api from '../api'
+import { DOCS_URL } from '../constants/links'
 
 const route = useRoute()
 const router = useRouter()
