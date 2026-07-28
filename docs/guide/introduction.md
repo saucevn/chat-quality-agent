@@ -56,7 +56,7 @@ Khi doanh nghiệp có nhiều kênh chat (Zalo OA, Facebook Messenger), việc 
 ## Yêu cầu hệ thống
 
 - **VPS**: Linux (Ubuntu 20.04+, Debian 11+, CentOS 8+)
-- **RAM**: Tối thiểu 1GB (khuyến nghị 2GB)
+- **RAM**: 2GB, hoặc 1GB kèm 2GB swap — bước build frontend cần nhiều hơn lúc chạy
 - **Disk**: Tối thiểu 10GB
 - **Docker**: Docker Engine 20+ và Docker Compose v2
 - **AI API Key**: Claude (Anthropic) hoặc Gemini (Google) — cần ít nhất 1 key

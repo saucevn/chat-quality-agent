@@ -14,17 +14,23 @@ CQA hỗ trợ SSL tự động qua Let's Encrypt. Certificate được tạo v�
 3. Chờ DNS cập nhật (thường 5-15 phút). Kiểm tra:
 
 ```bash
-ping cqa.yourdomain.com
+./scripts/vps-preflight.sh cqa.yourdomain.com
 ```
 
-Nếu trả về đúng IP VPS là DNS đã cập nhật.
+Script đối chiếu bản ghi A với IPv4 công khai của chính máy này — chắc chắn hơn `ping`, vốn có thể trả về IP của proxy.
+
+::: warning Trỏ DNS xong rồi mới bật LEGO_DOMAIN
+Container nginx chạy lego **trước khi** nginx khởi động. DNS chưa trỏ đúng thì lego thất bại, container thoát, và `restart: unless-stopped` đẩy nó vào vòng lặp crash. Let's Encrypt giới hạn 5 lần thất bại mỗi giờ mỗi domain — đừng thử lại liên tục.
+
+Đang dùng Cloudflare thì để bản ghi ở **DNS only** (mây xám) khi lấy chứng chỉ lần đầu; bật proxy lại sau, với SSL/TLS mode **Full (strict)**. Đừng dùng Flexible — nó tạo vòng lặp chuyển hướng với khối redirect 80→443 của nginx.
+:::
 
 ## Bật SSL
 
 Mở file `.env` trên VPS:
 
 ```bash
-nano /opt/cqa/.env
+nano ~/cqa/.env
 ```
 
 Thêm hoặc sửa 2 dòng:
@@ -37,8 +43,7 @@ LEGO_EMAIL=admin@yourdomain.com
 Khởi động lại:
 
 ```bash
-cd /opt/cqa
-docker compose down
+cd ~/cqa
 docker compose up -d
 ```
 
@@ -51,7 +56,7 @@ Truy cập: `https://cqa.yourdomain.com`
 
 ## Chạy không cần SSL (HTTP only)
 
-Nếu không cần SSL (ví dụ test local hoặc mạng nội bộ), **không cần** điền `LEGO_DOMAIN`. CQA sẽ tự chạy ở chế độ HTTP trên port 80.
+Nếu không cần SSL (ví dụ test local, mạng nội bộ, hoặc đã có reverse proxy riêng lo TLS), **không cần** điền `LEGO_DOMAIN`. CQA sẽ tự chạy ở chế độ HTTP trên cổng `HTTP_PORT` — mặc định 80.
 
 ## Kiểm tra SSL
 
@@ -72,9 +77,9 @@ Hoặc kiểm tra trên trình duyệt — bấm vào icon khóa bên cạnh URL
 
 | Lỗi | Nguyên nhân | Cách sửa |
 |-----|-------------|----------|
-| `Could not obtain certificate` | DNS chưa trỏ đúng | Kiểm tra DNS A record |
-| `Too many requests` | Đã request quá 5 lần/tuần | Chờ 1 tuần hoặc dùng staging |
-| `Port 80 already in use` | Có service khác dùng port 80 | Dừng service đó (Apache, nginx cũ...) |
+| `Could not obtain certificate` | DNS chưa trỏ đúng | Chạy `./scripts/vps-preflight.sh <domain>` để đối chiếu bản ghi A với IP máy |
+| `Too many requests` | Đã chạm giới hạn của Let's Encrypt | Chờ hết cửa sổ giới hạn; đừng thử lại liên tục |
+| `Port 80 already in use` | Máy đã có reverse proxy khác | Đừng dừng nó — đặt `HTTP_PORT`/`HTTPS_PORT` trong `.env`, để trống `LEGO_DOMAIN` và cho proxy sẵn có lo TLS |
 
 ## Bước tiếp theo
 

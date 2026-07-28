@@ -36,8 +36,9 @@ PRD.md
 code-review-*
 
 # Claude Code
+# CLAUDE.md ĐƯỢC commit — nó là kiến thức chung về repo, không chứa secret.
+# .claude/ thì không: runbook deploy trong đó có IP và username máy chủ.
 .claude/
-CLAUDE.md
 THAM-KHAO-MCP/
 
 # Backup/scratch files (fix subagents đã từng commit nhầm .bak vào repo)

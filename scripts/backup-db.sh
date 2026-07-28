@@ -6,7 +6,7 @@
 #   ./scripts/backup-db.sh
 #
 # Chạy theo lịch (crontab -e), 2h sáng hằng ngày:
-#   0 2 * * * /home/saucevn/cqa/scripts/backup-db.sh >> /home/saucevn/cqa/backup.log 2>&1
+#   0 2 * * * $HOME/cqa/scripts/backup-db.sh >> $HOME/cqa/backup.log 2>&1
 #
 # Biến điều chỉnh được (đều có mặc định):
 #   CQA_ENV_FILE         mặc định <thư mục script>/../.env

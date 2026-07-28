@@ -1,13 +1,12 @@
 # Chat Quality Agent (CQA)
 
-[![Docker Hub](https://img.shields.io/docker/v/buitanviet/chat-quality-agent?label=Docker%20Hub&sort=semver)](https://hub.docker.com/r/buitanviet/chat-quality-agent)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+Giấy phép: [MIT](LICENSE)
 
 Hệ thống phân tích chất lượng chăm sóc khách hàng bằng AI. Tự động đồng bộ tin nhắn từ Zalo OA, Facebook Messenger và Pancake (kênh gộp đa nền tảng), dùng AI (Claude/Gemini) đánh giá chất lượng CSKH và gửi cảnh báo qua Telegram/Email.
 
-📖 **Hướng dẫn sử dụng chi tiết: [https://tanviet12.github.io/chat-quality-agent/](https://tanviet12.github.io/chat-quality-agent/)**
+📖 **Hướng dẫn sử dụng chi tiết nằm trong thư mục [`docs/`](docs/)** — bắt đầu từ [Cài đặt](docs/guide/installation.md).
 
-![Dashboard](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/dashboard.png)
+![Dashboard](docs/public/screenshots/dashboard.png)
 
 ## Tính năng
 
@@ -23,25 +22,21 @@ Hệ thống phân tích chất lượng chăm sóc khách hàng bằng AI. Tự
 
 ## Cài đặt nhanh
 
-### Cách 1: Cài tự động (khuyến nghị)
+CQA build image ngay trên máy chạy, không phụ thuộc Docker Hub.
 
 ```bash
-curl -s https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/install.sh | sudo bash
-```
-
-Script tự cài Docker, tạo secrets ngẫu nhiên, pull images và khởi chạy.
-
-### Cách 2: Build từ source
-
-```bash
-git clone https://github.com/tanviet12/chat-quality-agent.git
+git clone https://github.com/saucevn/chat-quality-agent.git
 cd chat-quality-agent
 cp .env.example .env
-# Sửa .env
+# Sửa .env — xem docs/reference/env-vars.md
 docker compose up -d --build
 ```
 
+Trước khi cài lên VPS, chạy `./scripts/vps-preflight.sh` để kiểm tra RAM, ổ cứng, cổng và DNS. Build frontend cần ~1.5 GB RAM khả dụng (hoặc swap) — nhiều hơn lúc chạy.
+
 Truy cập: **http://your-server-ip** (hoặc `http://localhost` nếu cài trên máy local) — Lần đầu sẽ hiện trang Setup để tạo tài khoản admin.
+
+Nếu cổng 80/443 trên máy đã có dịch vụ khác, đặt `HTTP_PORT` / `HTTPS_PORT` trong `.env` rồi đưa CQA ra sau reverse proxy sẵn có.
 
 ### Bật SSL (tùy chọn)
 
@@ -73,8 +68,8 @@ SSL sẽ tự động tạo và gia hạn qua Let's Encrypt.
 
 ```
                     ┌──────────────┐
-  Internet ────────>│    Nginx     │ Port 80/443
-                    │  (SSL + RP)  │
+  Internet ────────>│    Nginx     │ HTTP_PORT:80 / HTTPS_PORT:443
+                    │  (SSL + RP)  │ (mặc định 80/443)
                     └──────┬───────┘
                            │
                     ┌──────┴───────┐
@@ -103,8 +98,8 @@ chat-quality-agent/
 ├── docker/             # Nginx + SSL configs
 ├── docs/               # Tài liệu hướng dẫn (VitePress)
 ├── research/           # Tài liệu nghiên cứu nội bộ, không publish lên docs
-├── docker-compose.yml      # Build từ source
-├── docker-compose.hub.yml  # Dùng image Docker Hub
+├── scripts/            # vps-preflight.sh, backup-db.sh, dev-seed.sh
+├── docker-compose.yml      # Stack production, build từ source
 ├── docker-compose.dev.yml  # Môi trường dev (xem DEVELOPMENT.md)
 ├── Makefile                # Lệnh dev: make setup / make dev / make test...
 ├── Dockerfile
@@ -140,20 +135,25 @@ make dev      # chạy backend + frontend
 | `LEGO_DOMAIN` | Domain cho SSL tự động | Không |
 | `LEGO_EMAIL` | Email cho Let's Encrypt | Không |
 | `APP_URL` | URL công khai (cho links notification) | Không |
+| `HTTP_PORT` | Cổng HTTP trên host (mặc định `80`) | Không |
+| `HTTPS_PORT` | Cổng HTTPS trên host (mặc định `443`) | Không |
+| `CQA_VERSION` | Nhãn phiên bản gắn vào image lúc build (mặc định `dev`) | Không |
 
-Xem đầy đủ trong [.env.example](.env.example).
+Xem đầy đủ trong [.env.example](.env.example) và [docs/reference/env-vars.md](docs/reference/env-vars.md).
+
+> **Giữ `ENCRYPTION_KEY` ở nơi khác ngoài máy chủ.** Mọi credential kênh được mã hoá AES-256-GCM bằng khoá này; mất khoá thì phải nối lại toàn bộ kênh từ đầu, kể cả khi còn bản sao lưu database.
 
 ## Screenshots
 
 | | |
 |---|---|
-| ![Setup](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/setup.png) | ![Dashboard](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/dashboard.png) |
+| ![Setup](docs/public/screenshots/setup.png) | ![Dashboard](docs/public/screenshots/dashboard.png) |
 | Trang Setup lần đầu | Dashboard |
-| ![Kết nối kênh](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/ket-noi-kenh-chat.png) | ![Tạo công việc](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/tao-cong-viec.png) |
+| ![Kết nối kênh](docs/public/screenshots/ket-noi-kenh-chat.png) | ![Tạo công việc](docs/public/screenshots/tao-cong-viec.png) |
 | Kết nối kênh chat | Tạo công việc |
-| ![Kết quả QC](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/ket-qua-cong-viec-danh-gia.png) | ![Kết quả phân loại](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/ket-qua-cong-viec-phan-loai.png) |
+| ![Kết quả QC](docs/public/screenshots/ket-qua-cong-viec-danh-gia.png) | ![Kết quả phân loại](docs/public/screenshots/ket-qua-cong-viec-phan-loai.png) |
 | Kết quả đánh giá QC | Kết quả phân loại |
-| ![Chi tiết tin nhắn](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/chi-tiet-tin-nhan-va-danh-gia.png) | ![Chi tiết kênh](https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docs/public/screenshots/chi-tiet-kenh-chat.png) |
+| ![Chi tiết tin nhắn](docs/public/screenshots/chi-tiet-tin-nhan-va-danh-gia.png) | ![Chi tiết kênh](docs/public/screenshots/chi-tiet-kenh-chat.png) |
 | Chi tiết tin nhắn + đánh giá | Chi tiết kênh chat |
 
 ## Changelog
@@ -162,7 +162,13 @@ Xem lịch sử thay đổi tại: **[CHANGELOG.md](CHANGELOG.md)**
 
 ## Tài liệu
 
-Xem tài liệu chi tiết tại: **[https://tanviet12.github.io/chat-quality-agent/](https://tanviet12.github.io/chat-quality-agent/)**
+Toàn bộ tài liệu nằm trong thư mục [`docs/`](docs/), đọc trực tiếp trên GitHub được:
+
+- [Cài đặt](docs/guide/installation.md) · [Cập nhật](docs/guide/updates.md) · [Tên miền & SSL](docs/guide/domain-ssl.md) · [Vận hành](docs/guide/operations.md)
+- [Kết nối kênh chat](docs/usage/channels.md) · [Facebook](docs/usage/facebook.md) · [Pancake](docs/usage/pancake.md)
+- [Biến môi trường](docs/reference/env-vars.md) · [REST API](docs/reference/api.md) · [FAQ](docs/faq.md)
+
+Muốn xem dạng website, chạy `npm install && npm run docs:dev` trong `docs/`.
 
 ## License
 

@@ -32,11 +32,16 @@ Do giới hạn API của Zalo. Zalo chỉ cho phép ứng dụng bên thứ 3 �
 
 ### CQA cần bao nhiêu tài nguyên?
 
-- **App**: ~100MB RAM
-- **MySQL**: ~500MB RAM
-- **Nginx**: ~50MB RAM
+Lúc chạy ổn định (giới hạn đặt trong `docker-compose.yml`):
+
+- **App**: 512MB
+- **MySQL**: 768MB
+- **Nginx**: 128MB
 - **Disk**: Tùy số lượng tin nhắn, thường dưới 5GB cho 100K cuộc chat
-- **Tổng**: VPS 1GB RAM + 10GB disk là đủ dùng
+
+Nhưng **lúc build cần nhiều hơn lúc chạy**: bước build frontend là chỗ ngốn RAM nhất. Máy 1GB không swap gần như chắc chắn bị OOM-kill giữa chừng. Nên có 2GB RAM, hoặc 1GB + 2GB swap. Đĩa nên còn tối thiểu 10GB vì build cache Docker ăn khá nhiều.
+
+Chạy `./scripts/vps-preflight.sh` để script tự đo và báo.
 
 ### Có cần tên miền không?
 
@@ -96,20 +101,23 @@ docker compose logs --tail=20
 ```
 
 **Nguyên nhân phổ biến:**
-- Port 80 bị chặn bởi firewall → Mở port: `ufw allow 80`
-- Container chưa start → Chờ 30 giây rồi kiểm tra lại
-- Image sai kiến trúc → Xem log có `exec format error` không
 
-### exec format error
+- **Container chưa lên hẳn** → nginx chờ app `healthy`, app chờ db `healthy`. Lần `up` đầu tiên mất khoảng 70 giây trước khi nginx nhận request. Chờ rồi kiểm tra lại.
+- **Cổng bị dịch vụ khác chiếm** → `docker compose ps` không thấy nginx bind được cổng. Đặt `HTTP_PORT`/`HTTPS_PORT` trong `.env`.
+- **Firewall chặn** → `ufw allow 80`. Lưu ý: nếu container publish ra `0.0.0.0` thì ufw *không* chặn được nó — Docker chèn luật iptables trước chuỗi của ufw. Nghĩa là ufw thường không phải thủ phạm.
+- **Build hỏng giữa chừng** → `docker compose logs app`. Thấy tiến trình bị giết lúc build frontend thì là hết RAM, xem mục tài nguyên ở trên.
 
-Image Docker sai kiến trúc (ví dụ ARM image trên AMD64 server).
+### Build thất bại vì hết bộ nhớ
+
+Bước build frontend bị OOM-kill là lỗi hay gặp nhất trên VPS nhỏ. Thêm swap rồi build lại:
 
 ```bash
-docker compose down
-docker rmi buitanviet/chat-quality-agent:latest buitanviet/chat-quality-agent-nginx:latest
-docker compose pull
-docker compose up -d
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
+sudo mkswap /swapfile && sudo swapon /swapfile
+docker compose up -d --build
 ```
+
+Muốn giữ swap sau khi khởi động lại máy thì thêm dòng tương ứng vào `/etc/fstab`.
 
 ### Kênh Zalo báo lỗi xác thực
 
@@ -149,16 +157,17 @@ docker compose logs nginx --tail=20
 ```
 
 **Nguyên nhân phổ biến:**
-- DNS chưa trỏ đúng IP → `ping cqa.yourdomain.com` kiểm tra
-- Port 80 bị chặn (Let's Encrypt cần port 80 để xác minh) → Mở port 80
-- Đã request quá 5 lần/tuần → Chờ 1 tuần
+- DNS chưa trỏ đúng IP → `./scripts/vps-preflight.sh cqa.yourdomain.com`
+- Cổng 80 không tới được từ Internet (Let's Encrypt cần nó để xác minh) → kiểm tra firewall của nhà cung cấp VPS, không chỉ ufw
+- Đang bật proxy Cloudflare (mây cam) → tắt về **DNS only** để lấy chứng chỉ lần đầu
+- Đã chạm giới hạn thất bại của Let's Encrypt (5 lần/giờ/domain) → chờ hết cửa sổ rồi thử lại
 
 ### Quên mật khẩu admin
 
 Nếu là admin duy nhất và quên mật khẩu, cần reset trực tiếp trong database:
 
 ```bash
-cd /opt/cqa
+cd ~/cqa
 docker compose exec db mysql -u root -p$MYSQL_ROOT_PASSWORD cqa
 
 # Trong MySQL:
