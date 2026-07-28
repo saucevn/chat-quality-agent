@@ -70,6 +70,10 @@ export default defineConfig({
       },
     ],
 
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/saucevn/chat-quality-agent' },
+    ],
+
     search: {
       provider: 'local',
     },

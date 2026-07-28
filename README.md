@@ -4,7 +4,7 @@ Giấy phép: [MIT](LICENSE)
 
 Hệ thống phân tích chất lượng chăm sóc khách hàng bằng AI. Tự động đồng bộ tin nhắn từ Zalo OA, Facebook Messenger và Pancake (kênh gộp đa nền tảng), dùng AI (Claude/Gemini) đánh giá chất lượng CSKH và gửi cảnh báo qua Telegram/Email.
 
-📖 **Hướng dẫn sử dụng chi tiết nằm trong thư mục [`docs/`](docs/)** — bắt đầu từ [Cài đặt](docs/guide/installation.md).
+📖 **Tài liệu: [saucevn.github.io/chat-quality-agent](https://saucevn.github.io/chat-quality-agent/)** — hoặc đọc thẳng trong thư mục [`docs/`](docs/), bắt đầu từ [Cài đặt](docs/guide/installation.md).
 
 ![Dashboard](docs/public/screenshots/dashboard.png)
 
@@ -162,7 +162,9 @@ Xem lịch sử thay đổi tại: **[CHANGELOG.md](CHANGELOG.md)**
 
 ## Tài liệu
 
-Toàn bộ tài liệu nằm trong thư mục [`docs/`](docs/), đọc trực tiếp trên GitHub được:
+Bản web: **[saucevn.github.io/chat-quality-agent](https://saucevn.github.io/chat-quality-agent/)** — tự cập nhật mỗi khi `docs/` đổi trên `main`.
+
+Hoặc đọc thẳng trong thư mục [`docs/`](docs/) trên GitHub:
 
 - [Cài đặt](docs/guide/installation.md) · [Cập nhật](docs/guide/updates.md) · [Tên miền & SSL](docs/guide/domain-ssl.md) · [Vận hành](docs/guide/operations.md)
 - [Kết nối kênh chat](docs/usage/channels.md) · [Facebook](docs/usage/facebook.md) · [Pancake](docs/usage/pancake.md)
