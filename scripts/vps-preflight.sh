@@ -4,7 +4,7 @@
 # =============================================================================
 #   ./scripts/vps-preflight.sh [domain]
 #
-# Ví dụ:  ./scripts/vps-preflight.sh cqa.bebe.group
+# Ví dụ:  ./scripts/vps-preflight.sh cqa.example.com
 #
 # Trả về 1 nếu có mục FAIL. Mục WARN không chặn nhưng nên đọc.
 

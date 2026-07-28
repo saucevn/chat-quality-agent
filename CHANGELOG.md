@@ -1,5 +1,21 @@
 # Changelog
 
+## v2026.07.28
+
+### Thay đổi phá vỡ tương thích
+- **Bỏ đường cài đặt qua Docker Hub.** Xoá `install.sh`, `docker-compose.hub.yml` và `scripts/release.sh`. Image trên Docker Hub thuộc một tài khoản khác và không còn được cập nhật, nên `docker compose pull` không mang lại bản mới. Cách cài và cập nhật duy nhất nay là build từ source: `docker compose up -d --build`
+- **Bỏ Watchtower** khỏi tài liệu — nó chỉ hoạt động cùng đường Docker Hub vừa gỡ
+- Xoá file `VERSION` (chỉ `release.sh` đọc nó, và giá trị `1.0.0` đã lệch xa thực tế). Nhãn phiên bản của image nay đặt qua biến `CQA_VERSION` lúc build
+
+### Tài liệu
+- Thêm [Vận hành](/guide/operations): hướng dẫn `scripts/vps-preflight.sh` và `scripts/backup-db.sh` — hai script trước đây không được nhắc ở bất kỳ đâu
+- Viết lại [Cài đặt](/guide/installation) và [Cập nhật](/guide/updates) theo đúng cách deploy thật
+- Sửa [Biến môi trường](/reference/env-vars): bổ sung `HTTP_PORT`, `HTTPS_PORT`, `DB_PORT_HOST`, `AI_MAX_TOKENS`, `CQA_VERSION`; sửa 5 giá trị mặc định ghi sai; nêu rõ 6 biến bị `docker-compose.yml` đặt cứng nên sửa trong `.env` không có tác dụng
+- Nêu rõ ở nhiều nơi: **mất `ENCRYPTION_KEY` là mất toàn bộ credential kênh**, bản sao lưu database không cứu được
+- Sửa yêu cầu RAM: bước build frontend cần nhiều hơn lúc chạy, máy 1GB không swap sẽ bị OOM-kill
+- Gỡ mọi liên kết trỏ về repo và Docker Hub của tài khoản khác; ảnh trong README chuyển sang đường dẫn tương đối
+- `CLAUDE.md` nay được commit vào repo
+
 ## v2026.07.27
 
 ### Sửa lỗi

@@ -26,6 +26,7 @@ export default defineConfig({
           { text: 'Cập nhật phiên bản', link: '/guide/updates' },
           { text: 'Tên miền & SSL', link: '/guide/domain-ssl' },
           { text: 'Thiết lập ban đầu', link: '/guide/initial-setup' },
+          { text: 'Vận hành', link: '/guide/operations' },
         ],
       },
       {
@@ -67,10 +68,6 @@ export default defineConfig({
           { text: 'Changelog', link: '/changelog' },
         ],
       },
-    ],
-
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/tanviet12/chat-quality-agent' },
     ],
 
     search: {

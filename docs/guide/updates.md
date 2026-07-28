@@ -6,46 +6,47 @@ CQA sử dụng AutoMigrate của GORM — bản mới nào có thay đổi sche
 
 Ví dụ: phiên bản mới thêm cột `channels.last_sync_attempt_at` để theo dõi từng lần đồng bộ. Khi ứng dụng restart, cột này tự được tạo — dữ liệu cũ không bị ảnh hưởng.
 
-## Thông báo trên giao diện
-
-CQA tự động kiểm tra phiên bản mới mỗi khi bạn đăng nhập (cache 1 giờ). Khi có bản cập nhật:
-
-- **Chip phiên bản** ở header chuyển sang màu vàng (bình thường là xanh)
-- **Banner thông báo** hiện bên dưới header với link đến changelog
-
-Bấm vào chip phiên bản để xem chi tiết thay đổi trong bản mới.
-
-## Cập nhật thủ công
-
-```bash
-cd /opt/cqa
-docker compose pull
-docker compose up -d
-```
-
-Lệnh trên sẽ pull image mới từ Docker Hub và restart container. Dữ liệu MySQL không bị ảnh hưởng.
-
-## Tự động cập nhật (tùy chọn)
-
-Thêm [Watchtower](https://containrrr.dev/watchtower/) để VPS tự động pull image mới và restart khi có bản cập nhật.
-
-Chạy lệnh sau trên VPS để cập nhật file docker-compose.yml (đã bao gồm Watchtower + label):
-
-```bash
-cd /opt/cqa
-curl -sfL https://raw.githubusercontent.com/tanviet12/chat-quality-agent/main/docker-compose.hub.yml -o docker-compose.yml
-docker compose up -d
-```
-
-::: info Lệnh trên an toàn
-File `.env` (chứa secrets, database password) không bị ảnh hưởng. Dữ liệu MySQL nằm trong Docker volume, không bị mất.
+::: warning AutoMigrate chỉ tiến, không lùi
+Rollback code thì được, nhưng rollback lược đồ database thì không. Trước khi cập nhật một bản có thay đổi schema lớn, hãy [sao lưu database](/guide/operations) trước.
 :::
 
-Watchtower sẽ kiểm tra Docker Hub mỗi 5 phút. Khi phát hiện image mới, tự pull và restart container **app + nginx** (có label). MySQL không có label nên không bị update, dữ liệu an toàn.
+## Cập nhật
 
-::: tip Xem log Watchtower
+CQA build image ngay trên máy chạy, nên cập nhật là kéo code mới rồi build lại:
+
 ```bash
-docker compose logs watchtower -f
+cd ~/cqa
+./scripts/backup-db.sh     # sao lưu trước, xem mục Vận hành
+git pull
+docker compose up -d --build
+docker compose logs -f app
 ```
-Thấy dòng `Found new ...` nghĩa là đã tự cập nhật thành công.
-:::
+
+Dữ liệu MySQL nằm trong Docker volume nên không bị ảnh hưởng khi build lại image. File `.env` cũng không bị đụng tới.
+
+Nếu `.env.example` có thêm biến mới, đối chiếu với `.env` của bạn sau khi `git pull`:
+
+```bash
+diff <(grep -oE '^[A-Z_]+' .env.example | sort -u) <(grep -oE '^[A-Z_]+' .env | sort -u)
+```
+
+## Gắn nhãn phiên bản cho image
+
+Mặc định image được gắn nhãn `dev`. Muốn biết chính xác bản nào đang chạy, đặt `CQA_VERSION` trước khi build:
+
+```bash
+CQA_VERSION=$(git describe --tags --always) docker compose up -d --build
+```
+
+Nhãn này hiện ở chip phiên bản trên header giao diện.
+
+## Quay lại bản cũ
+
+```bash
+cd ~/cqa
+git log --oneline -10          # tìm commit tốt trước đó
+git checkout <commit>
+docker compose up -d --build
+```
+
+Nhắc lại: cách này quay lại được **code**, không quay lại được **lược đồ database**. Nếu bản mới đã chạy AutoMigrate thêm cột, cột đó vẫn còn — thường vô hại, nhưng nếu có thay đổi lớn thì phải khôi phục từ bản sao lưu.
