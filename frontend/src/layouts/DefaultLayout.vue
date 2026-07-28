@@ -98,9 +98,9 @@
 
         <!-- Docs + Version -->
         <div v-if="!isRail" class="mt-2 d-flex align-center">
-          <v-btn size="small" variant="text" href="https://tanviet12.github.io/chat-quality-agent/guide/introduction.html" target="_blank" prepend-icon="mdi-file-document" class="text-none">Docs</v-btn>
+          <v-btn size="small" variant="text" :href="`${DOCS_URL}/guide/introduction.html`" target="_blank" prepend-icon="mdi-file-document" class="text-none">Docs</v-btn>
           <v-spacer />
-          <v-chip size="small" variant="tonal" :color="updateInfo?.has_update ? 'warning' : 'success'" href="https://tanviet12.github.io/chat-quality-agent/changelog.html" target="_blank" style="cursor: pointer;">
+          <v-chip size="small" variant="tonal" :color="updateInfo?.has_update ? 'warning' : 'success'" :href="`${DOCS_URL}/changelog.html`" target="_blank" style="cursor: pointer;">
             <v-icon start size="10" icon="mdi-circle" />
             {{ updateInfo?.current || 'dev' }}
           </v-chip>
@@ -149,15 +149,15 @@
         @click:close="dismissUpdate"
       >
         <div class="d-flex align-center flex-wrap">
-          <span class="text-body-2">Có phiên bản mới: <a href="https://tanviet12.github.io/chat-quality-agent/changelog.html" target="_blank" class="text-primary font-weight-bold">{{ updateInfo.latest }}</a></span>
+          <span class="text-body-2">Có phiên bản mới: <a :href="`${DOCS_URL}/changelog.html`" target="_blank" class="text-primary font-weight-bold">{{ updateInfo.latest }}</a></span>
           <span class="text-caption text-medium-emphasis mx-2">|</span>
           <span class="text-caption text-medium-emphasis">Hiện tại: {{ updateInfo.current }}</span>
           <span class="text-caption text-medium-emphasis mx-2">|</span>
-          <span class="text-caption"><a href="https://tanviet12.github.io/chat-quality-agent/guide/installation.html#tu-%C4%91ong-cap-nhat-tuy-chon" target="_blank" class="text-primary">Cài Watchtower</a> để tự động cập nhật.</span>
+          <span class="text-caption"><a :href="`${DOCS_URL}/guide/updates.html`" target="_blank" class="text-primary">Hướng dẫn cập nhật</a></span>
         </div>
         <div class="d-flex align-center mt-2 ga-1">
-          <span class="text-caption text-medium-emphasis">Cập nhật thủ công:</span>
-          <code class="text-caption pa-1 rounded" style="user-select: all; background: var(--muted); color: var(--foreground); border: 1px solid var(--border);">cd /opt/cqa && docker compose pull && docker compose up -d</code>
+          <span class="text-caption text-medium-emphasis">Sao lưu trước, rồi cập nhật:</span>
+          <code class="text-caption pa-1 rounded" style="user-select: all; background: var(--muted); color: var(--foreground); border: 1px solid var(--border);">{{ UPDATE_CMD }}</code>
           <v-btn icon="mdi-content-copy" size="x-small" variant="text" color="primary" @click="copyUpdateCmd" />
         </div>
       </v-alert>
@@ -250,6 +250,13 @@ import { useAuthStore } from '../stores/auth'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 import OnboardingWizard from '../components/OnboardingWizard.vue'
 import api from '../api'
+import { DOCS_URL } from '../constants/links'
+
+// Một chuỗi duy nhất cho cả đoạn hiển thị lẫn nút copy. Trước đây hai chỗ chép
+// riêng nên có thể lệch nhau mà không ai nhận ra.
+// CQA build image ngay trên máy chạy nên cập nhật là kéo code rồi build lại,
+// không phải `docker compose pull`.
+const UPDATE_CMD = 'cd ~/cqa && ./scripts/backup-db.sh && git pull && docker compose up -d --build'
 
 const route = useRoute()
 const router = useRouter()
@@ -381,7 +388,7 @@ function dismissUpdate() {
   if (updateInfo.value?.latest) localStorage.setItem('cqa_dismissed_version', updateInfo.value.latest)
 }
 function copyUpdateCmd() {
-  navigator.clipboard.writeText('cd /opt/cqa && docker compose pull && docker compose up -d')
+  navigator.clipboard.writeText(UPDATE_CMD)
 }
 onMounted(async () => {
   // Check cached version info (max 1 hour)
