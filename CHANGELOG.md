@@ -7,6 +7,9 @@
 - **Bỏ Watchtower** khỏi tài liệu — nó chỉ hoạt động cùng đường Docker Hub vừa gỡ
 - Xoá file `VERSION` (chỉ `release.sh` đọc nó, và giá trị `1.0.0` đã lệch xa thực tế). Nhãn phiên bản của image nay đặt qua biến `CQA_VERSION` lúc build
 
+### Hạ tầng
+- Khôi phục workflow `Deploy Docs`: mỗi lần đẩy lên `main` có thay đổi trong `docs/`, site tài liệu tự build và publish lên GitHub Pages. Cần bật Settings > Pages > Source = "GitHub Actions" một lần
+
 ### Tài liệu
 - Thêm [Vận hành](/guide/operations): hướng dẫn `scripts/vps-preflight.sh` và `scripts/backup-db.sh` — hai script trước đây không được nhắc ở bất kỳ đâu
 - Viết lại [Cài đặt](/guide/installation) và [Cập nhật](/guide/updates) theo đúng cách deploy thật
