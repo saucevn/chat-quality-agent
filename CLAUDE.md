@@ -14,6 +14,16 @@ gửi cảnh báo qua Telegram/Email. Multi-tenant, phân quyền Owner > Admin 
 Member. Tài liệu người dùng cuối ở `docs/` (VitePress); `research/` là ghi chú
 nội bộ và các plan kỹ thuật, không publish.
 
+**`docs/` là nội dung công khai.** `.github/workflows/docs.yml` tự build và
+publish lên https://saucevn.github.io/chat-quality-agent/ mỗi khi `main` có
+thay đổi trong `docs/`. Sửa file ở đó là sửa một website đang chạy thật —
+đừng đặt vào đó IP, domain prod, username máy chủ hay thứ gì chỉ dành cho nội
+bộ. Chỗ cho những thứ đó là `.claude/` (gitignore) hoặc `research/` (trong repo
+nhưng VitePress không build).
+
+Kiểm tra trước khi đẩy: `npm run docs:build` trong `docs/` — nó fail nếu có
+liên kết nội bộ chết, đúng như workflow sẽ làm.
+
 Kiến trúc 3 tầng (`README.md`):
 
 ```
@@ -193,6 +203,9 @@ làm nếu không được yêu cầu.
 - `DEVELOPMENT.md` — chi tiết môi trường dev, mô hình hybrid, tách biệt
   dev/production.
 - `docs/guide/operations.md` — preflight, sao lưu, khôi phục.
+- `.github/workflows/` — `ci.yml` (test Go + Vue, chạy trên mọi PR) và
+  `docs.yml` (publish docs lên Pages khi `main` đổi). Không có workflow nào
+  build hay push Docker image; xem mục Deploy ở trên để biết vì sao.
 - `docs/reference/env-vars.md` — bảng biến môi trường, kèm ghi chú 6 biến bị
   compose đặt cứng.
 - `research/pancake-integration.md` — nghiên cứu API Pancake đầy đủ, có
