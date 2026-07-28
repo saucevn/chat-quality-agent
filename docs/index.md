@@ -15,6 +15,9 @@ hero:
     - theme: alt
       text: Giới thiệu
       link: /guide/introduction
+    - theme: alt
+      text: GitHub
+      link: https://github.com/saucevn/chat-quality-agent
 
 features:
   - icon: 🔄
