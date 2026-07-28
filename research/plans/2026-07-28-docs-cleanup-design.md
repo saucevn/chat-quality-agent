@@ -11,7 +11,7 @@ VPS prod đã chạy (build từ source, không watchtower — runbook ở
 `.claude/deploy-cqa-bebe-group.md`, đã gitignore). Docs thì vẫn mô tả một hệ
 thống khác:
 
-1. **Trỏ nhầm chủ sở hữu.** Repo thật là `saucevn/chat-quality-agent` (private).
+1. **Trỏ nhầm chủ sở hữu.** Repo thật là `saucevn/chat-quality-agent` (public).
    Docs trỏ về `tanviet12/chat-quality-agent` (repo public trùng tên, là
    `upstream`) và Docker Hub `buitanviet` — cả hai đều không thuộc quyền người
    dùng. Gồm: badge, 2 link docs site, 9 URL ảnh, 4 lệnh `curl`, 5 link repo.
@@ -47,7 +47,7 @@ thống khác:
 
 | File | Vì sao |
 |---|---|
-| `install.sh` | `REPO=` trỏ raw.githubusercontent của `tanviet12`; repo thật private nên curl 404 |
+| `install.sh` | `REPO=` trỏ raw.githubusercontent của `tanviet12` — repo của người khác; và bước cuối `docker compose pull` cần image `buitanviet/*` vốn không ai cập nhật được |
 | `docker-compose.hub.yml` | Pull image `buitanviet/*`; không còn workflow nào build image đó |
 | `scripts/release.sh` | Push image lên namespace `buitanviet`, không có quyền; đã mồ côi, không file nào gọi |
 | `VERSION` | Consumer duy nhất là `release.sh`; nội dung `1.0.0` lệch với CHANGELOG `v2026.07.27`; compose dùng `${CQA_VERSION:-dev}` chứ không đọc file này |
@@ -95,9 +95,10 @@ thống khác:
 
 - **`backend/api/handlers/version.go:19`** hardcode
   `api.github.com/repos/tanviet12/chat-quality-agent/releases/latest`. Tính năng
-  "báo bản mới" đang hỏi release của repo người khác, mà repo thật lại private
-  nên đổi URL cũng trả 404. Lần này chỉ gỡ khẳng định tương ứng trong docs; sửa
-  code tách task riêng để không trộn code vào PR docs.
+  "báo bản mới" đang hỏi release của repo người khác. Đổi URL sang `saucevn`
+  cũng chưa đủ: repo đó hiện có **0 release** (`gh api .../releases` trả mảng
+  rỗng) vì `release.yml` đã bị gỡ. Lần này chỉ bỏ khẳng định tương ứng trong
+  docs; sửa code tách task riêng để không trộn code vào PR docs.
 - **Module path `github.com/vietbui/chat-quality-agent`** (`go.mod`) — đổi sẽ
   chạm mọi import trong repo, không thuộc việc dọn docs.
 - **7 ảnh screenshot không file docs nào tham chiếu** — để nguyên, xoá ảnh là
