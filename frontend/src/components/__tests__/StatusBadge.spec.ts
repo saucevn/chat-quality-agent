@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import StatusBadge from '../StatusBadge.vue'
 import vuetify from '../../plugins/vuetify'
+import { lightColors, darkColors } from '../../design/theme-tokens'
 import { mountOptions } from '../ui/__tests__/helpers'
 
 // Toàn bộ trạng thái mà app thật phát ra, kèm màu mong đợi. Danh sách này là
@@ -25,6 +26,38 @@ const CASES: Array<[string, string]> = [
   ['inactive', 'muted-foreground'],
   ['cancelled', 'muted-foreground'],
 ]
+
+// `error` là ALIAS Vuetify của token `destructive` (plugins/vuetify.ts
+// §withVuetifyAliases). theme-tokens.ts — nguồn sự thật của màu — chỉ có tên
+// token gốc, nên phải quy đổi trước khi tra. Bài "alias khớp theme thật" ở
+// dưới chặn bảng này trôi khỏi plugin.
+const TOKEN_ALIAS: Record<string, string> = { error: 'destructive' }
+const tok = (name: string) => TOKEN_ALIAS[name] ?? name
+
+const THEMES: Array<['light' | 'dark', Record<string, string>]> = [
+  ['light', lightColors],
+  ['dark', darkColors],
+]
+
+// WCAG 2.1 §Relative luminance + §Contrast ratio. Không dùng lại hàm nào của
+// app: bài kiểm phải độc lập với code đang được kiểm.
+type RGB = [number, number, number]
+const hex = (h: string): RGB => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as RGB
+function luminance([r, g, b]: RGB): number {
+  const f = (c: number) => {
+    const v = c / 255
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4
+  }
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+}
+function ratio(a: RGB, b: RGB): number {
+  const [l1, l2] = [luminance(a), luminance(b)].sort((p, q) => q - p) as [number, number]
+  return (l1 + 0.05) / (l2 + 0.05)
+}
+/** Trộn `fg` ở độ mờ `alpha` lên `bg` — nền HIỆU DỤNG mà mắt thật sự thấy. */
+function blend(fg: RGB, bg: RGB, alpha: number): RGB {
+  return fg.map((c, i) => c * alpha + bg[i]! * (1 - alpha)) as RGB
+}
 
 describe('StatusBadge', () => {
   it('ánh xạ trạng thái sang màu token, không dùng palette Vuetify', () => {
@@ -81,20 +114,80 @@ describe('StatusBadge', () => {
     }
   })
 
-  // `pending`/`queued` và `disabled`/`paused` dùng chung màu nền
-  // muted-foreground — chỉ opacity phân biệt hai nhóm. Nếu chỉ khẳng định
-  // `data-color` thì phân biệt này có thể trôi mất lần nữa mà test vẫn xanh,
-  // nên khẳng định trực tiếp style opacity render ra trên DOM.
-  it('disabled/paused/inactive/cancelled giảm opacity 0.6, pending/queued giữ nguyên', () => {
-    for (const status of ['disabled', 'paused', 'inactive', 'cancelled']) {
-      const w = mount(StatusBadge, { ...mountOptions(), props: { status } })
-      expect(w.attributes('style'), `${status} phải có opacity 0.6`).toContain('opacity: 0.6')
+  // Bảng alias phải khớp plugin thật, nếu không mọi phép tính tương phản dưới
+  // đây tra nhầm token mà vẫn xanh.
+  it('bảng quy đổi alias khớp theme Vuetify thật', () => {
+    for (const [mode, colors] of THEMES) {
+      const themeColors = vuetify.theme.themes.value[mode]!.colors as Record<string, string>
+      for (const [, color] of CASES) {
+        expect(themeColors[color], `${mode}.${color} lệch token ${tok(color)}`).toBe(
+          colors[tok(color)],
+        )
+      }
     }
-    for (const status of ['pending', 'queued']) {
+  })
+
+  // ĐIỂM CHẶN MERGE. `make test-contrast` (Playwright) KHÔNG bắt được lỗi này ở
+  // Phase 1 vì chưa view nào render StatusBadge — Phase 2 mới có 78 chỗ dùng.
+  // Nên tương phản phải được tính BẰNG SỐ ngay tại đây.
+  //
+  // Nền hiệu dụng KHÔNG phải `card`: variant tonal vẽ nền bằng chính màu chip ở
+  // độ mờ `data-underlay-opacity` (đọc thẳng từ component, không phải hằng số
+  // chép tay) phủ lên `card` ⇒ phải alpha-blend trước khi tính tỉ lệ.
+  it('mọi trạng thái đạt >= 4.5:1 chữ trên nền card, ở cả light lẫn dark', () => {
+    const failures: string[] = []
+    for (const [status] of CASES) {
       const w = mount(StatusBadge, { ...mountOptions(), props: { status } })
-      expect(w.attributes('style') ?? '', `${status} không được giảm opacity`).not.toContain(
-        'opacity',
-      )
+      const bgToken = tok(w.attributes('data-color')!)
+      const fgToken = tok(w.attributes('data-text-token')!)
+      const alpha = Number(w.attributes('data-underlay-opacity'))
+      expect(Number.isFinite(alpha), `${status}: không đọc được độ mờ nền`).toBe(true)
+
+      for (const [mode, colors] of THEMES) {
+        const fg = colors[fgToken]
+        const chipColor = colors[bgToken]
+        const card = colors.card
+        expect(fg, `${mode} thiếu token chữ ${fgToken}`).toBeDefined()
+        expect(chipColor, `${mode} thiếu token nền ${bgToken}`).toBeDefined()
+
+        const effectiveBg = blend(hex(chipColor!), hex(card!), alpha)
+        const r = ratio(hex(fg!), effectiveBg)
+        if (r < 4.5) {
+          failures.push(
+            `${mode}.${status}: ${r.toFixed(2)}:1 — chữ ${fgToken} trên ${bgToken}@${alpha} / card`,
+          )
+        }
+      }
+    }
+    expect(failures, `Dưới ngưỡng AA 4.5:1:\n${failures.join('\n')}`).toEqual([])
+  })
+
+  // `pending`/`queued` và `disabled`/`paused` dùng chung màu nền
+  // muted-foreground — chỉ độ mờ NỀN phân biệt hai nhóm.
+  it('nhóm dừng mờ hơn nhóm chờ, và chỉ mờ ở phần nền', () => {
+    const opacityOf = (status: string) => {
+      const w = mount(StatusBadge, { ...mountOptions(), props: { status } })
+      return Number(w.attributes('data-underlay-opacity'))
+    }
+    const active = opacityOf('pending')
+    for (const status of ['disabled', 'paused', 'inactive', 'cancelled']) {
+      expect(opacityOf(status), `${status} phải có nền mờ hơn pending`).toBeLessThan(active)
+    }
+    for (const status of ['queued', 'running', 'success', 'failed']) {
+      expect(opacityOf(status), `${status} không được giảm độ mờ nền`).toBe(active)
+    }
+  })
+
+  // ĐIỂM CHẶN MERGE. Cách làm mờ cũ (`style="opacity: .6"` trên chính chip) phủ
+  // lên CẢ chữ lẫn nền và kéo tương phản xuống ≈2.0:1. Bài kiểm tương phản ở
+  // trên đọc màu từ token nên KHÔNG thấy được lớp phủ đó — ca này canh riêng nó.
+  it('không chip nào bị phủ opacity ở cấp thẻ gốc', () => {
+    for (const [status] of CASES) {
+      const w = mount(StatusBadge, { ...mountOptions(), props: { status } })
+      const style = w.attributes('style') ?? ''
+      // Chỉ bắt khai báo `opacity:` đứng riêng — biến `--sb-underlay-opacity`
+      // có chứa chuỗi "opacity" nhưng là biến, không phủ lên thẻ gốc.
+      expect(/(^|;)\s*opacity\s*:/.test(style), `${status} bị phủ opacity: ${style}`).toBe(false)
     }
   })
 })

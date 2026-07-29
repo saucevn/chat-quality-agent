@@ -37,13 +37,59 @@ const COLOR: Record<string, string> = {
   cancelled: 'muted-foreground',
 }
 
+// Token CHỮ đi kèm mỗi màu nền. Bảng ánh xạ ở trên giữ nguyên tên màu (Contract)
+// — bảng này chỉ nói "chữ của màu đó lấy token nào".
+//
+// Vì sao không để chữ dùng luôn chính màu nền như trước: `variant="tonal"` vẽ
+// nền bằng CHÍNH màu đó ở opacity 0.12 (xem ghi chú UNDERLAY_OPACITY), nên chữ
+// nằm trên một nền gần như `card`. Đo bằng số ở theme light:
+//   amber #E17100  → 2.81:1   (Contract yêu cầu 4.5 — quyết định A7)
+//   error #E7000B  → 3.85:1
+//   success        → 4.53:1   (đạt nhưng sát mép)
+// Ba token `*-fg` dưới đây là bản đậm hơn của cùng một hue, và LẬT theo theme
+// (tối ở light, sáng ở dark) nên đạt AA ở cả hai. `muted-foreground` vốn đã là
+// một token chữ nên dùng chính nó.
+//
+// CẢNH BÁO: KHÔNG dùng `amber-foreground` ở đây. Nó là chữ đặt trên nền amber
+// ĐẶC nên tối (#15151F) ở CẢ HAI theme — trên chip tonal ở dark theme chỉ còn
+// 1.13:1. `amber-fg` mới là cặp lật theo theme.
+const TEXT_TOKEN: Record<string, string> = {
+  amber: 'amber-fg',
+  success: 'success-fg',
+  error: 'destructive-fg',
+  'muted-foreground': 'muted-foreground',
+}
+
 // `disabled`/`paused`/`inactive`/`cancelled` dùng CHUNG màu nền
 // `muted-foreground` với `pending`/`queued`, nhưng phải mờ hơn để phân biệt hai
 // nhóm (Contract). `pending`/`queued` KHÔNG được giảm opacity.
 const DIMMED = new Set(['disabled', 'paused', 'inactive', 'cancelled'])
 
+// Vuetify vẽ nền của variant tonal ở lớp RIÊNG `.v-chip__underlay`
+// (node_modules/vuetify/lib/components/VChip/VChip.css:310 —
+// `background: currentColor; opacity: var(--v-activated-opacity)`), mặc định
+// 0.12 (composables/theme.js:47). Đã xác nhận trên DOM đã render, không suy đoán.
+const UNDERLAY_OPACITY = 0.12
+
+// Làm mờ CHỈ phần nền, giữ chữ ở full opacity — quyết định của người dùng.
+// Cách cũ (`style="opacity: .6"` phủ lên cả chip) làm mờ chữ LẪN nền và kéo
+// tương phản xuống ≈2.0:1, ngược đúng lý do tồn tại của quyết định A17
+// ("dữ liệu cũ vẫn phải đọc được").
+const DIMMED_FACTOR = 0.6
+
 const color = computed(() => COLOR[props.status] ?? 'muted-foreground')
+const textToken = computed(() => TEXT_TOKEN[color.value] ?? 'muted-foreground')
 const dimmed = computed(() => DIMMED.has(props.status))
+const underlayOpacity = computed(() =>
+  dimmed.value ? UNDERLAY_OPACITY * DIMMED_FACTOR : UNDERLAY_OPACITY,
+)
+
+// Chỉ biến CSS trỏ tới token theme — không hex nào viết tay trong file này.
+const chipStyle = computed(() => ({
+  '--sb-fg': `rgb(var(--v-theme-${textToken.value}))`,
+  '--sb-underlay-opacity': String(underlayOpacity.value),
+}))
+
 // Trạng thái lạ (backend thêm mã mới, hoặc gõ sai) KHÔNG được rơi ra chuỗi
 // khoá thô `status_xxx` trên giao diện — `t()` của vue-i18n trả về chính khoá
 // khi thiếu bản dịch, kèm cảnh báo trong console. `te()` kiểm tra trước, thiếu
@@ -51,8 +97,9 @@ const dimmed = computed(() => DIMMED.has(props.status))
 const label = computed(() => (te(`status_${props.status}`) ? t(`status_${props.status}`) : props.status))
 
 // variant="tonal" không khai lại ở template — đã là default toàn cục của
-// VChip (frontend/src/plugins/vuetify.ts). data-color chỉ để test khẳng
-// định hành vi, không dùng để style.
+// VChip (frontend/src/plugins/vuetify.ts). `data-color`, `data-text-token` và
+// `data-underlay-opacity` chỉ để test khẳng định hành vi (test tính tương phản
+// bằng số phải đọc được ĐÚNG ba giá trị này), không dùng để style.
 </script>
 
 <template>
@@ -60,8 +107,26 @@ const label = computed(() => (te(`status_${props.status}`) ? t(`status_${props.s
     :color="color"
     :size="size"
     :data-color="color"
-    :style="dimmed ? 'opacity: 0.6' : undefined"
+    :data-text-token="textToken"
+    :data-underlay-opacity="underlayOpacity"
+    :style="chipStyle"
   >
     {{ label }}
   </v-chip>
 </template>
+
+<style scoped>
+/* Chữ đặt trên `.v-chip__content`, KHÔNG trên `.v-chip`: nền tonal lấy
+   `currentColor` của `.v-chip`, nên đổi màu chữ ở thẻ gốc sẽ đổi luôn màu nền
+   và chip amber thành chip nâu. Đặt ở phần tử con thì nền giữ nguyên hue. */
+.v-chip :deep(.v-chip__content) {
+  color: var(--sb-fg);
+}
+
+/* Chỉ lớp NỀN bị giảm opacity. Selector này ghi đè
+   `.v-chip--variant-tonal .v-chip__underlay` (2 class) vì có thêm attribute
+   scope của SFC ⇒ 3 hạng class. */
+.v-chip :deep(.v-chip__underlay) {
+  opacity: var(--sb-underlay-opacity);
+}
+</style>

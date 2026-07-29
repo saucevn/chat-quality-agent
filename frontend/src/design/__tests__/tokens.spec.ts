@@ -58,12 +58,17 @@ describe('design tokens', () => {
       ['light', 'primary-foreground', 'primary'],
       ['light', 'success-fg', 'success-bg'],
       ['light', 'destructive-fg', 'destructive-bg'],
+      // `amber-fg` là cặp lật theo theme, KHÁC `amber-foreground` (chữ tối trên
+      // nền amber ĐẶC, giống nhau ở cả hai theme). StatusBadge dùng nó cho chữ
+      // trên chip tonal; cặp với `amber-bg` là ca dùng banner cảnh báo.
+      ['light', 'amber-fg', 'amber-bg'],
       ['light', 'solid-badge-fg', 'destructive'],
       ['dark', 'foreground', 'card'],
       ['dark', 'muted-foreground', 'card'],
       ['dark', 'primary-foreground', 'primary'],
       ['dark', 'success-fg', 'success-bg'],
       ['dark', 'destructive-fg', 'destructive-bg'],
+      ['dark', 'amber-fg', 'amber-bg'],
     ]
     const failures: string[] = []
     for (const [mode, fg, bg] of pairs) {

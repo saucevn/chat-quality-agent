@@ -16,6 +16,7 @@
   --amber-foreground: oklch(20% 0.02 285);
   --amber-bg: oklch(98.7% 0.022 95.277);
   --amber-border: oklch(92.4% 0.12 95.746);
+  --amber-fg: oklch(40% 0.11 58.318);
   --success: oklch(50.8% 0.118 165.612);
   --success-bg: oklch(95% 0.052 163.051);
   --success-fg: oklch(32% 0.11 165);
@@ -120,6 +121,7 @@
   --amber-foreground: oklch(20% 0.02 285);
   --amber-bg: oklch(28% 0.05 75);
   --amber-border: oklch(40% 0.09 75);
+  --amber-fg: oklch(88% 0.13 75);
   --success: oklch(80% 0.14 165);
   --success-bg: oklch(28% 0.06 165);
   --success-fg: oklch(88% 0.13 165);
