@@ -20,4 +20,17 @@ export default {
   normal: 'Normal',
   required: 'Required',
   slug_hint: 'Used in URL, only a-z, 0-9 and hyphens',
+  // Display labels for StatusBadge — match the status↔color mapping table in
+  // research/plans/2026-07-29-ui-upgrade/README.md §Contract.
+  status_running: 'Running',
+  status_syncing: 'Syncing',
+  status_success: 'Success',
+  status_active: 'Active',
+  status_pass: 'Pass',
+  status_failed: 'Failed',
+  status_error: 'Error',
+  status_pending: 'Pending',
+  status_queued: 'Queued',
+  status_disabled: 'Disabled',
+  status_paused: 'Paused',
 }
