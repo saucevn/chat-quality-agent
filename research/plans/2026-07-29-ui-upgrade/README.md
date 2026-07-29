@@ -263,6 +263,19 @@ thay vì bằng ownership:
 |---|---|---|---|
 | 1 | **1D** | 8 (`err_*`, `error_load_failed_*`, `retry`) | 243 → **251** |
 | 2 | **1C** | 11 (`status_*`) | 251 → **262** |
+| sửa sau review | **1C** | +5 (`status_inactive/sent/warning/partial/cancelled`) | 262 → **267** |
+| sửa sau review | **1D** | +8 (`format_*`, module mới `i18n/*/format.ts`) | 267 → **275** |
+
+**Số chốt cuối Phase 1: 275 khoá.** Hai dòng cuối là kết quả của vòng review
+toàn nhánh, không nằm trong kế hoạch ban đầu:
+
+- Story 1C thực tế thêm **16** khoá `status_*` chứ không phải 11. Backend phát
+  `partial` và `cancelled`, còn frontend đang dùng `inactive`/`sent`/`warning` —
+  không mã nào có khoá lẫn ánh xạ màu, nên `StatusBadge` render ra chuỗi khoá
+  thô `status_inactive`.
+- Module `frontend/src/i18n/{vi,en}/format.ts` là **file mới do controller thêm**
+  khi locale hoá `utils/format.ts`; nó **không thuộc sở hữu story nào** trong
+  bảng trên. Story Phase 2 nào cần sửa chuỗi định dạng thì báo controller.
 
 1B **không** đụng i18n: khi 1B chạy, 1D đã merge nên `error_load_failed_title`,
 `error_load_failed_desc`, `retry` đã có sẵn. Bước "vá tạm vào `common.ts`" ở
@@ -285,9 +298,19 @@ vào nó mà không cần đợi.
 EmptyState:   { variant?: 'first-run' | 'no-data' | 'error'   // mặc định 'first-run'
                 icon?: string; title: string; description?: string
                 actionLabel?: string }   // emit: 'action'
+SkeletonBlock:{ width?: string /* '100%' */; height?: string /* '12px' */
+                radius?: string /* 'var(--radius-sm)' */ }
+              // Primitive dùng chung của mọi skeleton. Phase 2 cần nó cho
+              // skeleton dạng dòng lẻ (panel, chi tiết) mà 3 skeleton dựng sẵn
+              // dưới đây không khớp hình dạng.
 SkeletonTable:{ rows?: number /* 5 */; cols: number }
 SkeletonCard: { lines?: number /* 3 */ }
 SkeletonKpi:  { count?: number /* 4 */ }
+              // SkeletonKpi TỰ dựng lưới (v-row + v-col 12/6/3) khớp KpiGrid.
+              // Vì vậy nhánh loading phải đứng NGOÀI KpiGrid:
+              //     <KpiGrid v-if="!loading"> … </KpiGrid>
+              //     <SkeletonKpi v-else :count="4" />
+              // Đặt SkeletonKpi BÊN TRONG KpiGrid sẽ lồng v-row trong v-col.
 
 // 1B — dữ liệu
 DataTable:    { headers: { title: string; key: string; sortable?: boolean;
@@ -295,9 +318,14 @@ DataTable:    { headers: { title: string; key: string; sortable?: boolean;
                 items: unknown[]; loading?: boolean; error?: boolean
                 totalItems?: number; page?: number; itemsPerPage?: number
                 emptyTitle: string          // BẮT BUỘC — xem ghi chú dưới
-                emptyDescription?: string; emptyActionLabel?: string }
-              // emit: 'update:page', 'update:itemsPerPage', 'retry',
-              //       'empty-action'
+                emptyDescription?: string; emptyActionLabel?: string
+                sortBy?: { key: string; order?: 'asc' | 'desc' }[] }
+              // emit: 'update:page', 'update:itemsPerPage', 'update:sortBy',
+              //       'retry', 'empty-action'
+              // `sortBy` + emit là BẮT BUỘC ở chế độ server: VDataTableServer
+              // KHÔNG tự sắp xếp, nên không có nó thì `headers[].sortable` là
+              // prop khai mà vô tác dụng — header bấm được, mũi tên đổi, dữ
+              // liệu đứng yên, view không bao giờ biết. Dùng `v-model:sort-by`.
               // slot: 'toolbar', 'item.<key>', 'bulk-actions'
               // `emptyTitle` KHÔNG có mặc định `t('no_data')`: quy tắc 4 trạng
               // thái cấm nhánh rỗng chỉ có một dòng "Không có dữ liệu", và có
@@ -305,8 +333,15 @@ DataTable:    { headers: { title: string; key: string; sortable?: boolean;
               // Nhánh rỗng nối CTA qua `emptyActionLabel` + 'empty-action'.
               // Truyền `totalItems` = tuyên bố "server phân trang" ⇒ bên trong
               // dùng VDataTableServer; không truyền = client tự phân trang/sort.
+              // `page`/`itemsPerPage`/`sortBy` là ĐIỂM KHỞI ĐẦU, không phải
+              // xích: bảng giữ state nội bộ và tự đổi trang được kể cả khi view
+              // không v-model. Muốn CHẶN đổi trang thì dùng `loading`, đừng
+              // trông vào việc giữ nguyên prop.
               // Attr không khai báo (show-select, item-value, density…) rơi
-              // xuống thẳng bảng, không dính lên v-card gốc.
+              // xuống thẳng bảng. RIÊNG `class`/`style`/`id` đặt lên v-card gốc
+              // ở MỌI nhánh trạng thái — nếu không, `<DataTable class="mb-6">`
+              // sẽ mất margin khi bảng rỗng/lỗi/đang tải và khoảng cách dọc
+              // nhảy theo trạng thái dữ liệu.
 FilterBar:    { modelValue: Record<string, unknown> }
               // slot mặc định, PHƠI slot prop `filters` = chính modelValue:
               //     <FilterBar :model-value="filters" v-slot="{ filters }">
@@ -342,13 +377,29 @@ FormField:    { label: string; required?: boolean; hint?: string
 StatusBadge:  { status: string; size?: string }
 
 // 1D — định dạng & lỗi
-vnd(n: number): string                 // "2.847.621.000 ₫"
-vndShort(n: number): string            // "2,85 tỷ" | "384,7 tr" | "14k"
-pct(n: number, d?: number): string     // "18,4%"; n < 0.1 ⇒ "<0,1%"
-usd(n: number): string
-dateTable(d: string | Date): string        // dd/MM/yyyy
-dateWithTime(d: string | Date): string     // dd/MM/yyyy 'lúc' HH:mm
-dateRelative(d: string | Date): string
+// CHỮ KÝ KHÔNG ĐỔI, nhưng ĐẦU RA PHỤ THUỘC LOCALE. Các hàm đọc locale hiện
+// tại từ instance i18n toàn cục — Phase 2 KHÔNG phải truyền gì. Chọn cách này
+// thay vì thêm tham số `locale` vào 9 hàm chính vì quên truyền sẽ hỏng IM LẶNG.
+vnd(n: number): string                 // vi "2.847.621.000 ₫" · en "2,847,621,000 ₫"
+vndShort(n: number): string            // vi "2,85 tỷ"|"384,7 tr"|"14k"
+                                       // en "2.85B"|"384.7M"|"14K"
+                                       // Tiền LUÔN là VND ở mọi ngôn ngữ; chỉ
+                                       // dấu phân cách và hậu tố đổi.
+pct(n: number, d?: number): string     // vi "18,4%" · en "18.4%"
+                                       // CHỈ n > 0 && n < 0.1 ⇒ "<0,1%"/"<0.1%".
+                                       // n = 0 và n âm KHÔNG rơi vào nhánh này.
+usd(n: number): string                 // luôn quy ước Mỹ, kể cả khi giao diện vi
+dateTable(d: string | Date): string        // dd/MM/yyyy Ở CẢ HAI LOCALE — cố ý.
+                                       // "3/9/2026" là 9 tháng 3 với người đọc
+                                       // Mỹ và 3 tháng 9 với người đọc Việt;
+                                       // báo cáo và dữ liệu backend luôn
+                                       // dd/MM/yyyy nên đọc nhầm ở đây là sai
+                                       // nghiệp vụ. Chỉ CHỮ đổi theo ngôn ngữ.
+dateWithTime(d: string | Date): string     // vi "09/03/2026 lúc 14:05"
+                                           // en "09/03/2026 at 14:05"
+dateRelative(d: string | Date): string     // vi "3 phút trước" (không chia số
+                                           // nhiều, DS §5.4) · en "3 minutes
+                                           // ago" / "1 minute ago" (có số ít)
 errorCode(err: unknown): string        // mã đã biết, hoặc 'system.internal'
 errorKey(err: unknown): string         // khoá i18n, ví dụ 'err_auth_token_expired'
                                        // View gọi t(errorKey(e)) — KHÔNG BAO GIỜ
@@ -356,6 +407,9 @@ errorKey(err: unknown): string         // khoá i18n, ví dụ 'err_auth_token_e
 
 // 1E — KPI
 StatCard:     { label: string; value: string | number; unit?: string
+                // `change` tính bằng ĐIỂM PHẦN TRĂM, không phải phân số:
+                // 18.4 ⇒ "↑ 18,4%". Truyền 0.184 sẽ ra "0,2%" — lệch 100 lần.
+                // Cùng đơn vị với `changeThreshold`.
                 change?: number; changeThreshold?: number
                 icon?: string; loading?: boolean; to?: string }
               // CẤM #2: |change| >= changeThreshold ⇒ badge SOLID (variant
