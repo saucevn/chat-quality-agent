@@ -7,7 +7,13 @@ import vuetify from 'vite-plugin-vuetify'
 export default defineConfig({
   plugins: [
     vue(),
-    vuetify({ autoImport: true }),
+    vuetify({
+      autoImport: true,
+      // Biên dịch lại SCSS của từng component Vuetify với biến của ERP design
+      // system. Bỏ dòng styles này là mọi số đo trong vuetify-settings.scss
+      // mất tác dụng — Vuetify quay về dùng CSS dựng sẵn.
+      styles: { configFile: 'src/design/vuetify-settings.scss' },
+    }),
   ],
   test: {
     // Chỉ nhặt unit test trong src/. Thư mục tests/ là của Playwright: mặc định

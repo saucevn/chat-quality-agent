@@ -1,0 +1,50 @@
+// Lớp settings của Vuetify — vite-plugin-vuetify nạp file này qua
+// styles.configFile và biên dịch lại SCSS của TỪNG component Vuetify với các
+// biến dưới đây. Không có nó thì mọi số đo phải gán bằng `style` prop từng
+// chỗ, và không áp được cho component lồng bên trong.
+//
+// Chỉ ghi đè cái ERP design system quy định. Cái nào Vuetify mặc định đã khớp
+// đặc tả thì để nguyên (ví dụ $button-height: 36px).
+@use './ds-tokens' as ds;
+
+@forward 'vuetify/settings' with (
+  // Radius: control 8px, card 14px — DS §1.4, quyết định A10.
+  $border-radius-root: ds.$radius-md,
+  $rounded: (
+    0: 0,
+    'sm': ds.$radius-sm,
+    null: ds.$radius-md,
+    'md': ds.$radius-md,
+    'lg': ds.$radius-lg,
+    'xl': ds.$radius-xl,
+    'pill': ds.$radius-full,
+    'circle': 50%,
+    'shaped': ds.$radius-xl 0
+  ),
+
+  // Thang chữ: chỉ ghi đè 9 bậc Material 3 mà component Vuetify thật sự đọc
+  // trong SCSS của nó. Ánh xạ bậc M3 → bậc DS theo cỡ chữ gần nhất.
+  $typography: (
+    'display-large':   ('size': ds.$font-size-display-lg, 'weight': ds.$font-weight-bold,     'line-height': 1.1,  'letter-spacing': ds.$tracking-tight),
+    'headline-large':  ('size': ds.$font-size-heading-1,  'weight': ds.$font-weight-bold,     'line-height': 1.2,  'letter-spacing': ds.$tracking-tight),
+    'headline-medium': ('size': ds.$font-size-heading-2,  'weight': ds.$font-weight-semibold, 'line-height': 1.33, 'letter-spacing': ds.$tracking-snug),
+    'headline-small':  ('size': ds.$font-size-heading-3,  'weight': ds.$font-weight-semibold, 'line-height': 1.4,  'letter-spacing': normal),
+    'title-large':     ('size': ds.$font-size-heading-3,  'weight': ds.$font-weight-semibold, 'line-height': 1.4,  'letter-spacing': normal),
+    'body-large':      ('size': ds.$font-size-body-base,  'weight': ds.$font-weight-regular,  'line-height': 1.5,  'letter-spacing': normal),
+    'body-medium':     ('size': ds.$font-size-body-sm,    'weight': ds.$font-weight-regular,  'line-height': 1.43, 'letter-spacing': normal),
+    'label-large':     ('size': ds.$font-size-body-sm,    'weight': ds.$font-weight-medium,   'line-height': 1.43, 'letter-spacing': normal),
+    'label-small':     ('size': ds.$font-size-label,      'weight': ds.$font-weight-semibold, 'line-height': 1.33, 'letter-spacing': ds.$tracking-wide)
+  ),
+
+  // Input: DS §2.3 quy định cao 36px, chữ 14px, padding ngang 12px.
+  // Vuetify mặc định 56px/16px/16px (kích thước Material floating-label).
+  $field-control-height: 36px,
+  $input-control-height: 36px,
+  $field-font-size: ds.$font-size-body-sm,
+  $field-control-padding-start: ds.$space-3,
+  $field-control-padding-end: ds.$space-3,
+
+  // Table: DS §2.6 quy định ô header cao 40px. Chiều cao row body DS không
+  // quy định — giữ mặc định 52px của Vuetify.
+  $table-header-height: 40px
+);
