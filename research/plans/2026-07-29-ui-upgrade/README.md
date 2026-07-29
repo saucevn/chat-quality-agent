@@ -294,9 +294,19 @@ DataTable:    { headers: { title: string; key: string; sortable?: boolean;
                   align?: 'start' | 'center' | 'end' }[]
                 items: unknown[]; loading?: boolean; error?: boolean
                 totalItems?: number; page?: number; itemsPerPage?: number
-                emptyTitle?: string; emptyDescription?: string }
-              // emit: 'update:page', 'update:itemsPerPage', 'retry'
+                emptyTitle: string          // BẮT BUỘC — xem ghi chú dưới
+                emptyDescription?: string; emptyActionLabel?: string }
+              // emit: 'update:page', 'update:itemsPerPage', 'retry',
+              //       'empty-action'
               // slot: 'toolbar', 'item.<key>', 'bulk-actions'
+              // `emptyTitle` KHÔNG có mặc định `t('no_data')`: quy tắc 4 trạng
+              // thái cấm nhánh rỗng chỉ có một dòng "Không có dữ liệu", và có
+              // mặc định thì mọi bảng hợp lệ về type mà vẫn vi phạm quy tắc.
+              // Nhánh rỗng nối CTA qua `emptyActionLabel` + 'empty-action'.
+              // Truyền `totalItems` = tuyên bố "server phân trang" ⇒ bên trong
+              // dùng VDataTableServer; không truyền = client tự phân trang/sort.
+              // Attr không khai báo (show-select, item-value, density…) rơi
+              // xuống thẳng bảng, không dính lên v-card gốc.
 FilterBar:    { modelValue: Record<string, unknown> }   // slot mặc định
               // mọi control bên trong cao 36px (quyết định B9)
 
@@ -333,23 +343,32 @@ errorKey(err: unknown): string         // khoá i18n, ví dụ 'err_auth_token_e
 
 // 1E — KPI
 StatCard:     { label: string; value: string | number; unit?: string
-                change?: number; icon?: string; loading?: boolean
-                to?: string }
+                change?: number; changeThreshold?: number
+                icon?: string; loading?: boolean; to?: string }
+              // CẤM #2: |change| >= changeThreshold ⇒ badge SOLID (variant
+              // flat), dưới ngưỡng hoặc không khai ngưỡng ⇒ tonal.
 KpiGrid:      { }   // slot mặc định; lưới 1/2/4 cột theo breakpoint
+              // KpiGrid TỰ bọc mỗi thẻ con trong <v-col cols=12 sm=6 lg=3>,
+              // khớp đúng SkeletonKpi. Nơi dùng KHÔNG tự gõ <v-col>:
+              //     <KpiGrid><StatCard … /><StatCard … /></KpiGrid>
 ```
 
 ### Ánh xạ trạng thái CQA ↔ màu (thay từ vựng agent của DS — quyết định A2)
 
 | Trạng thái CQA | Token màu | Dùng ở |
 |---|---|---|
-| `running` / `syncing` | `--amber` (pulse) | job đang chạy, kênh đang đồng bộ |
-| `success` / `active` / `pass` | `--success` | job xong, kênh hoạt động, kết quả Đạt |
+| `running` / `syncing` / `warning` / `partial` | `--amber` (pulse) | job đang chạy, kênh đang đồng bộ, cảnh báo, thành công một phần |
+| `success` / `active` / `pass` / `sent` | `--success` | job xong, kênh hoạt động, kết quả Đạt, thông báo đã gửi |
 | `failed` / `error` | `--destructive` | job lỗi, sync lỗi, kết quả Không đạt |
 | `pending` / `queued` | `--muted-foreground` | job chờ |
-| `disabled` / `paused` | `--muted-foreground` + opacity 0.6 | kênh tắt |
+| `disabled` / `paused` / `inactive` / `cancelled` | `--muted-foreground` + opacity 0.6 | kênh tắt, job bị huỷ |
 
 `StatusBadge` là **nơi duy nhất** ánh xạ này tồn tại. Story nào tự viết
 `<v-chip :color="...">` cho trạng thái là **sai** — dùng `StatusBadge`.
+
+Trạng thái không có trong bảng (backend thêm mã mới) hiển thị **nguyên mã**,
+không rơi ra chuỗi khoá thô `status_xxx` — nhưng đó là lối thoát hiểm, không
+phải chỗ để bỏ qua việc thêm khoá i18n.
 
 ### Quy tắc 4 trạng thái (bắt buộc)
 
