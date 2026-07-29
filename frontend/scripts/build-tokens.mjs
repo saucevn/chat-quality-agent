@@ -88,6 +88,74 @@ const tracking = cssBlock('tracking', mapValues(core.letterSpacing))
 const fontWeight = cssBlock('font-weight', mapValues(core.fontWeight))
 const spacing = cssBlock('space', mapValues(core.spacing))
 
+// Bậc DS → class tiện ích. Vuetify 4 dùng thang Material 3 nên không có sẵn
+// .text-h5/.text-body-2/... của Vuetify 3, mà app đang dùng chúng 252 lần.
+const TYPO_CLASSES = {
+  'heading-1': ['heading-1', 'bold', 'tight', 'display'],
+  'heading-2': ['heading-2', 'semibold', 'snug', 'display'],
+  'heading-3': ['heading-3', 'semibold', 'normal', 'body'],
+  'body-lg': ['body-lg', 'regular', 'normal', 'body'],
+  'body-base': ['body-base', 'regular', 'normal', 'body'],
+  'body-sm': ['body-sm', 'medium', 'normal', 'body'],
+  'body-xs': ['body-xs', 'regular', 'normal', 'body'],
+  label: ['label', 'semibold', 'wide', 'body'],
+}
+
+const typoClasses = Object.entries(TYPO_CLASSES)
+  .map(([name, [size, weight, track, family]]) => {
+    const upper = name === 'label' ? '\n  text-transform: uppercase;' : ''
+    return `.text-${name} {
+  font-family: var(--font-${family});
+  font-size: var(--font-size-${size});
+  line-height: var(--line-height-${size});
+  font-weight: var(--font-weight-${weight});
+  letter-spacing: var(--tracking-${track});${upper}
+}`
+  })
+  .join('\n')
+
+// LỚP ĐỆM — Vuetify 4 bỏ thang Vuetify 3 (đã xác minh: .text-h5 và
+// .text-body-2 không tồn tại trong dist/vuetify.css). 252 chỗ trong src/ vẫn
+// dùng và đang render sai cỡ. Lớp đệm sửa ngay mà không phải đụng file view
+// nào — view thuộc sở hữu của các story Phase 2.
+// Phase 2 thay dần sang class DS; Story 3B thêm test chặn chúng quay lại.
+const LEGACY_ALIAS = {
+  h4: 'heading-1', h5: 'heading-2', h6: 'heading-3',
+  'subtitle-1': 'body-base', 'subtitle-2': 'body-sm',
+  'body-1': 'body-base', 'body-2': 'body-sm', caption: 'body-xs',
+}
+const legacyClasses = Object.entries(LEGACY_ALIAS)
+  .map(([old, ds]) => `.text-${old} { /* ĐÃ LỖI THỜI → .text-${ds} */
+  font-size: var(--font-size-${ds});
+  line-height: var(--line-height-${ds});
+}`)
+  .join('\n')
+
+// Nối token font vào Vuetify: $body-font-family của Vuetify 4 là
+// var(--v-font-body, 'Roboto', sans-serif), và biến đó xuất hiện 183 lần
+// trong dist/vuetify.css — một dòng là đủ cho toàn app.
+// Focus: DS §1.6 có hai cơ chế song song; quyết định A15 chọn cơ chế CSS toàn
+// cục, bỏ ring per-component.
+// .font-mono: 5 chỗ trong src/ dùng class này mà không nơi nào định nghĩa —
+// Vuetify không có utility tên đó.
+const globalRules = `:root {
+  --v-font-body: var(--font-body);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+.bg-primary :focus-visible {
+  outline-color: #fff;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}`
+
 const css = `/* SINH TỰ ĐỘNG bởi scripts/build-tokens.mjs — đừng sửa tay.
    Sửa src/design/erp-tokens.json rồi chạy: npm run tokens:build */
 :root {
@@ -107,6 +175,10 @@ ${spacing}
 .dark {
 ${cssVars('dark')}
 }
+
+${typoClasses}
+${legacyClasses}
+${globalRules}
 `
 
 const ts = `// SINH TỰ ĐỘNG bởi scripts/build-tokens.mjs — đừng sửa tay.

@@ -149,3 +149,110 @@
   --channel-facebook: oklch(65% 0.16 285);
   --channel-pancake: oklch(65% 0.14 55);
 }
+
+.text-heading-1 {
+  font-family: var(--font-display);
+  font-size: var(--font-size-heading-1);
+  line-height: var(--line-height-heading-1);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-tight);
+}
+.text-heading-2 {
+  font-family: var(--font-display);
+  font-size: var(--font-size-heading-2);
+  line-height: var(--line-height-heading-2);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-snug);
+}
+.text-heading-3 {
+  font-family: var(--font-body);
+  font-size: var(--font-size-heading-3);
+  line-height: var(--line-height-heading-3);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-normal);
+}
+.text-body-lg {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-body-lg);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-normal);
+}
+.text-body-base {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-base);
+  line-height: var(--line-height-body-base);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-normal);
+}
+.text-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-normal);
+}
+.text-body-xs {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-xs);
+  line-height: var(--line-height-body-xs);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-normal);
+}
+.text-label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+.text-h4 { /* ĐÃ LỖI THỜI → .text-heading-1 */
+  font-size: var(--font-size-heading-1);
+  line-height: var(--line-height-heading-1);
+}
+.text-h5 { /* ĐÃ LỖI THỜI → .text-heading-2 */
+  font-size: var(--font-size-heading-2);
+  line-height: var(--line-height-heading-2);
+}
+.text-h6 { /* ĐÃ LỖI THỜI → .text-heading-3 */
+  font-size: var(--font-size-heading-3);
+  line-height: var(--line-height-heading-3);
+}
+.text-subtitle-1 { /* ĐÃ LỖI THỜI → .text-body-base */
+  font-size: var(--font-size-body-base);
+  line-height: var(--line-height-body-base);
+}
+.text-subtitle-2 { /* ĐÃ LỖI THỜI → .text-body-sm */
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+}
+.text-body-1 { /* ĐÃ LỖI THỜI → .text-body-base */
+  font-size: var(--font-size-body-base);
+  line-height: var(--line-height-body-base);
+}
+.text-body-2 { /* ĐÃ LỖI THỜI → .text-body-sm */
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+}
+.text-caption { /* ĐÃ LỖI THỜI → .text-body-xs */
+  font-size: var(--font-size-body-xs);
+  line-height: var(--line-height-body-xs);
+}
+:root {
+  --v-font-body: var(--font-body);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+.bg-primary :focus-visible {
+  outline-color: #fff;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}

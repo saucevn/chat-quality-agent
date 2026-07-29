@@ -99,4 +99,16 @@ describe('design tokens', () => {
     expect(scss).toContain('$font-size-body-xs:')
     expect(scss).toContain('$line-height-body-xs:')
   })
+
+  it('tokens.css định nghĩa class typography DS và lớp đệm cho class Vuetify 3 đã chết', () => {
+    for (const c of ['heading-1', 'heading-2', 'heading-3', 'body-lg',
+                     'body-base', 'body-sm', 'body-xs', 'label'])
+      expect(css, `thiếu .text-${c}`).toContain(`.text-${c}`)
+
+    // Vuetify 4 bỏ hẳn thang Vuetify 3; 252 chỗ trong src/ vẫn dùng.
+    // Lớp đệm giữ chúng hoạt động cho tới khi Phase 2 thay hết.
+    for (const c of ['h4', 'h5', 'h6', 'subtitle-1', 'subtitle-2',
+                     'body-1', 'body-2', 'caption'])
+      expect(css, `thiếu lớp đệm .text-${c}`).toContain(`.text-${c}`)
+  })
 })
