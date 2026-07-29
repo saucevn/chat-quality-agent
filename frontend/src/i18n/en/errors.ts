@@ -4,4 +4,12 @@ export default {
   validation_select_channel: 'Please select at least 1 channel',
   validation_add_output: 'Please add at least 1 output',
   validation_enter_rules: 'Please enter analysis rules',
+  err_auth_login_invalid_credentials: 'Incorrect email or password.',
+  err_auth_token_expired: 'Your session expired. Please sign in again.',
+  err_validation_required: 'Please fill in all required fields.',
+  err_system_rate_limit: 'Too many requests. Wait a few seconds and try again.',
+  err_system_internal: 'Something went wrong. The team has been notified. Try again or contact support.',
+  error_load_failed_title: 'Could not load data',
+  error_load_failed_desc: 'Connection error. Try reloading, or contact support if it persists.',
+  retry: 'Reload',
 }

@@ -15,7 +15,7 @@ describe('i18n', () => {
   it('giữ đúng 243 khoá sau khi tách module', () => {
     // Chốt cứng để việc tách không làm rơi key. Story nào thêm key mới thì
     // cập nhật số này trong cùng commit — đó là điểm reviewer nhìn thấy.
-    expect(Object.keys(vi)).toHaveLength(243)
+    expect(Object.keys(vi)).toHaveLength(251)
   })
 
   it('không khoá nào bị khai trùng ở hai module', () => {
