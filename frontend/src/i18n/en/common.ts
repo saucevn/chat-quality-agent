@@ -33,4 +33,9 @@ export default {
   status_queued: 'Queued',
   status_disabled: 'Disabled',
   status_paused: 'Paused',
+  status_inactive: 'Inactive',
+  status_cancelled: 'Cancelled',
+  status_sent: 'Sent',
+  status_warning: 'Warning',
+  status_partial: 'Partial',
 }

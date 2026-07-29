@@ -33,4 +33,9 @@ export default {
   status_queued: 'Trong hàng đợi',
   status_disabled: 'Đã tắt',
   status_paused: 'Tạm dừng',
+  status_inactive: 'Ngừng hoạt động',
+  status_cancelled: 'Đã huỷ',
+  status_sent: 'Đã gửi',
+  status_warning: 'Cảnh báo',
+  status_partial: 'Một phần',
 }
