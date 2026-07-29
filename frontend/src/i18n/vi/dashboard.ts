@@ -1,0 +1,15 @@
+export default {
+  dashboard: 'Trang chủ',
+  total_conversations: 'Tổng hội thoại',
+  issues_today: 'Vấn đề hôm nay',
+  active_jobs: 'Công việc đang chạy',
+  active_channels: 'Kênh hoạt động',
+  recent_alerts: 'Cảnh báo gần đây',
+  service_status: 'Trạng thái dịch vụ',
+  ai_cost: 'Chi phí AI',
+  cost_today: 'Chi phí hôm nay',
+  cost_this_month: 'Chi phí tháng này',
+  cost: 'Chi phí',
+  date: 'Ngày',
+  ai_model: 'Model AI',
+}

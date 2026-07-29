@@ -1,0 +1,15 @@
+export default {
+  dashboard: 'Dashboard',
+  total_conversations: 'Total Conversations',
+  issues_today: 'Issues Today',
+  active_jobs: 'Active Jobs',
+  active_channels: 'Active Channels',
+  recent_alerts: 'Recent Alerts',
+  service_status: 'Service Status',
+  ai_cost: 'AI Cost',
+  cost_today: 'Cost Today',
+  cost_this_month: 'Cost This Month',
+  cost: 'Cost',
+  date: 'Date',
+  ai_model: 'AI Model',
+}

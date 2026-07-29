@@ -2,31 +2,37 @@ import { describe, it, expect } from 'vitest'
 import vi from '../i18n/vi'
 import en from '../i18n/en'
 
-describe('i18n completeness', () => {
-  const viKeys = Object.keys(vi).sort()
-  const enKeys = Object.keys(en).sort()
-
-  it('should have the same number of keys in vi and en', () => {
-    expect(viKeys.length).toBe(enKeys.length)
+describe('i18n', () => {
+  it('vi và en có cùng tập khoá', () => {
+    expect(Object.keys(vi).sort()).toEqual(Object.keys(en).sort())
   })
 
-  it('all vi keys should exist in en', () => {
-    const missingInEn = viKeys.filter((key) => !enKeys.includes(key))
-    expect(missingInEn).toEqual([])
+  it('không khoá nào rỗng', () => {
+    for (const [k, v] of Object.entries(vi)) expect(v, `vi.${k} rỗng`).toBeTruthy()
+    for (const [k, v] of Object.entries(en)) expect(v, `en.${k} rỗng`).toBeTruthy()
   })
 
-  it('all en keys should exist in vi', () => {
-    const missingInVi = enKeys.filter((key) => !viKeys.includes(key))
-    expect(missingInVi).toEqual([])
+  it('giữ đúng 243 khoá sau khi tách module', () => {
+    // Chốt cứng để việc tách không làm rơi key. Story nào thêm key mới thì
+    // cập nhật số này trong cùng commit — đó là điểm reviewer nhìn thấy.
+    expect(Object.keys(vi)).toHaveLength(243)
   })
 
-  it('no empty values in vi', () => {
-    const emptyVi = viKeys.filter((key) => !(vi as Record<string, string>)[key])
-    expect(emptyVi).toEqual([])
-  })
-
-  it('no empty values in en', () => {
-    const emptyEn = enKeys.filter((key) => !(en as Record<string, string>)[key])
-    expect(emptyEn).toEqual([])
+  it('không khoá nào bị khai trùng ở hai module', () => {
+    // Object spread nuốt trùng lặp im lặng; test này bắt nó.
+    const files = import.meta.glob('../i18n/vi/*.ts', { eager: true }) as Record<
+      string,
+      { default: Record<string, string> }
+    >
+    const seen = new Map<string, string>()
+    const dupes: string[] = []
+    for (const [path, mod] of Object.entries(files)) {
+      if (path.endsWith('/index.ts')) continue
+      for (const k of Object.keys(mod.default)) {
+        if (seen.has(k)) dupes.push(`${k}: ${seen.get(k)} và ${path}`)
+        seen.set(k, path)
+      }
+    }
+    expect(dupes, `khoá trùng:\n${dupes.join('\n')}`).toEqual([])
   })
 })
