@@ -147,7 +147,9 @@ function onSortBy(v: SortItem[]) {
 // `role="grid"` chuyển sang thẻ bọc là sai hẳn ngữ nghĩa. Đưa chúng ra gốc là
 // đổi một lỗi (mất khi rỗng) lấy một lỗi nặng hơn (không bao giờ được đọc), nên
 // giữ nguyên ở bảng.
-const IDENTITY_ATTR = /^(id|data-test)/
+// `id$` neo cuối, không phải `id` trần: không neo thì mọi attr bắt đầu bằng
+// "id" (vd `idle`) cũng bị kéo lên thẻ gốc.
+const IDENTITY_ATTR = /^(id$|data-test)/
 const attrs = useAttrs()
 const rootClass = computed(() => attrs.class)
 const rootStyle = computed(() => attrs.style)

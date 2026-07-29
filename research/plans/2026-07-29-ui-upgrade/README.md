@@ -295,9 +295,20 @@ vào nó mà không cần đợi.
 // DS §3.2 quy định EmptyState có 3 biến thể, trong đó `error` LÀ một biến thể
 // — nên không tách riêng ErrorState. Container gặp lỗi dùng
 // <EmptyState variant="error" @action="retry" />.
-EmptyState:   { variant?: 'first-run' | 'no-data' | 'error'   // mặc định 'first-run'
-                icon?: string; title: string; description?: string
-                actionLabel?: string }   // emit: 'action'
+// UNION CÓ PHÂN BIỆT — `variant: 'error'` BẮT BUỘC có `actionLabel`.
+// Bảng "Quy tắc 4 trạng thái" ghi nhánh lỗi phải CÓ NÚT THỬ LẠI và cấm nuốt
+// lỗi; để `actionLabel` optional nghĩa là `<EmptyState variant="error"
+// title="…" />` không nút nào vẫn qua type-check. Trình biên dịch chặn, không
+// phải lời hứa — cùng cơ chế đã dùng cho `DataTable.emptyTitle`.
+// LƯU Ý cho người sửa sau: KHÔNG bọc union bằng `withDefaults` — nó làm kiểu
+// prop suy biến thành `{ [x: string]: any }` và mất cả `title` bắt buộc.
+// Mặc định `variant` đặt bằng `??` trong script.
+EmptyState:   | { variant: 'error'; icon?: string; title: string
+                  description?: string; actionLabel: string }
+              | { variant?: 'first-run' | 'no-data'   // mặc định 'first-run'
+                  icon?: string; title: string; description?: string
+                  actionLabel?: string }
+              // emit: 'action'
 SkeletonBlock:{ width?: string /* '100%' */; height?: string /* '12px' */
                 radius?: string /* 'var(--radius-sm)' */ }
               // Primitive dùng chung của mọi skeleton. Phase 2 cần nó cho
@@ -337,11 +348,18 @@ DataTable:    { headers: { title: string; key: string; sortable?: boolean;
               // xích: bảng giữ state nội bộ và tự đổi trang được kể cả khi view
               // không v-model. Muốn CHẶN đổi trang thì dùng `loading`, đừng
               // trông vào việc giữ nguyên prop.
-              // Attr không khai báo (show-select, item-value, density…) rơi
-              // xuống thẳng bảng. RIÊNG `class`/`style`/`id` đặt lên v-card gốc
-              // ở MỌI nhánh trạng thái — nếu không, `<DataTable class="mb-6">`
-              // sẽ mất margin khi bảng rỗng/lỗi/đang tải và khoảng cách dọc
-              // nhảy theo trạng thái dữ liệu.
+              // Attr không khai báo được PHÂN TUYẾN, không đổ hết một chỗ:
+              //   `class` · `style` · `id` · `data-test*`  → v-card GỐC, ở MỌI
+              //       nhánh trạng thái. Nếu không, `<DataTable class="mb-6">`
+              //       mất margin khi rỗng/lỗi/đang tải và khoảng cách dọc nhảy
+              //       theo trạng thái dữ liệu; `id` dùng cho aria-labelledby
+              //       hoặc deep-link cũng biến mất theo.
+              //   `role` · `aria-*` · attr bảng (show-select, item-value,
+              //       density…)                         → BẢNG
+              // ⚠ Hệ quả phải biết: `role`/`aria-*` chỉ tồn tại ở nhánh CÓ
+              // BẢNG — chúng VẮNG MẶT ở nhánh tải/rỗng/lỗi. View cần nhãn a11y
+              // ổn định qua mọi trạng thái thì đặt trên phần tử bao ngoài
+              // DataTable, đừng truyền vào nó.
 FilterBar:    { modelValue: Record<string, unknown> }
               // slot mặc định, PHƠI slot prop `filters` = chính modelValue:
               //     <FilterBar :model-value="filters" v-slot="{ filters }">
