@@ -59,12 +59,21 @@ export default createVuetify({
     VBtn: { style: 'border-radius: var(--radius-md);' },
     VTextField: {
       variant: 'outlined',
-      density: 'comfortable',
+      // 'compact', không phải 'comfortable' — xem giải thích đầy đủ ở khai báo
+      // $input-font-size/$input-line-height trong vuetify-settings.scss. Tóm
+      // tắt: sàn chiều cao của biến thể outlined luôn là
+      // "input-font-size × input-line-height + 32px + density-modifier", cố
+      // định 32px đó không đổi được qua settings. Với control-height đã đặt
+      // 36px, chỉ có density-modifier = -16px (đúng bằng 'compact') mới kéo
+      // sàn font xuống khớp 36px; 'comfortable' (-8px) hay 'default' (0px) đều
+      // buộc sàn vượt 36px bất kể font nhỏ tới đâu.
+      density: 'compact',
       style: 'border-radius: var(--radius-md);',
     },
     VSelect: {
       variant: 'outlined',
-      density: 'comfortable',
+      // Lý do density 'compact': xem comment ở VTextField ngay trên.
+      density: 'compact',
       style: 'border-radius: var(--radius-md);',
     },
   },

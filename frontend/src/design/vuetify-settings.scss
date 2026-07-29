@@ -5,6 +5,7 @@
 //
 // Chỉ ghi đè cái ERP design system quy định. Cái nào Vuetify mặc định đã khớp
 // đặc tả thì để nguyên (ví dụ $button-height: 36px).
+@use 'sass:math';
 @use './ds-tokens' as ds;
 
 @forward 'vuetify/settings' with (
@@ -52,6 +53,25 @@
   $field-font-size: ds.$font-size-body-sm,
   $field-control-padding-start: ds.$space-3,
   $field-control-padding-end: ds.$space-3,
+
+  // $input-font-size / $input-line-height là biến của VInput (khác
+  // $field-font-size ở trên, vốn chỉ chỉnh font-size HIỂN THỊ của .v-field).
+  // Hai biến này còn được nhân với nhau trong công thức sàn chiều cao
+  // ($field-input-min-height, VField/_variables.scss):
+  //   max(control-height, input-font-size × input-line-height + padding trên + padding dưới)
+  // Với biến thể outlined (VTextField/VSelect dùng — VField.sass dòng 79-88 và
+  // VInput.sass dòng 21-24), hai khoản "padding trên/dưới" đó KHÔNG đọc
+  // $field-control-padding-top/bottom (những biến đó chỉ áp cho variant
+  // solo/filled) mà là hằng số 16px viết chết trong SCSS của Vuetify, cộng
+  // thêm (density-modifier × 0.5) mỗi bên — tổng cố định "32px + modifier",
+  // không thể ghi đè qua map settings. Muốn sàn font đúng bằng
+  // control-height (36px) ở modifier -16px (density compact, xem
+  // vuetify.ts), input-font-size × input-line-height phải đúng 20px. Lấy
+  // 14px (khớp $field-font-size) × (line-height-body-sm ÷ font-size-body-sm)
+  // = 14 × 20/14 = 20px chẵn — vừa khớp công thức vừa là line-height DS đã
+  // định nghĩa cho cỡ chữ 14px, không phải số bịa.
+  $input-font-size: ds.$font-size-body-sm,
+  $input-line-height: math.div(ds.$line-height-body-sm, ds.$font-size-body-sm),
 
   // Table: DS §2.6 quy định ô header cao 40px. Chiều cao row body DS không
   // quy định — giữ mặc định 52px của Vuetify.
