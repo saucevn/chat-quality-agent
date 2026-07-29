@@ -330,14 +330,25 @@ DataTable:    { headers: { title: string; key: string; sortable?: boolean;
                 totalItems?: number; page?: number; itemsPerPage?: number
                 emptyTitle: string          // BẮT BUỘC — xem ghi chú dưới
                 emptyDescription?: string; emptyActionLabel?: string
-                sortBy?: { key: string; order?: 'asc' | 'desc' }[] }
+                sortBy?: { key: string; order?: 'asc' | 'desc' }[]
+                title?: string; subtitle?: string }
+              // ⚠ KHÔNG BAO GIỜ bọc DataTable trong SectionCard — cả hai đều
+              // tự dựng <v-card> nên sẽ ra HAI lớp viền/elevation chồng nhau.
+              // DataTable TỰ sở hữu tiêu đề: dùng `title`/`subtitle` + slot
+              // 'actions' của chính nó. Header render TRƯỚC toolbar và hiện ở
+              // CẢ 4 nhánh trạng thái (tiêu đề biến mất khi bảng rỗng là sai —
+              // người dùng không còn biết đang xem bảng gì).
+              // Đã cân nhắc và LOẠI phương án thêm prop `flat`: nó bắt mỗi
+              // story NHỚ truyền đúng chỗ, mà quên thì hỏng IM LẶNG (chỉ lệch
+              // thị giác, không lỗi nào báo).
               // emit: 'update:page', 'update:itemsPerPage', 'update:sortBy',
               //       'retry', 'empty-action'
               // `sortBy` + emit là BẮT BUỘC ở chế độ server: VDataTableServer
               // KHÔNG tự sắp xếp, nên không có nó thì `headers[].sortable` là
               // prop khai mà vô tác dụng — header bấm được, mũi tên đổi, dữ
               // liệu đứng yên, view không bao giờ biết. Dùng `v-model:sort-by`.
-              // slot: 'toolbar', 'item.<key>', 'bulk-actions'
+              // slot: 'toolbar', 'item.<key>', 'bulk-actions', 'actions'
+              //        ('actions' nằm cạnh tiêu đề, không phải trong toolbar)
               // `emptyTitle` KHÔNG có mặc định `t('no_data')`: quy tắc 4 trạng
               // thái cấm nhánh rỗng chỉ có một dòng "Không có dữ liệu", và có
               // mặc định thì mọi bảng hợp lệ về type mà vẫn vi phạm quy tắc.
@@ -373,6 +384,13 @@ PageHeader:   { title: string; subtitle?: string
               // slot: 'actions'
 SectionCard:  { title?: string; subtitle?: string }
               // slot: mặc định, 'actions'
+              // Dùng cho khối nội dung THƯỜNG (form, biểu đồ, danh sách tự vẽ).
+              // KHÔNG dùng để bọc DataTable — xem cảnh báo ở DataTable.
+CardHeader:   { title?: string; subtitle?: string }   // slot: 'actions'
+              // NỘI BỘ — Phase 2 KHÔNG dùng trực tiếp. Tồn tại để SectionCard
+              // và DataTable dùng CHUNG một bản header thay vì chép markup ra
+              // hai chỗ. Không thuộc sở hữu 1B hay 1C: đây là hạ tầng chung,
+              // story Phase 2 nào cần đổi nó thì DỪNG LẠI VÀ BÁO.
 ConfirmDialog:{ modelValue: boolean; title: string; message: string
                 confirmLabel: string; destructive?: boolean
                 loading?: boolean }
@@ -495,7 +513,35 @@ Story Phase 2 **chỉ được đóng** khi view của nó đạt **tất cả**
 - [ ] Nút icon có `aria-label` (DS §6.4)
 - [ ] Nhãn nút theo DS §5.1: **động từ + bổ ngữ**; nút destructive nói rõ hậu quả
 - [ ] `npx vue-tsc -b && npx vitest run` xanh
-- [ ] `make test-contrast` — không sinh cặp màu mới không đạt AA
+- [ ] **KHÔNG** tự chạy `make test-contrast`, và **KHÔNG** đụng
+      `src/__tests__/i18n.spec.ts` — xem §"Điều phối Phase 2" dưới đây
+
+---
+
+## Điều phối Phase 2 — hai quy tắc chốt 2026-07-29
+
+Phase 2 có **10 story chạy song song**. Hai thứ trong plan gốc sẽ vỡ ở quy mô
+đó; đây là cách giải đã chốt.
+
+**1. Story KHÔNG đụng `src/__tests__/i18n.spec.ts`.**
+File đó từng chốt cứng số khoá (`toHaveLength(275)`). Ca đếm sinh ra ở Phase 0.4
+để canh việc **tách** `vi.ts`/`en.ts` thành 14 module — việc đó xong rồi, và giữ
+lại thì **cả 10 story cùng phải sửa đúng một dòng**. Đã bỏ ca đếm, thay bằng
+kiểm cấu trúc không phụ thuộc số lượng: vi/en cân bằng · không khoá rỗng · không
+trùng khoá giữa module · **mọi module đều thực sự được `index.ts` spread vào**
+(rủi ro mà số đếm từng che: thêm module mà quên `import` + `...spread` thì khoá
+im lặng không tồn tại, và ba ca kia không bắt được vì vi/en vẫn cân bằng).
+
+**2. Story KHÔNG tự chạy `make test-contrast`. Controller chạy theo wave.**
+Đó là Playwright + dựng app + trình duyệt thật; 10 agent chạy cùng lúc sẽ tranh
+cổng và tranh CPU, và flaky sẽ bị hiểu nhầm thành lỗi màu thật. Controller chạy
+**một lần sau khi gộp mỗi wave**, trên bản đã gộp — vẫn bắt được đúng thứ cần
+bắt (cặp màu mới không đạt AA) mà không có tranh chấp.
+
+**Nợ chuyển giao:** `StatusBadge` và `EmptyState` chưa từng lên DOM thật, nên
+`make test-contrast` chưa bao giờ chạy cho chúng. Wave đầu tiên đưa chúng lên
+view sẽ làm **78 chỗ** xuất hiện cùng lúc — dự trù thời gian cho việc đó, đừng
+coi là chạy lấy lệ.
 
 ---
 
