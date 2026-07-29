@@ -458,4 +458,23 @@ describe('DataTable', () => {
     expect(w.find('.card-header').exists()).toBe(true)
     expect(w.find('[data-test="export-btn"]').exists()).toBe(true)
   })
+
+  // Vá lỗ hổng Contract 3: `icon`/`iconColor` phải chuyển tiếp được xuống
+  // CardHeader — DataTable không tự vẽ icon, chỉ forward prop.
+  it('chuyển tiếp icon/iconColor xuống CardHeader dùng chung', () => {
+    const w = mount(DataTable, {
+      ...mountOptions(),
+      props: {
+        ...base,
+        title: 'Công việc gần đây',
+        icon: 'mdi-check-circle',
+        iconColor: 'success',
+        items: [{ name: 'Job A', status: 'success' }],
+      },
+    })
+    const icon = w.find('.v-icon')
+    expect(icon.exists()).toBe(true)
+    expect(icon.classes()).toContain('mdi-check-circle')
+    expect(icon.classes()).toContain('text-success')
+  })
 })

@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = withDefaults(defineProps<{ status: string; size?: string }>(), {
+const props = withDefaults(defineProps<{ status: string; size?: string; label?: string }>(), {
   size: 'small',
 })
 
@@ -94,7 +94,15 @@ const chipStyle = computed(() => ({
 // khoá thô `status_xxx` trên giao diện — `t()` của vue-i18n trả về chính khoá
 // khi thiếu bản dịch, kèm cảnh báo trong console. `te()` kiểm tra trước, thiếu
 // thì hiện nguyên mã trạng thái: xấu nhưng vẫn đọc được.
-const label = computed(() => (te(`status_${props.status}`) ? t(`status_${props.status}`) : props.status))
+//
+// `label` CHỈ đổi chữ hiển thị — không phải cửa sau cho màu. Có truyền thì
+// dùng nguyên văn (view cần nhãn cụ thể hơn khoá i18n chung, vd "Nghiêm
+// trọng" thay vì "Lỗi"); không truyền thì giữ nguyên hành vi i18n cũ. Dù
+// `label` là gì, `color`/`textToken`/`underlayOpacity` ở trên vẫn tính THẲNG
+// từ `props.status` — hai nhánh hoàn toàn tách biệt.
+const label = computed(
+  () => props.label ?? (te(`status_${props.status}`) ? t(`status_${props.status}`) : props.status),
+)
 
 // variant="tonal" không khai lại ở template — đã là default toàn cục của
 // VChip (frontend/src/plugins/vuetify.ts). `data-color`, `data-text-token` và

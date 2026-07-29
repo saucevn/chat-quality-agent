@@ -54,4 +54,18 @@ describe('SectionCard', () => {
     })
     expect(withoutHeader.find('[data-test="body"]').exists()).toBe(true)
   })
+
+  // Vá lỗ hổng Contract 3: `icon`/`iconColor` phải chuyển tiếp được xuống
+  // CardHeader — SectionCard không tự vẽ icon, chỉ forward prop.
+  it('chuyển tiếp icon/iconColor xuống CardHeader dùng chung', () => {
+    const w = mount(SectionCard, {
+      ...mountOptions(),
+      props: { title: 'Chi phí AI', icon: 'mdi-currency-usd', iconColor: 'warning' },
+      slots: { default: '<p data-test="body">Nội dung</p>' },
+    })
+    const icon = w.find('.v-icon')
+    expect(icon.exists()).toBe(true)
+    expect(icon.classes()).toContain('mdi-currency-usd')
+    expect(icon.classes()).toContain('text-warning')
+  })
 })

@@ -67,6 +67,9 @@ const props = withDefaults(
     // view và không cần tiêu đề thứ hai.
     title?: string
     subtitle?: string
+    // Chuyển tiếp thẳng xuống CardHeader — xem comment ở CardHeader.vue.
+    icon?: string
+    iconColor?: string
     // Sắp xếp: VDataTableServer KHÔNG tự sắp xếp, nơi dùng phải nghe
     // `update:sortBy` rồi fetch lại. Thiếu cặp prop/emit này thì
     // `headers[].sortable` là prop khai mà vô tác dụng ở đúng nhánh cần nó
@@ -212,7 +215,7 @@ const tableComponent = computed(() => (serverSide.value ? VDataTableServer : VDa
 
 <template>
   <v-card :class="rootClass" :style="rootStyle" v-bind="rootAttrs">
-    <CardHeader :title="title" :subtitle="subtitle">
+    <CardHeader :title="title" :subtitle="subtitle" :icon="icon" :icon-color="iconColor">
       <template v-if="$slots.actions" #actions>
         <slot name="actions" />
       </template>
