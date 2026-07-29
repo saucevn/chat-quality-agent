@@ -190,4 +190,35 @@ describe('StatusBadge', () => {
       expect(/(^|;)\s*opacity\s*:/.test(style), `${status} bị phủ opacity: ${style}`).toBe(false)
     }
   })
+
+  // Prop `label` (vá lỗ hổng Contract 1: Dashboard cần "Nghiêm trọng"/"Cần cải
+  // thiện" thay vì "Lỗi"/"Cảnh báo" chung chung do i18n dựng ra).
+  describe('prop label', () => {
+    it('có label ⇒ hiện đúng chuỗi đó, không phải nhãn i18n', () => {
+      const w = mount(StatusBadge, {
+        ...mountOptions(),
+        props: { status: 'error', label: 'Nghiêm trọng' },
+      })
+      expect(w.text()).toBe('Nghiêm trọng')
+    })
+
+    it('không có label ⇒ vẫn ra nhãn i18n như cũ', () => {
+      const w = mount(StatusBadge, { ...mountOptions(), props: { status: 'error' } })
+      expect(w.text()).toBe('Lỗi')
+    })
+
+    // CA QUAN TRỌNG NHẤT: `label` chỉ đổi CHỮ, tuyệt đối không phải cửa sau
+    // cho màu. Đặt `label` cố ý "lệch tông" so với `status` (label nghe như
+    // thành công, status là lỗi) để nếu có bất kỳ nhánh code nào lỡ suy màu từ
+    // nội dung `label` thay vì từ `status`, ca này sẽ đỏ ngay.
+    it('màu vẫn do status quyết định kể cả khi label được truyền', () => {
+      for (const [status, color] of CASES) {
+        const w = mount(StatusBadge, {
+          ...mountOptions(),
+          props: { status, label: 'Nhãn tuỳ ý không liên quan tới màu' },
+        })
+        expect(w.attributes('data-color'), `${status} đổi màu theo label`).toBe(color)
+      }
+    })
+  })
 })

@@ -14,16 +14,31 @@
   dung actions hay không ($slots.actions trong Vue chỉ hỏi "có block này được
   khai không", không hỏi "bên trong có nội dung"), nên `title || $slots.actions`
   bên dưới sẽ luôn đúng và card không có title vẫn hiện header trống.
+
+  `icon`/`iconColor` (vá lỗ hổng Contract 3): bản cũ mọi card có icon màu
+  trước tiêu đề (mdi-bell-ring màu primary, mdi-currency-usd màu warning,
+  mdi-check-circle màu success — ba màu KHÁC NHAU cho ba ngữ cảnh, xem
+  Dashboard.vue hiện tại, dòng 126/167/204). Một màu icon cố định không đủ,
+  nên `iconColor` nhận TÊN token theme (giống hệt cách `<v-chip color="...">`
+  và `<v-icon color="...">` đã dùng khắp app — "primary"/"warning"/"success"
+  đều là alias trỏ về token ERP trong plugins/vuetify.ts, KHÔNG phải palette
+  Material dựng sẵn của Vuetify như "red-darken-2"). Không truyền `iconColor`
+  ⇒ v-icon không nhận `color`, thừa hưởng `currentColor` của ngữ cảnh xung
+  quanh — mặc định AN TOÀN, không tự ý tô màu nổi bật khi nơi gọi không yêu
+  cầu.
 -->
 <script setup lang="ts">
-defineProps<{ title?: string; subtitle?: string }>()
+defineProps<{ title?: string; subtitle?: string; icon?: string; iconColor?: string }>()
 </script>
 
 <template>
   <div v-if="title || $slots.actions" class="card-header">
-    <div>
-      <h2 v-if="title" class="text-heading-3">{{ title }}</h2>
-      <p v-if="subtitle" class="text-body-xs text-medium-emphasis mt-1">{{ subtitle }}</p>
+    <div class="d-flex align-center ga-2">
+      <v-icon v-if="icon" :icon="icon" :color="iconColor" />
+      <div>
+        <h2 v-if="title" class="text-heading-3">{{ title }}</h2>
+        <p v-if="subtitle" class="text-body-xs text-medium-emphasis mt-1">{{ subtitle }}</p>
+      </div>
     </div>
     <div class="d-flex align-center ga-2">
       <slot name="actions" />

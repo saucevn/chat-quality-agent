@@ -4,12 +4,14 @@
 // về lý do phải forward slot 'actions' CÓ ĐIỀU KIỆN (`v-if="$slots.actions"`).
 import CardHeader from './CardHeader.vue'
 
-defineProps<{ title?: string; subtitle?: string }>()
+// `icon`/`iconColor` chỉ chuyển tiếp thẳng xuống CardHeader — xem comment ở
+// CardHeader.vue để biết lý do `iconColor` nhận tên token theme thay vì hex.
+defineProps<{ title?: string; subtitle?: string; icon?: string; iconColor?: string }>()
 </script>
 
 <template>
   <v-card>
-    <CardHeader :title="title" :subtitle="subtitle">
+    <CardHeader :title="title" :subtitle="subtitle" :icon="icon" :icon-color="iconColor">
       <template v-if="$slots.actions" #actions>
         <slot name="actions" />
       </template>
