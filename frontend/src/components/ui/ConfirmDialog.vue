@@ -35,7 +35,7 @@ const { t } = useI18n()
       <v-card-title class="text-heading-3">{{ title }}</v-card-title>
       <v-card-text class="text-body-sm">{{ message }}</v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn variant="text" color="default" @click="emit('update:modelValue', false)">
+        <v-btn variant="text" @click="emit('update:modelValue', false)">
           {{ t('cancel') }}
         </v-btn>
         <v-btn

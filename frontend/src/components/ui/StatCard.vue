@@ -19,6 +19,8 @@ const props = defineProps<{
   to?: string
 }>()
 
+// Lựa chọn có chủ ý: change === 0 tính là "tăng" (mũi tên lên, màu success).
+// Đặc tả chưa nói rõ ca biên này; giữ nguyên hành vi, chỉ ghi chú lại.
 const deltaUp = computed(() => (props.change ?? 0) >= 0)
 const deltaText = computed(() =>
   props.change === undefined ? '' : `${deltaUp.value ? '↑' : '↓'} ${pct(Math.abs(props.change))}`,
