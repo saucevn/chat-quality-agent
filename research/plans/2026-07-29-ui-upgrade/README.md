@@ -307,7 +307,11 @@ DataTable:    { headers: { title: string; key: string; sortable?: boolean;
               // dùng VDataTableServer; không truyền = client tự phân trang/sort.
               // Attr không khai báo (show-select, item-value, density…) rơi
               // xuống thẳng bảng, không dính lên v-card gốc.
-FilterBar:    { modelValue: Record<string, unknown> }   // slot mặc định
+FilterBar:    { modelValue: Record<string, unknown> }
+              // slot mặc định, PHƠI slot prop `filters` = chính modelValue:
+              //     <FilterBar :model-value="filters" v-slot="{ filters }">
+              // KHÔNG có emit — FilterBar là container trình bày, control bên
+              // trong tự v-model vào state của view.
               // mọi control bên trong cao 36px (quyết định B9)
 
 // 1C — khung trang & hộp thoại
@@ -322,7 +326,16 @@ ConfirmDialog:{ modelValue: boolean; title: string; message: string
               // emit: 'update:modelValue', 'confirm'
               // destructive=true ⇒ nhãn phải nói rõ hậu quả (DS §5.1)
 FormField:    { label: string; required?: boolean; hint?: string
-                error?: string; inputId?: string }   // slot mặc định
+                error?: string; inputId?: string }
+              // slot mặc định, PHƠI hai slot prop BẮT BUỘC phải dùng:
+              //     <FormField label="Tên kênh" :error="err" v-slot="{ id, describedby }">
+              //       <v-text-field :id="id" :aria-describedby="describedby"
+              //                     placeholder="VD: Zalo OA cửa hàng A" />
+              //     </FormField>
+              // `describedby` là thứ nối thông báo lỗi với ô nhập cho trình
+              // đọc màn hình. Bỏ qua nó = form vẫn trông đúng nhưng người dùng
+              // screen reader không bao giờ nghe được lỗi. Đây là a11y, không
+              // phải tuỳ chọn (DS §6.4).
               // DS §2.3/§3.4: label LUÔN nằm TRÊN field, không thả nổi vào
               // viền như mặc định Vuetify, và placeholder là ví dụ chứ không
               // phải nhãn. Field bên trong KHÔNG nhận prop `label`.
