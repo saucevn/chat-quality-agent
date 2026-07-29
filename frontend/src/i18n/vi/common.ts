@@ -20,4 +20,22 @@ export default {
   normal: 'Bình thường',
   required: 'Bắt buộc',
   slug_hint: 'Dùng cho URL, chỉ chứa a-z, 0-9 và dấu -',
+  // Nhãn hiển thị cho StatusBadge — khớp bảng ánh xạ trạng thái ↔ màu ở
+  // research/plans/2026-07-29-ui-upgrade/README.md §Contract.
+  status_running: 'Đang chạy',
+  status_syncing: 'Đang đồng bộ',
+  status_success: 'Thành công',
+  status_active: 'Hoạt động',
+  status_pass: 'Đạt',
+  status_failed: 'Thất bại',
+  status_error: 'Lỗi',
+  status_pending: 'Đang chờ',
+  status_queued: 'Trong hàng đợi',
+  status_disabled: 'Đã tắt',
+  status_paused: 'Tạm dừng',
+  status_inactive: 'Ngừng hoạt động',
+  status_cancelled: 'Đã huỷ',
+  status_sent: 'Đã gửi',
+  status_warning: 'Cảnh báo',
+  status_partial: 'Một phần',
 }

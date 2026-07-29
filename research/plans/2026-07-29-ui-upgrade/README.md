@@ -220,10 +220,10 @@ sửa.
 | Story | Sở hữu (create/modify) |
 |---|---|
 | **0.x** | `frontend/vite.config.ts` · `frontend/scripts/build-tokens.mjs` · `frontend/src/design/**` · `frontend/src/plugins/vuetify.ts` · `frontend/src/main.ts` · `frontend/src/i18n/**` · `frontend/tests/contrast/baseline.json` |
-| **1A** | `src/components/ui/EmptyState.vue` · `SkeletonTable.vue` · `SkeletonCard.vue` · `SkeletonKpi.vue` + test |
+| **1A** | `src/components/ui/EmptyState.vue` · `SkeletonBlock.vue` · `SkeletonTable.vue` · `SkeletonCard.vue` · `SkeletonKpi.vue` · `src/components/ui/__tests__/helpers.ts` + test |
 | **1B** | `src/components/ui/DataTable.vue` · `FilterBar.vue` + test |
-| **1C** | `src/components/ui/ConfirmDialog.vue` · `PageHeader.vue` · `SectionCard.vue` · `FormField.vue` · `src/components/StatusBadge.vue` + test |
-| **1D** | `src/utils/format.ts` · `src/utils/errors.ts` + test · `src/i18n/*/errors.ts` |
+| **1C** | `src/components/ui/ConfirmDialog.vue` · `PageHeader.vue` · `SectionCard.vue` · `FormField.vue` · `src/components/StatusBadge.vue` + test · `src/i18n/*/common.ts` (**chỉ thêm 11 khoá `status_*`**) · `src/__tests__/i18n.spec.ts` (**chỉ dòng đếm khoá**) |
+| **1D** | `src/utils/format.ts` · `src/utils/errors.ts` + test · `src/i18n/*/errors.ts` · `src/__tests__/i18n.spec.ts` (**chỉ dòng đếm khoá**) |
 | **1E** | `src/components/ui/StatCard.vue` · `KpiGrid.vue` + test |
 | **2A** | `src/views/Dashboard.vue` · `src/i18n/*/dashboard.ts` |
 | **2B** | `src/views/Channels.vue` · `src/views/Channels/ChannelDetail.vue` · `src/i18n/*/channels.ts` |
@@ -241,6 +241,47 @@ sửa.
 **Ba file nóng, chỉ Phase 0 và Phase 3 được đụng:**
 `src/plugins/vuetify.ts` · `src/design/*` · `tests/contrast/baseline.json`.
 
+**Nợ hạ tầng Phase 0 đã trả trong story 1A (2026-07-29).** `frontend/vite.config.ts`
+thuộc sở hữu **0.x**, nhưng Phase 0 đóng lại mà chưa cấu hình vitest để mount
+được component Vuetify: thiếu `test.environment: 'happy-dom'` và
+`test.server.deps.inline: ['vuetify']`. Không có hai dòng đó thì **mọi** test
+mount component Vuetify vỡ với `Unknown file extension ".css"` — vitest
+externalize gói trong `node_modules` và dùng loader ESM gốc của Node, loader
+này không hiểu file `.css` mà `vuetify/components` import kèm. Phase 0 không lộ
+lỗi vì hai test sẵn có (`i18n.spec.ts`, `tokens.spec.ts`) không mount gì.
+
+Story 1A đã sửa (commit `af6a773`, 11 dòng, không đụng dòng
+`include: ['src/**/*.spec.ts']`). **Story 1B/1C/1E không cần và không được sửa
+lại file này** — cấu hình đã đúng.
+
+**Ngoại lệ có kiểm soát cho Phase 1 (chốt 2026-07-29).** `src/__tests__/i18n.spec.ts`
+chốt cứng số khoá (`toHaveLength(243)`) nên **mọi** story thêm khoá đều phải sửa
+đúng dòng đó — mâu thuẫn với luật "một file một story". Giải bằng **thứ tự**
+thay vì bằng ownership:
+
+| Wave | Story | Khoá thêm | Dòng đếm sau wave |
+|---|---|---|---|
+| 1 | **1D** | 8 (`err_*`, `error_load_failed_*`, `retry`) | 243 → **251** |
+| 2 | **1C** | 11 (`status_*`) | 251 → **262** |
+| sửa sau review | **1C** | +5 (`status_inactive/sent/warning/partial/cancelled`) | 262 → **267** |
+| sửa sau review | **1D** | +8 (`format_*`, module mới `i18n/*/format.ts`) | 267 → **275** |
+
+**Số chốt cuối Phase 1: 275 khoá.** Hai dòng cuối là kết quả của vòng review
+toàn nhánh, không nằm trong kế hoạch ban đầu:
+
+- Story 1C thực tế thêm **16** khoá `status_*` chứ không phải 11. Backend phát
+  `partial` và `cancelled`, còn frontend đang dùng `inactive`/`sent`/`warning` —
+  không mã nào có khoá lẫn ánh xạ màu, nên `StatusBadge` render ra chuỗi khoá
+  thô `status_inactive`.
+- Module `frontend/src/i18n/{vi,en}/format.ts` là **file mới do controller thêm**
+  khi locale hoá `utils/format.ts`; nó **không thuộc sở hữu story nào** trong
+  bảng trên. Story Phase 2 nào cần sửa chuỗi định dạng thì báo controller.
+
+1B **không** đụng i18n: khi 1B chạy, 1D đã merge nên `error_load_failed_title`,
+`error_load_failed_desc`, `retry` đã có sẵn. Bước "vá tạm vào `common.ts`" ở
+`phase-1-components.md` §1B Step 5 **không áp dụng** — nếu khoá chưa có thì
+đó là lỗi thứ tự dispatch, dừng lại và báo.
+
 ---
 
 ## Contract — API component dùng chung
@@ -254,22 +295,87 @@ vào nó mà không cần đợi.
 // DS §3.2 quy định EmptyState có 3 biến thể, trong đó `error` LÀ một biến thể
 // — nên không tách riêng ErrorState. Container gặp lỗi dùng
 // <EmptyState variant="error" @action="retry" />.
-EmptyState:   { variant?: 'first-run' | 'no-data' | 'error'   // mặc định 'first-run'
-                icon?: string; title: string; description?: string
-                actionLabel?: string }   // emit: 'action'
+// UNION CÓ PHÂN BIỆT — `variant: 'error'` BẮT BUỘC có `actionLabel`.
+// Bảng "Quy tắc 4 trạng thái" ghi nhánh lỗi phải CÓ NÚT THỬ LẠI và cấm nuốt
+// lỗi; để `actionLabel` optional nghĩa là `<EmptyState variant="error"
+// title="…" />` không nút nào vẫn qua type-check. Trình biên dịch chặn, không
+// phải lời hứa — cùng cơ chế đã dùng cho `DataTable.emptyTitle`.
+// LƯU Ý cho người sửa sau: KHÔNG bọc union bằng `withDefaults` — nó làm kiểu
+// prop suy biến thành `{ [x: string]: any }` và mất cả `title` bắt buộc.
+// Mặc định `variant` đặt bằng `??` trong script.
+EmptyState:   | { variant: 'error'; icon?: string; title: string
+                  description?: string; actionLabel: string }
+              | { variant?: 'first-run' | 'no-data'   // mặc định 'first-run'
+                  icon?: string; title: string; description?: string
+                  actionLabel?: string }
+              // emit: 'action'
+SkeletonBlock:{ width?: string /* '100%' */; height?: string /* '12px' */
+                radius?: string /* 'var(--radius-sm)' */ }
+              // Primitive dùng chung của mọi skeleton. Phase 2 cần nó cho
+              // skeleton dạng dòng lẻ (panel, chi tiết) mà 3 skeleton dựng sẵn
+              // dưới đây không khớp hình dạng.
 SkeletonTable:{ rows?: number /* 5 */; cols: number }
 SkeletonCard: { lines?: number /* 3 */ }
 SkeletonKpi:  { count?: number /* 4 */ }
+              // SkeletonKpi TỰ dựng lưới (v-row + v-col 12/6/3) khớp KpiGrid.
+              // Vì vậy nhánh loading phải đứng NGOÀI KpiGrid:
+              //     <KpiGrid v-if="!loading"> … </KpiGrid>
+              //     <SkeletonKpi v-else :count="4" />
+              // Đặt SkeletonKpi BÊN TRONG KpiGrid sẽ lồng v-row trong v-col.
 
 // 1B — dữ liệu
 DataTable:    { headers: { title: string; key: string; sortable?: boolean;
                   align?: 'start' | 'center' | 'end' }[]
                 items: unknown[]; loading?: boolean; error?: boolean
                 totalItems?: number; page?: number; itemsPerPage?: number
-                emptyTitle?: string; emptyDescription?: string }
-              // emit: 'update:page', 'update:itemsPerPage', 'retry'
-              // slot: 'toolbar', 'item.<key>', 'bulk-actions'
-FilterBar:    { modelValue: Record<string, unknown> }   // slot mặc định
+                emptyTitle: string          // BẮT BUỘC — xem ghi chú dưới
+                emptyDescription?: string; emptyActionLabel?: string
+                sortBy?: { key: string; order?: 'asc' | 'desc' }[]
+                title?: string; subtitle?: string }
+              // ⚠ KHÔNG BAO GIỜ bọc DataTable trong SectionCard — cả hai đều
+              // tự dựng <v-card> nên sẽ ra HAI lớp viền/elevation chồng nhau.
+              // DataTable TỰ sở hữu tiêu đề: dùng `title`/`subtitle` + slot
+              // 'actions' của chính nó. Header render TRƯỚC toolbar và hiện ở
+              // CẢ 4 nhánh trạng thái (tiêu đề biến mất khi bảng rỗng là sai —
+              // người dùng không còn biết đang xem bảng gì).
+              // Đã cân nhắc và LOẠI phương án thêm prop `flat`: nó bắt mỗi
+              // story NHỚ truyền đúng chỗ, mà quên thì hỏng IM LẶNG (chỉ lệch
+              // thị giác, không lỗi nào báo).
+              // emit: 'update:page', 'update:itemsPerPage', 'update:sortBy',
+              //       'retry', 'empty-action'
+              // `sortBy` + emit là BẮT BUỘC ở chế độ server: VDataTableServer
+              // KHÔNG tự sắp xếp, nên không có nó thì `headers[].sortable` là
+              // prop khai mà vô tác dụng — header bấm được, mũi tên đổi, dữ
+              // liệu đứng yên, view không bao giờ biết. Dùng `v-model:sort-by`.
+              // slot: 'toolbar', 'item.<key>', 'bulk-actions', 'actions'
+              //        ('actions' nằm cạnh tiêu đề, không phải trong toolbar)
+              // `emptyTitle` KHÔNG có mặc định `t('no_data')`: quy tắc 4 trạng
+              // thái cấm nhánh rỗng chỉ có một dòng "Không có dữ liệu", và có
+              // mặc định thì mọi bảng hợp lệ về type mà vẫn vi phạm quy tắc.
+              // Nhánh rỗng nối CTA qua `emptyActionLabel` + 'empty-action'.
+              // Truyền `totalItems` = tuyên bố "server phân trang" ⇒ bên trong
+              // dùng VDataTableServer; không truyền = client tự phân trang/sort.
+              // `page`/`itemsPerPage`/`sortBy` là ĐIỂM KHỞI ĐẦU, không phải
+              // xích: bảng giữ state nội bộ và tự đổi trang được kể cả khi view
+              // không v-model. Muốn CHẶN đổi trang thì dùng `loading`, đừng
+              // trông vào việc giữ nguyên prop.
+              // Attr không khai báo được PHÂN TUYẾN, không đổ hết một chỗ:
+              //   `class` · `style` · `id` · `data-test*`  → v-card GỐC, ở MỌI
+              //       nhánh trạng thái. Nếu không, `<DataTable class="mb-6">`
+              //       mất margin khi rỗng/lỗi/đang tải và khoảng cách dọc nhảy
+              //       theo trạng thái dữ liệu; `id` dùng cho aria-labelledby
+              //       hoặc deep-link cũng biến mất theo.
+              //   `role` · `aria-*` · attr bảng (show-select, item-value,
+              //       density…)                         → BẢNG
+              // ⚠ Hệ quả phải biết: `role`/`aria-*` chỉ tồn tại ở nhánh CÓ
+              // BẢNG — chúng VẮNG MẶT ở nhánh tải/rỗng/lỗi. View cần nhãn a11y
+              // ổn định qua mọi trạng thái thì đặt trên phần tử bao ngoài
+              // DataTable, đừng truyền vào nó.
+FilterBar:    { modelValue: Record<string, unknown> }
+              // slot mặc định, PHƠI slot prop `filters` = chính modelValue:
+              //     <FilterBar :model-value="filters" v-slot="{ filters }">
+              // KHÔNG có emit — FilterBar là container trình bày, control bên
+              // trong tự v-model vào state của view.
               // mọi control bên trong cao 36px (quyết định B9)
 
 // 1C — khung trang & hộp thoại
@@ -278,26 +384,58 @@ PageHeader:   { title: string; subtitle?: string
               // slot: 'actions'
 SectionCard:  { title?: string; subtitle?: string }
               // slot: mặc định, 'actions'
+              // Dùng cho khối nội dung THƯỜNG (form, biểu đồ, danh sách tự vẽ).
+              // KHÔNG dùng để bọc DataTable — xem cảnh báo ở DataTable.
+CardHeader:   { title?: string; subtitle?: string }   // slot: 'actions'
+              // NỘI BỘ — Phase 2 KHÔNG dùng trực tiếp. Tồn tại để SectionCard
+              // và DataTable dùng CHUNG một bản header thay vì chép markup ra
+              // hai chỗ. Không thuộc sở hữu 1B hay 1C: đây là hạ tầng chung,
+              // story Phase 2 nào cần đổi nó thì DỪNG LẠI VÀ BÁO.
 ConfirmDialog:{ modelValue: boolean; title: string; message: string
                 confirmLabel: string; destructive?: boolean
                 loading?: boolean }
               // emit: 'update:modelValue', 'confirm'
               // destructive=true ⇒ nhãn phải nói rõ hậu quả (DS §5.1)
 FormField:    { label: string; required?: boolean; hint?: string
-                error?: string; inputId?: string }   // slot mặc định
+                error?: string; inputId?: string }
+              // slot mặc định, PHƠI hai slot prop BẮT BUỘC phải dùng:
+              //     <FormField label="Tên kênh" :error="err" v-slot="{ id, describedby }">
+              //       <v-text-field :id="id" :aria-describedby="describedby"
+              //                     placeholder="VD: Zalo OA cửa hàng A" />
+              //     </FormField>
+              // `describedby` là thứ nối thông báo lỗi với ô nhập cho trình
+              // đọc màn hình. Bỏ qua nó = form vẫn trông đúng nhưng người dùng
+              // screen reader không bao giờ nghe được lỗi. Đây là a11y, không
+              // phải tuỳ chọn (DS §6.4).
               // DS §2.3/§3.4: label LUÔN nằm TRÊN field, không thả nổi vào
               // viền như mặc định Vuetify, và placeholder là ví dụ chứ không
               // phải nhãn. Field bên trong KHÔNG nhận prop `label`.
 StatusBadge:  { status: string; size?: string }
 
 // 1D — định dạng & lỗi
-vnd(n: number): string                 // "2.847.621.000 ₫"
-vndShort(n: number): string            // "2,85 tỷ" | "384,7 tr" | "14k"
-pct(n: number, d?: number): string     // "18,4%"; n < 0.1 ⇒ "<0,1%"
-usd(n: number): string
-dateTable(d: string | Date): string        // dd/MM/yyyy
-dateWithTime(d: string | Date): string     // dd/MM/yyyy 'lúc' HH:mm
-dateRelative(d: string | Date): string
+// CHỮ KÝ KHÔNG ĐỔI, nhưng ĐẦU RA PHỤ THUỘC LOCALE. Các hàm đọc locale hiện
+// tại từ instance i18n toàn cục — Phase 2 KHÔNG phải truyền gì. Chọn cách này
+// thay vì thêm tham số `locale` vào 9 hàm chính vì quên truyền sẽ hỏng IM LẶNG.
+vnd(n: number): string                 // vi "2.847.621.000 ₫" · en "2,847,621,000 ₫"
+vndShort(n: number): string            // vi "2,85 tỷ"|"384,7 tr"|"14k"
+                                       // en "2.85B"|"384.7M"|"14K"
+                                       // Tiền LUÔN là VND ở mọi ngôn ngữ; chỉ
+                                       // dấu phân cách và hậu tố đổi.
+pct(n: number, d?: number): string     // vi "18,4%" · en "18.4%"
+                                       // CHỈ n > 0 && n < 0.1 ⇒ "<0,1%"/"<0.1%".
+                                       // n = 0 và n âm KHÔNG rơi vào nhánh này.
+usd(n: number): string                 // luôn quy ước Mỹ, kể cả khi giao diện vi
+dateTable(d: string | Date): string        // dd/MM/yyyy Ở CẢ HAI LOCALE — cố ý.
+                                       // "3/9/2026" là 9 tháng 3 với người đọc
+                                       // Mỹ và 3 tháng 9 với người đọc Việt;
+                                       // báo cáo và dữ liệu backend luôn
+                                       // dd/MM/yyyy nên đọc nhầm ở đây là sai
+                                       // nghiệp vụ. Chỉ CHỮ đổi theo ngôn ngữ.
+dateWithTime(d: string | Date): string     // vi "09/03/2026 lúc 14:05"
+                                           // en "09/03/2026 at 14:05"
+dateRelative(d: string | Date): string     // vi "3 phút trước" (không chia số
+                                           // nhiều, DS §5.4) · en "3 minutes
+                                           // ago" / "1 minute ago" (có số ít)
 errorCode(err: unknown): string        // mã đã biết, hoặc 'system.internal'
 errorKey(err: unknown): string         // khoá i18n, ví dụ 'err_auth_token_expired'
                                        // View gọi t(errorKey(e)) — KHÔNG BAO GIỜ
@@ -305,23 +443,35 @@ errorKey(err: unknown): string         // khoá i18n, ví dụ 'err_auth_token_e
 
 // 1E — KPI
 StatCard:     { label: string; value: string | number; unit?: string
-                change?: number; icon?: string; loading?: boolean
-                to?: string }
+                // `change` tính bằng ĐIỂM PHẦN TRĂM, không phải phân số:
+                // 18.4 ⇒ "↑ 18,4%". Truyền 0.184 sẽ ra "0,2%" — lệch 100 lần.
+                // Cùng đơn vị với `changeThreshold`.
+                change?: number; changeThreshold?: number
+                icon?: string; loading?: boolean; to?: string }
+              // CẤM #2: |change| >= changeThreshold ⇒ badge SOLID (variant
+              // flat), dưới ngưỡng hoặc không khai ngưỡng ⇒ tonal.
 KpiGrid:      { }   // slot mặc định; lưới 1/2/4 cột theo breakpoint
+              // KpiGrid TỰ bọc mỗi thẻ con trong <v-col cols=12 sm=6 lg=3>,
+              // khớp đúng SkeletonKpi. Nơi dùng KHÔNG tự gõ <v-col>:
+              //     <KpiGrid><StatCard … /><StatCard … /></KpiGrid>
 ```
 
 ### Ánh xạ trạng thái CQA ↔ màu (thay từ vựng agent của DS — quyết định A2)
 
 | Trạng thái CQA | Token màu | Dùng ở |
 |---|---|---|
-| `running` / `syncing` | `--amber` (pulse) | job đang chạy, kênh đang đồng bộ |
-| `success` / `active` / `pass` | `--success` | job xong, kênh hoạt động, kết quả Đạt |
+| `running` / `syncing` / `warning` / `partial` | `--amber` (pulse) | job đang chạy, kênh đang đồng bộ, cảnh báo, thành công một phần |
+| `success` / `active` / `pass` / `sent` | `--success` | job xong, kênh hoạt động, kết quả Đạt, thông báo đã gửi |
 | `failed` / `error` | `--destructive` | job lỗi, sync lỗi, kết quả Không đạt |
 | `pending` / `queued` | `--muted-foreground` | job chờ |
-| `disabled` / `paused` | `--muted-foreground` + opacity 0.6 | kênh tắt |
+| `disabled` / `paused` / `inactive` / `cancelled` | `--muted-foreground` + opacity 0.6 | kênh tắt, job bị huỷ |
 
 `StatusBadge` là **nơi duy nhất** ánh xạ này tồn tại. Story nào tự viết
 `<v-chip :color="...">` cho trạng thái là **sai** — dùng `StatusBadge`.
+
+Trạng thái không có trong bảng (backend thêm mã mới) hiển thị **nguyên mã**,
+không rơi ra chuỗi khoá thô `status_xxx` — nhưng đó là lối thoát hiểm, không
+phải chỗ để bỏ qua việc thêm khoá i18n.
 
 ### Quy tắc 4 trạng thái (bắt buộc)
 
@@ -363,7 +513,35 @@ Story Phase 2 **chỉ được đóng** khi view của nó đạt **tất cả**
 - [ ] Nút icon có `aria-label` (DS §6.4)
 - [ ] Nhãn nút theo DS §5.1: **động từ + bổ ngữ**; nút destructive nói rõ hậu quả
 - [ ] `npx vue-tsc -b && npx vitest run` xanh
-- [ ] `make test-contrast` — không sinh cặp màu mới không đạt AA
+- [ ] **KHÔNG** tự chạy `make test-contrast`, và **KHÔNG** đụng
+      `src/__tests__/i18n.spec.ts` — xem §"Điều phối Phase 2" dưới đây
+
+---
+
+## Điều phối Phase 2 — hai quy tắc chốt 2026-07-29
+
+Phase 2 có **10 story chạy song song**. Hai thứ trong plan gốc sẽ vỡ ở quy mô
+đó; đây là cách giải đã chốt.
+
+**1. Story KHÔNG đụng `src/__tests__/i18n.spec.ts`.**
+File đó từng chốt cứng số khoá (`toHaveLength(275)`). Ca đếm sinh ra ở Phase 0.4
+để canh việc **tách** `vi.ts`/`en.ts` thành 14 module — việc đó xong rồi, và giữ
+lại thì **cả 10 story cùng phải sửa đúng một dòng**. Đã bỏ ca đếm, thay bằng
+kiểm cấu trúc không phụ thuộc số lượng: vi/en cân bằng · không khoá rỗng · không
+trùng khoá giữa module · **mọi module đều thực sự được `index.ts` spread vào**
+(rủi ro mà số đếm từng che: thêm module mà quên `import` + `...spread` thì khoá
+im lặng không tồn tại, và ba ca kia không bắt được vì vi/en vẫn cân bằng).
+
+**2. Story KHÔNG tự chạy `make test-contrast`. Controller chạy theo wave.**
+Đó là Playwright + dựng app + trình duyệt thật; 10 agent chạy cùng lúc sẽ tranh
+cổng và tranh CPU, và flaky sẽ bị hiểu nhầm thành lỗi màu thật. Controller chạy
+**một lần sau khi gộp mỗi wave**, trên bản đã gộp — vẫn bắt được đúng thứ cần
+bắt (cặp màu mới không đạt AA) mà không có tranh chấp.
+
+**Nợ chuyển giao:** `StatusBadge` và `EmptyState` chưa từng lên DOM thật, nên
+`make test-contrast` chưa bao giờ chạy cho chúng. Wave đầu tiên đưa chúng lên
+view sẽ làm **78 chỗ** xuất hiện cùng lúc — dự trù thời gian cho việc đó, đừng
+coi là chạy lấy lệ.
 
 ---
 

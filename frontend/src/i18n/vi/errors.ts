@@ -4,4 +4,12 @@ export default {
   validation_select_channel: 'Vui lòng chọn ít nhất 1 kênh',
   validation_add_output: 'Vui lòng thêm ít nhất 1 đầu ra',
   validation_enter_rules: 'Vui lòng nhập quy tắc phân tích',
+  err_auth_login_invalid_credentials: 'Email hoặc mật khẩu không đúng.',
+  err_auth_token_expired: 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.',
+  err_validation_required: 'Vui lòng điền đầy đủ thông tin bắt buộc.',
+  err_system_rate_limit: 'Quá nhiều yêu cầu. Đợi vài giây rồi thử lại.',
+  err_system_internal: 'Có lỗi xảy ra. Đã báo đội kỹ thuật. Thử lại hoặc liên hệ hỗ trợ.',
+  error_load_failed_title: 'Không tải được dữ liệu',
+  error_load_failed_desc: 'Có lỗi kết nối. Thử tải lại hoặc liên hệ hỗ trợ nếu vẫn lỗi.',
+  retry: 'Tải lại',
 }

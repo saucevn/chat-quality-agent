@@ -20,6 +20,20 @@ export default defineConfig({
     // vitest quét cả *.spec.ts ở đó rồi vỡ với "Playwright Test did not expect
     // test() to be called here."
     include: ['src/**/*.spec.ts'],
+    // Component test (Phase 1 UI) cần DOM thật để @vue/test-utils mount được.
+    environment: 'happy-dom',
+    // Polyfill dùng chung cho mọi test — xem comment trong file đó (hiện chỉ
+    // có visualViewport cho VOverlay của Vuetify).
+    setupFiles: ['src/__tests__/setup.ts'],
+    // Vitest mặc định externalize gói trong node_modules và dùng loader ESM
+    // gốc của Node để import chúng — loader đó không hiểu file .css mà
+    // vuetify/components import kèm theo mỗi component. Bắt vitest transform
+    // vuetify qua pipeline của Vite (như lúc build thật) để .css được xử lý.
+    server: {
+      deps: {
+        inline: ['vuetify'],
+      },
+    },
   },
   server: {
     port: 3000,

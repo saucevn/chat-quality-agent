@@ -610,9 +610,13 @@ const { t } = useI18n()
 `t('retry')`, `t('no_data')`. Ba khoá đầu thuộc **story 1D**
 (`i18n/*/errors.ts`); `no_data` đã có sẵn trong `common`.
 
-Nếu 1D chưa merge, thêm tạm vào `i18n/vi/common.ts` + `i18n/en/common.ts` và
-**báo cho 1D** để gộp — đừng để khoá trùng ở hai module (test
-`i18n.spec.ts` của Phase 0 bắt trùng lặp và sẽ đỏ).
+**Thứ tự dispatch đã chốt (2026-07-29): 1D merge trước 1B**, nên cả ba khoá
+`error_load_failed_title` · `error_load_failed_desc` · `retry` **đã có sẵn**
+trong `i18n/*/errors.ts` khi 1B chạy. `no_data` có sẵn trong `common`.
+
+1B **không được** thêm khoá i18n nào. Nếu grep thấy khoá thiếu ⇒ dispatch sai
+thứ tự: **dừng lại và báo**, đừng vá tạm vào `common.ts` (test chống trùng khoá
+trong `i18n.spec.ts` sẽ đỏ khi 1D merge sau).
 
 - [ ] **Step 6: Chạy test và type-check**
 
@@ -971,7 +975,10 @@ git commit -m "feat(frontend): khung trang, hộp thoại xác nhận, FormField
 - Create: `frontend/src/utils/errors.ts`
 - Create: `frontend/src/utils/__tests__/format.spec.ts`
 - Create: `frontend/src/utils/__tests__/errors.spec.ts`
-- Create: `frontend/src/i18n/vi/errors.ts` và `frontend/src/i18n/en/errors.ts`
+- **Modify** (KHÔNG phải create — Phase 0.4 đã tạo, đang có 5 khoá
+  `validation_*`): `frontend/src/i18n/vi/errors.ts` và
+  `frontend/src/i18n/en/errors.ts` — **giữ nguyên 5 khoá cũ, chỉ thêm 8 khoá mới**
+- Modify: `frontend/src/__tests__/i18n.spec.ts` — chỉ dòng đếm khoá, 243 → 251
 
 **Interfaces:** đúng chữ ký Contract trong `README.md`.
 
@@ -1018,6 +1025,19 @@ describe('format vi-VN', () => {
 
   it('usd giữ 2 số lẻ kiểu Mỹ — dùng cho chi phí AI', () => {
     expect(usd(12.3456)).toBe('$12.35')
+  })
+
+  // Bổ sung 2026-07-29 sau vòng review 1D: bản plan đầu triển khai
+  // `dateRelative` (nằm trong Contract, 10 story Phase 2 gọi trực tiếp) nhưng
+  // không import nó vào test nào — một hàm public của hợp đồng khoá cứng ship
+  // với 0 khẳng định hành vi. Phải phủ ĐỦ 5 nhánh và ĐÚNG TẠI các ranh giới
+  // mins=60, hours=24, days=30, không chỉ giữa khoảng.
+  //
+  // `dateRelative` gọi Date.now() nên test BẮT BUỘC tất định: dùng
+  // vi.useFakeTimers() + vi.setSystemTime(), dọn bằng vi.useRealTimers().
+  // Test phụ thuộc đồng hồ thật là test nhấp nháy, tức khuyết tật.
+  it('dateRelative phủ đủ 5 nhánh, kiểm đúng tại ranh giới', () => {
+    // xem frontend/src/utils/__tests__/format.spec.ts để biết bản triển khai
   })
 })
 ```
@@ -1185,12 +1205,14 @@ export default {
 }
 ```
 
-Thêm `import errors from './errors'` và `...errors` vào `i18n/vi/index.ts`
-và `i18n/en/index.ts`. Cập nhật số khoá trong `i18n.spec.ts` (Phase 0.4 chốt
-243; story này thêm 8 ⇒ **251**) trong cùng commit.
+`i18n/vi/index.ts` và `i18n/en/index.ts` **đã** `import errors from './errors'`
+và spread `...errors` (Phase 0.4 làm rồi) — **không sửa index.ts**. Chỉ cần
+thêm khoá vào `errors.ts`.
 
-Nếu Phase 0.4 chưa xong (chưa có thư mục `i18n/vi/`), thêm tạm vào `vi.ts` /
-`en.ts` và **báo cho Phase 0** để đưa vào module `errors` khi tách.
+Cập nhật số khoá trong `src/__tests__/i18n.spec.ts` (Phase 0.4 chốt 243; story
+này thêm 8 ⇒ **251**) trong cùng commit. Đây là ngoại lệ ownership có kiểm
+soát — xem README §"Bảng sở hữu file". Sửa **đúng một dòng** đó, không đụng gì
+khác trong file test.
 
 - [ ] **Step 6: Chạy test và type-check**
 
@@ -1217,7 +1239,8 @@ Thay 7 khối KPI đang chép tay: `Dashboard.vue:68-80, 83-96, 97-118` và
 - Create: `frontend/src/components/ui/__tests__/StatCard.spec.ts`
 
 **Interfaces:** đúng chữ ký Contract trong `README.md`.
-Consumes: `pct()` (story 1D).
+Consumes: `pct()` (story 1D) · `SkeletonBlock.vue` (story 1A) ⇒ **1E chạy sau
+khi 1A và 1D đã merge.**
 
 **Đặc tả nguồn:** `spec-section3-patterns.md` §3.1 (dòng 39–113) và
 `spec-section2-components.md` §2.2.
@@ -1275,6 +1298,14 @@ describe('StatCard', () => {
     })
     expect(w.find('[data-test="value"]').exists()).toBe(false)
   })
+
+  it('loading dùng skeleton chứ không dùng spinner (anti-pattern #7)', () => {
+    const w = mount(StatCard, {
+      ...mountOptions(), props: { label: 'x', value: 0, loading: true },
+    })
+    expect(w.find('[data-test="loading"]').exists()).toBe(true)
+    expect(w.find('.v-progress-circular').exists()).toBe(false)
+  })
 })
 ```
 
@@ -1295,6 +1326,7 @@ Expected: FAIL — không tìm thấy module.
 -->
 <script setup lang="ts">
 import { computed } from 'vue'
+import SkeletonBlock from './SkeletonBlock.vue'
 import { pct } from '../../utils/format'
 
 const props = defineProps<{
@@ -1321,7 +1353,17 @@ const deltaText = computed(() =>
     </div>
 
     <div class="stat-card__body">
-      <v-progress-circular v-if="loading" indeterminate size="24" />
+      <!--
+        Quyết định 2026-07-29: trạng thái tải dùng SkeletonBlock khớp hình dạng
+        nội dung thật, KHÔNG dùng v-progress-circular. Bản plan đầu dùng spinner
+        24px, trái Global Constraint §"Quy tắc 4 trạng thái" (anti-pattern #7)
+        và lệch hình dạng so với SkeletonKpi của story 1A. Bộ số 60%/40% khớp
+        đúng SkeletonKpi để chuyển từ tải sang có dữ liệu không giật layout.
+      -->
+      <template v-if="loading">
+        <SkeletonBlock data-test="loading" width="60%" height="30px" class="mb-3" />
+        <SkeletonBlock width="40%" height="12px" />
+      </template>
       <template v-else>
         <div class="d-flex align-end ga-1">
           <span data-test="value" class="stat-card__value text-heading-1">{{ value }}</span>
