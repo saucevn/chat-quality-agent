@@ -73,4 +73,30 @@ describe('design tokens', () => {
     }
     expect(failures, `Cặp không đạt AA:\n${failures.join('\n')}`).toEqual([])
   })
+
+  it('tokens.css khai báo thang chữ và spacing, không chỉ radius/shadow', () => {
+    for (const k of Object.keys(tokens.core.fontSize))
+      expect(css, `thiếu --font-size-${k}`).toContain(`--font-size-${k}:`)
+    for (const k of Object.keys(tokens.core.lineHeight))
+      expect(css, `thiếu --line-height-${k}`).toContain(`--line-height-${k}:`)
+    for (const k of Object.keys(tokens.core.letterSpacing))
+      expect(css, `thiếu --tracking-${k}`).toContain(`--tracking-${k}:`)
+    for (const k of Object.keys(tokens.core.fontWeight))
+      expect(css, `thiếu --font-weight-${k}`).toContain(`--font-weight-${k}:`)
+    for (const k of Object.keys(tokens.core.spacing))
+      expect(css, `thiếu --space-${k}`).toContain(`--space-${k}:`)
+  })
+
+  it('_ds-tokens.scss cấp biến SASS cho lớp settings của Vuetify', () => {
+    const scss = readFileSync(resolve(here, '../_ds-tokens.scss'), 'utf8')
+    for (const k of Object.keys(tokens.core.radius))
+      expect(scss, `thiếu $radius-${k}`).toContain(`$radius-${k}:`)
+    for (const k of Object.keys(tokens.core.fontSize))
+      expect(scss, `thiếu $font-size-${k}`).toContain(`$font-size-${k}:`)
+    for (const k of Object.keys(tokens.core.lineHeight))
+      expect(scss, `thiếu $line-height-${k}`).toContain(`$line-height-${k}:`)
+    // bậc body-xs là quyết định B16, không có trong erp-tokens.json gốc
+    expect(scss).toContain('$font-size-body-xs:')
+    expect(scss).toContain('$line-height-body-xs:')
+  })
 })

@@ -1,10 +1,11 @@
-// Sinh tokens.css (OKLCH) và theme-tokens.ts (hex) từ erp-tokens.json.
+// Sinh tokens.css (OKLCH), theme-tokens.ts (hex) và _ds-tokens.scss (biến
+// SASS) từ erp-tokens.json.
 //
 // Vuetify 4.0.3 không parse được OKLCH — cssColorRe của nó chỉ nhận
 // rgb()/rgba()/hsl()/hsla() hoặc hex — nên component Vuetify phải dùng hex,
 // còn CSS tự viết dùng OKLCH gốc (chính xác hơn, không bị kẹp gamut).
 //
-// KHÔNG sửa tay hai file sinh ra; sửa JSON rồi chạy lại `npm run tokens:build`.
+// KHÔNG sửa tay ba file sinh ra; sửa JSON rồi chạy lại `npm run tokens:build`.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -56,24 +57,36 @@ function hexMap(mode) {
 const cssVars = (mode) => colorKeys.map((k) => `  --${k}: ${tokens[mode][k].$value};`).join('\n')
 
 const core = tokens.core
-const radius = Object.entries(core.radius)
-  .map(([k, v]) => `  --radius-${k}: ${v.$value};`)
-  .join('\n')
+
+const mapValues = (g) => Object.fromEntries(Object.entries(g).map(([k, v]) => [k, v.$value]))
+
+// Bậc body-xs không có trong erp-tokens.json — quyết định B16 của đợt nâng
+// cấp giao diện: 91 chỗ dùng text-caption là chữ nhỏ thường, không phải nhãn
+// viết hoa, nên không dùng chung bậc `label` được.
+const EXTRA_SCALE = {
+  fontSize: { 'body-xs': '12px' },
+  lineHeight: { 'body-xs': '16px' },
+}
+const scale = (group) => ({ ...mapValues(core[group]), ...(EXTRA_SCALE[group] ?? {}) })
+
+const cssBlock = (prefix, obj) =>
+  Object.entries(obj).map(([k, v]) => `  --${prefix}-${k}: ${v};`).join('\n')
+
+const radius = cssBlock('radius', mapValues(core.radius))
 const shadow = Object.entries(core.shadow)
   .map(([k, v]) => {
     const s = v.$value
     return `  --shadow-${k}: ${s.x} ${s.y} ${s.blur} ${s.spread} ${s.color};`
   })
   .join('\n')
-const duration = Object.entries(core.duration)
-  .map(([k, v]) => `  --duration-${k}: ${v.$value};`)
-  .join('\n')
-const easing = Object.entries(core.easing)
-  .map(([k, v]) => `  --ease-${k}: ${v.$value};`)
-  .join('\n')
-const font = Object.entries(core.font)
-  .map(([k, v]) => `  --font-${k}: ${v.$value};`)
-  .join('\n')
+const duration = cssBlock('duration', mapValues(core.duration))
+const easing = cssBlock('ease', mapValues(core.easing))
+const font = cssBlock('font', mapValues(core.font))
+const fontSize = cssBlock('font-size', scale('fontSize'))
+const lineHeight = cssBlock('line-height', scale('lineHeight'))
+const tracking = cssBlock('tracking', mapValues(core.letterSpacing))
+const fontWeight = cssBlock('font-weight', mapValues(core.fontWeight))
+const spacing = cssBlock('space', mapValues(core.spacing))
 
 const css = `/* SINH TỰ ĐỘNG bởi scripts/build-tokens.mjs — đừng sửa tay.
    Sửa src/design/erp-tokens.json rồi chạy: npm run tokens:build */
@@ -84,6 +97,11 @@ ${shadow}
 ${duration}
 ${easing}
 ${font}
+${fontSize}
+${lineHeight}
+${tracking}
+${fontWeight}
+${spacing}
 }
 
 .dark {
@@ -99,7 +117,28 @@ export const lightColors: Record<string, string> = ${JSON.stringify(hexMap('ligh
 export const darkColors: Record<string, string> = ${JSON.stringify(hexMap('dark'), null, 2)}
 `
 
+const scssBlock = (prefix, obj) =>
+  Object.entries(obj).map(([k, v]) => `$${prefix}-${k}: ${v};`).join('\n')
+
+const scss = `// SINH TỰ ĐỘNG bởi scripts/build-tokens.mjs — đừng sửa tay.
+// Biến SASS cho lớp settings của Vuetify (src/design/vuetify-settings.scss).
+// Vuetify cần giá trị literal lúc biên dịch (nó nhân chia $border-radius-root),
+// nên không dùng var() được — phải là biến SASS thật.
+${scssBlock('radius', mapValues(core.radius))}
+
+${scssBlock('font-size', scale('fontSize'))}
+
+${scssBlock('line-height', scale('lineHeight'))}
+
+${scssBlock('tracking', mapValues(core.letterSpacing))}
+
+${scssBlock('font-weight', mapValues(core.fontWeight))}
+
+${scssBlock('space', mapValues(core.spacing))}
+`
+
 mkdirSync(DESIGN, { recursive: true })
 writeFileSync(resolve(DESIGN, 'tokens.css'), css)
 writeFileSync(resolve(DESIGN, 'theme-tokens.ts'), ts)
+writeFileSync(resolve(DESIGN, '_ds-tokens.scss'), scss)
 console.log(`đã sinh tokens.css và theme-tokens.ts (${colorKeys.length} token màu)`)
