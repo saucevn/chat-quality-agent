@@ -241,6 +241,19 @@ sửa.
 **Ba file nóng, chỉ Phase 0 và Phase 3 được đụng:**
 `src/plugins/vuetify.ts` · `src/design/*` · `tests/contrast/baseline.json`.
 
+**Nợ hạ tầng Phase 0 đã trả trong story 1A (2026-07-29).** `frontend/vite.config.ts`
+thuộc sở hữu **0.x**, nhưng Phase 0 đóng lại mà chưa cấu hình vitest để mount
+được component Vuetify: thiếu `test.environment: 'happy-dom'` và
+`test.server.deps.inline: ['vuetify']`. Không có hai dòng đó thì **mọi** test
+mount component Vuetify vỡ với `Unknown file extension ".css"` — vitest
+externalize gói trong `node_modules` và dùng loader ESM gốc của Node, loader
+này không hiểu file `.css` mà `vuetify/components` import kèm. Phase 0 không lộ
+lỗi vì hai test sẵn có (`i18n.spec.ts`, `tokens.spec.ts`) không mount gì.
+
+Story 1A đã sửa (commit `af6a773`, 11 dòng, không đụng dòng
+`include: ['src/**/*.spec.ts']`). **Story 1B/1C/1E không cần và không được sửa
+lại file này** — cấu hình đã đúng.
+
 **Ngoại lệ có kiểm soát cho Phase 1 (chốt 2026-07-29).** `src/__tests__/i18n.spec.ts`
 chốt cứng số khoá (`toHaveLength(243)`) nên **mọi** story thêm khoá đều phải sửa
 đúng dòng đó — mâu thuẫn với luật "một file một story". Giải bằng **thứ tự**

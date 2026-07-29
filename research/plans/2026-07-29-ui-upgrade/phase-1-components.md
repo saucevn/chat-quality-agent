@@ -1026,6 +1026,19 @@ describe('format vi-VN', () => {
   it('usd giữ 2 số lẻ kiểu Mỹ — dùng cho chi phí AI', () => {
     expect(usd(12.3456)).toBe('$12.35')
   })
+
+  // Bổ sung 2026-07-29 sau vòng review 1D: bản plan đầu triển khai
+  // `dateRelative` (nằm trong Contract, 10 story Phase 2 gọi trực tiếp) nhưng
+  // không import nó vào test nào — một hàm public của hợp đồng khoá cứng ship
+  // với 0 khẳng định hành vi. Phải phủ ĐỦ 5 nhánh và ĐÚNG TẠI các ranh giới
+  // mins=60, hours=24, days=30, không chỉ giữa khoảng.
+  //
+  // `dateRelative` gọi Date.now() nên test BẮT BUỘC tất định: dùng
+  // vi.useFakeTimers() + vi.setSystemTime(), dọn bằng vi.useRealTimers().
+  // Test phụ thuộc đồng hồ thật là test nhấp nháy, tức khuyết tật.
+  it('dateRelative phủ đủ 5 nhánh, kiểm đúng tại ranh giới', () => {
+    // xem frontend/src/utils/__tests__/format.spec.ts để biết bản triển khai
+  })
 })
 ```
 
