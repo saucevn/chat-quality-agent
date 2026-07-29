@@ -1,51 +1,42 @@
-<template>
-  <v-chip :color="color" :size="size" variant="tonal">
-    <v-icon v-if="icon" start size="small">{{ icon }}</v-icon>
-    {{ label }}
-  </v-chip>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  status: string
-  size?: string
-}>()
+const props = withDefaults(defineProps<{ status: string; size?: string }>(), {
+  size: 'small',
+})
 
 const { t } = useI18n()
 
-const color = computed(() => {
-  switch (props.status) {
-    case 'success': case 'active': case 'sent': return 'success'
-    case 'error': case 'failed': return 'error'
-    case 'warning': case 'CAN_CAI_THIEN': return 'warning'
-    case 'critical': case 'NGHIEM_TRONG': return 'error'
-    case 'running': case 'info': return 'info'
-    default: return 'grey'
-  }
-})
+// Đây là NƠI DUY NHẤT ánh xạ trạng thái → màu trong toàn bộ app. View không
+// được tự viết <v-chip :color="..."> cho trạng thái — xem README §Contract
+// (research/plans/2026-07-29-ui-upgrade/README.md), bảng "Ánh xạ trạng thái
+// CQA ↔ màu" (thay từ vựng agent của DS — quyết định A2). Không có nhánh
+// 'grey' — màu đó không có trong token.
+const COLOR: Record<string, string> = {
+  running: 'amber',
+  syncing: 'amber',
+  success: 'success',
+  active: 'success',
+  pass: 'success',
+  failed: 'error',
+  error: 'error',
+  pending: 'medium-emphasis',
+  queued: 'medium-emphasis',
+  disabled: 'medium-emphasis',
+  paused: 'medium-emphasis',
+}
 
-const icon = computed(() => {
-  switch (props.status) {
-    case 'success': case 'sent': return 'mdi-check-circle'
-    case 'error': case 'failed': return 'mdi-close-circle'
-    case 'warning': return 'mdi-alert'
-    case 'running': return 'mdi-loading mdi-spin'
-    default: return ''
-  }
-})
+const color = computed(() => COLOR[props.status] ?? 'medium-emphasis')
+const label = computed(() => t(`status_${props.status}`))
 
-const label = computed(() => {
-  switch (props.status) {
-    case 'success': return t('success')
-    case 'error': return t('error')
-    case 'active': return t('active')
-    case 'inactive': return t('inactive')
-    case 'NGHIEM_TRONG': return t('severity_critical')
-    case 'CAN_CAI_THIEN': return t('severity_warning')
-    default: return props.status
-  }
-})
+// variant="tonal" không khai lại ở template — đã là default toàn cục của
+// VChip (frontend/src/plugins/vuetify.ts). data-color chỉ để test khẳng
+// định hành vi, không dùng để style.
 </script>
+
+<template>
+  <v-chip :color="color" :size="size" :data-color="color">
+    {{ label }}
+  </v-chip>
+</template>
