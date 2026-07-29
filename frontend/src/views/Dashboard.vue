@@ -191,16 +191,27 @@
       </v-row>
     </template>
 
-    <!-- Bảng chi phí theo ngày -->
+    <!-- Bảng chi phí theo ngày.
+         Bug review 2A: trước đây DataTable nằm NGOÀI khối v-if/v-else-if/v-else
+         nên luôn render, kể cả khi loadError=true — và DataTable tự vẽ nhánh
+         lỗi nội bộ bằng ĐÚNG BA khoá i18n giống EmptyState cấp trang phía
+         trên (error_load_failed_title/desc, retry). Kết quả: hai khối "Không
+         tải được dữ liệu", hai nút "Thử lại" cùng gọi loadDashboard.
+         Gate bằng v-if="!loadError" — trang chỉ dùng MỘT loadError chung cho
+         cả trang nên chỉ cần MỘT khối lỗi (khối cấp trang ở trên). Không còn
+         truyền :error/@retry vì trong nhánh này error luôn là false; DataTable
+         vẫn giữ nguyên khả năng tự báo lỗi riêng (props error/retry chưa bị
+         xoá khỏi component) — nếu sau này bảng cần trạng thái lỗi RIÊNG (phần
+         còn lại của trang vẫn ổn), thêm một ref lỗi riêng cho bảng và bind lại
+         :error/@retry lúc đó, đừng dùng chung loadError của trang nữa. -->
     <DataTable
+      v-if="!loadError"
       :headers="costHeaders"
       :items="costRows"
       :loading="loading"
-      :error="loadError"
       :title="t('cost_by_day_table')"
       :empty-title="t('empty_no_data_title')"
       :empty-description="t('empty_no_data_desc')"
-      @retry="loadDashboard"
     />
 
     <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</v-snackbar>
@@ -237,10 +248,15 @@ const { t, locale } = useI18n()
 const theme = useTheme()
 const tenantId = computed(() => route.params.tenantId as string)
 
-// Định dạng số nguyên (đếm tin nhắn/token) theo locale hiện tại — Contract
-// (research/plans/2026-07-29-ui-upgrade/README.md §1D) chỉ có vnd/vndShort/pct/
-// usd/date*, không có hàm cho số đếm thuần. Không thể thêm export vào
-// utils/format.ts (sở hữu bởi story 1D) nên xử lý locale tại chỗ, cục bộ.
+// TẠM THỜI cục bộ (review 2A, mục 6 checklist "mọi số/tiền/ngày qua
+// src/utils/format.ts" — đọc đúng nghĩa đen là CHƯA ĐẠT vì hàm này nằm ở
+// đây). Định dạng số nguyên (đếm tin nhắn/token) theo locale hiện tại —
+// Contract (research/plans/2026-07-29-ui-upgrade/README.md §1D) chỉ có
+// vnd/vndShort/pct/usd/date*, không có hàm cho số đếm thuần. Không tự thêm
+// export vào utils/format.ts (sở hữu bởi story 1D, controller đã chốt hướng
+// bổ sung hàm ở đó) nên xử lý locale tại chỗ, cục bộ. PHẢI chuyển hàm này
+// sang utils/format.ts ngay khi hàm cho số đếm thuần được thêm vào đó — đừng
+// chép nguyên mẫu cục bộ này sang view khác.
 function formatNumber(n: number): string {
   return n.toLocaleString(locale.value === 'vi' ? 'vi-VN' : 'en-US')
 }
@@ -371,10 +387,13 @@ function applyPreset(preset: string) {
   loadDashboard()
 }
 
-// Nhãn trục ngày của biểu đồ — chỉ số, không có phần chữ đổi theo ngôn ngữ,
-// nên không thuộc phạm vi utils/format.ts (Contract chỉ có dateTable/
-// dateWithTime/dateRelative, cả ba đều in kèm năm hoặc chữ, không khớp nhãn
-// trục "d/M" ngắn cần cho biểu đồ).
+// TẠM THỜI cục bộ (review 2A, mục 6 checklist — CHƯA ĐẠT theo nghĩa đen vì
+// hàm này nằm ở đây thay vì utils/format.ts). Nhãn trục ngày của biểu đồ —
+// chỉ số, không có phần chữ đổi theo ngôn ngữ, nên không khớp bất kỳ hàm nào
+// trong Contract hiện có (dateTable/dateWithTime/dateRelative, cả ba đều in
+// kèm năm hoặc chữ, không khớp nhãn trục "d/M" ngắn cần cho biểu đồ). PHẢI
+// chuyển sang utils/format.ts ngay khi hàm cho nhãn trục biểu đồ được thêm
+// vào đó — đừng chép nguyên mẫu cục bộ này sang view khác.
 function formatChartDate(dateStr: string) {
   if (!dateStr) return ''
   const parts = dateStr.split('T')[0].split('-')

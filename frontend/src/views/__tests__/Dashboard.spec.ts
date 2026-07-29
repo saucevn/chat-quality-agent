@@ -112,20 +112,23 @@ describe('Dashboard', () => {
     expect(w.find('.v-progress-circular').exists()).toBe(false)
   })
 
-  it('trạng thái lỗi: hiện EmptyState variant=error có nút thử lại, KHÔNG hiện số 0 giả (bug #3)', async () => {
+  it('trạng thái lỗi: hiện ĐÚNG MỘT khối EmptyState variant=error với ĐÚNG MỘT nút thử lại, KHÔNG hiện số 0 giả (bug review 2A: DataTable từng render chồng lên EmptyState cấp trang)', async () => {
     mockGet(() => Promise.reject({ response: { data: { code: 'system.internal' } } }))
     const w = mountDashboard()
     await flushPromises()
 
-    expect(w.text()).toContain('Không tải được dữ liệu')
-    const retryBtn = w.findAll('button').find((b) => b.text().includes('Tải lại'))
-    expect(retryBtn).toBeTruthy()
+    // Dùng .filter() (đếm) thay vì .find() (chỉ khớp phần tử đầu) — .find()
+    // xanh y hệt dù có một hay hai khối lỗi nên không bắt được lỗi trùng lặp.
+    const errorBlocks = w.findAll('.empty-state').filter((e) => e.text().includes('Không tải được dữ liệu'))
+    expect(errorBlocks.length).toBe(1)
+    const retryBtns = w.findAll('button').filter((b) => b.text().includes('Tải lại'))
+    expect(retryBtns.length).toBe(1)
     expect(w.find('[data-test="value"]').exists()).toBe(false) // không có StatCard nào render số 0 giả
 
     // Bấm thử lại phải gọi lại API, không nuốt lỗi câm lặng
     vi.mocked(api.get).mockClear()
     mockGet(() => Promise.resolve({ data: FULL_DATA }))
-    await retryBtn!.trigger('click')
+    await retryBtns[0].trigger('click')
     await flushPromises()
     expect(w.text()).toContain('1.284') // total_conversations đã format qua vnd/formatNumber, xem test số bên dưới
   })
