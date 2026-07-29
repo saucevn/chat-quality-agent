@@ -27,8 +27,14 @@ const { t } = useI18n()
 </script>
 
 <template>
+  <!--
+    `persistent` khi đang loading: không có nó thì ESC hoặc click ra ngoài đóng
+    được hộp thoại NGAY TRONG LÚC lệnh xoá đang bay — người dùng mất phản hồi
+    về việc mình vừa kích hoạt một hành động không hoàn tác được.
+  -->
   <v-dialog
     :model-value="modelValue"
+    :persistent="loading"
     @update:model-value="emit('update:modelValue', $event)"
   >
     <v-card>
@@ -38,10 +44,18 @@ const { t } = useI18n()
         <v-btn variant="text" @click="emit('update:modelValue', false)">
           {{ t('cancel') }}
         </v-btn>
+        <!--
+          variant LUÔN 'flat', không phân nhánh theo `destructive`. Nút Huỷ đã
+          là variant 'text'; cho nút xác nhận destructive cũng 'text' thì hộp
+          thoại nguy hiểm nhất app lại là hộp thoại duy nhất KHÔNG có nút chính
+          — hai nút cùng trọng lượng thị giác. spec-section2-components.md:768
+          quy định nút phải là variant destructive, và §2.1 định nghĩa variant
+          đó là nền `--destructive` ĐẶC. Chỉ `color` đổi theo destructive.
+        -->
         <v-btn
           data-test="confirm"
           :color="destructive ? 'error' : 'primary'"
-          :variant="destructive ? 'text' : 'flat'"
+          variant="flat"
           :loading="loading"
           @click="emit('confirm')"
         >

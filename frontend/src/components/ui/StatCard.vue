@@ -14,6 +14,10 @@ const props = defineProps<{
   value: string | number
   unit?: string
   change?: number
+  // CẤM #2 (§2.2): delta VƯỢT NGƯỠNG phải dùng badge SOLID, không phải tonal.
+  // Ngưỡng là quyết định nghiệp vụ nên nơi dùng khai, không hard-code ở đây.
+  // Không truyền ⇒ mọi delta giữ nguyên tonal như trước.
+  changeThreshold?: number
   icon?: string
   loading?: boolean
   to?: string
@@ -24,6 +28,16 @@ const props = defineProps<{
 const deltaUp = computed(() => (props.change ?? 0) >= 0)
 const deltaText = computed(() =>
   props.change === undefined ? '' : `${deltaUp.value ? '↑' : '↓'} ${pct(Math.abs(props.change))}`,
+)
+
+// So sánh trên GIÁ TRỊ TUYỆT ĐỐI: một cú sụt -30% cũng "vượt ngưỡng" như một
+// cú tăng +30%. Biên `>=` — đúng bằng ngưỡng đã là vượt.
+const deltaVariant = computed(() =>
+  props.change !== undefined &&
+  props.changeThreshold !== undefined &&
+  Math.abs(props.change) >= props.changeThreshold
+    ? 'flat'
+    : 'tonal',
 )
 </script>
 
@@ -55,7 +69,7 @@ const deltaText = computed(() =>
           <v-chip
             data-test="delta"
             size="small"
-            variant="tonal"
+            :variant="deltaVariant"
             :color="deltaUp ? 'success' : 'error'"
           >
             {{ deltaText }}
