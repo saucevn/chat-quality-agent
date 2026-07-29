@@ -1,0 +1,79 @@
+// Lớp settings của Vuetify — vite-plugin-vuetify nạp file này qua
+// styles.configFile và biên dịch lại SCSS của TỪNG component Vuetify với các
+// biến dưới đây. Không có nó thì mọi số đo phải gán bằng `style` prop từng
+// chỗ, và không áp được cho component lồng bên trong.
+//
+// Chỉ ghi đè cái ERP design system quy định. Cái nào Vuetify mặc định đã khớp
+// đặc tả thì để nguyên (ví dụ $button-height: 36px).
+@use 'sass:math';
+@use './ds-tokens' as ds;
+
+@forward 'vuetify/settings' with (
+  // Radius: control 8px, card 14px — DS §1.4, quyết định A10.
+  $border-radius-root: ds.$radius-md,
+  $rounded: (
+    0: 0,
+    'sm': ds.$radius-sm,
+    null: ds.$radius-md,
+    'md': ds.$radius-md,
+    'lg': ds.$radius-lg,
+    'xl': ds.$radius-xl,
+    'pill': ds.$radius-full,
+    'circle': 50%,
+    'shaped': ds.$radius-xl 0
+  ),
+
+  // Bo góc theo từng loại thành phần — DS §1.4, quyết định A10.
+  // Ghi đè map $rounded KHÔNG đủ: mỗi component đọc biến riêng của nó
+  // ($card-border-radius, $dialog-border-radius, $menu-content-border-radius
+  // đọc thẳng $border-radius-root; $chip-border-radius đọc $rounded.pill).
+  $card-border-radius: ds.$radius-xl,
+  $dialog-border-radius: ds.$radius-lg,
+  $menu-content-border-radius: ds.$radius-lg,
+  $chip-border-radius: ds.$radius-chip,
+
+  // Thang chữ: chỉ ghi đè 9 bậc Material 3 mà component Vuetify thật sự đọc
+  // trong SCSS của nó. Ánh xạ bậc M3 → bậc DS theo cỡ chữ gần nhất.
+  $typography: (
+    'display-large':   ('size': ds.$font-size-display-lg, 'weight': ds.$font-weight-bold,     'line-height': 1.1,  'letter-spacing': ds.$tracking-tight),
+    'headline-large':  ('size': ds.$font-size-heading-1,  'weight': ds.$font-weight-bold,     'line-height': 1.2,  'letter-spacing': ds.$tracking-tight),
+    'headline-medium': ('size': ds.$font-size-heading-2,  'weight': ds.$font-weight-semibold, 'line-height': 1.33, 'letter-spacing': ds.$tracking-snug),
+    'headline-small':  ('size': ds.$font-size-heading-3,  'weight': ds.$font-weight-semibold, 'line-height': 1.4,  'letter-spacing': normal),
+    'title-large':     ('size': ds.$font-size-heading-3,  'weight': ds.$font-weight-semibold, 'line-height': 1.4,  'letter-spacing': normal),
+    'body-large':      ('size': ds.$font-size-body-base,  'weight': ds.$font-weight-regular,  'line-height': 1.5,  'letter-spacing': normal),
+    'body-medium':     ('size': ds.$font-size-body-sm,    'weight': ds.$font-weight-regular,  'line-height': 1.43, 'letter-spacing': normal),
+    'label-large':     ('size': ds.$font-size-body-sm,    'weight': ds.$font-weight-medium,   'line-height': 1.43, 'letter-spacing': normal),
+    'label-small':     ('size': ds.$font-size-label,      'weight': ds.$font-weight-semibold, 'line-height': 1.33, 'letter-spacing': ds.$tracking-wide)
+  ),
+
+  // Input: DS §2.3 quy định cao 36px, chữ 14px, padding ngang 12px.
+  // Vuetify mặc định 56px/16px/16px (kích thước Material floating-label).
+  $field-control-height: 36px,
+  $input-control-height: 36px,
+  $field-font-size: ds.$font-size-body-sm,
+  $field-control-padding-start: ds.$space-3,
+  $field-control-padding-end: ds.$space-3,
+
+  // $input-font-size / $input-line-height là biến của VInput (khác
+  // $field-font-size ở trên, vốn chỉ chỉnh font-size HIỂN THỊ của .v-field).
+  // Hai biến này còn được nhân với nhau trong công thức sàn chiều cao
+  // ($field-input-min-height, VField/_variables.scss):
+  //   max(control-height, input-font-size × input-line-height + padding trên + padding dưới)
+  // Với biến thể outlined (VTextField/VSelect dùng — VField.sass dòng 79-88 và
+  // VInput.sass dòng 21-24), hai khoản "padding trên/dưới" đó KHÔNG đọc
+  // $field-control-padding-top/bottom (những biến đó chỉ áp cho variant
+  // solo/filled) mà là hằng số 16px viết chết trong SCSS của Vuetify, cộng
+  // thêm (density-modifier × 0.5) mỗi bên — tổng cố định "32px + modifier",
+  // không thể ghi đè qua map settings. Muốn sàn font đúng bằng
+  // control-height (36px) ở modifier -16px (density compact, xem
+  // vuetify.ts), input-font-size × input-line-height phải đúng 20px. Lấy
+  // 14px (khớp $field-font-size) × (line-height-body-sm ÷ font-size-body-sm)
+  // = 14 × 20/14 = 20px chẵn — vừa khớp công thức vừa là line-height DS đã
+  // định nghĩa cho cỡ chữ 14px, không phải số bịa.
+  $input-font-size: ds.$font-size-body-sm,
+  $input-line-height: math.div(ds.$line-height-body-sm, ds.$font-size-body-sm),
+
+  // Table: DS §2.6 quy định ô header cao 40px. Chiều cao row body DS không
+  // quy định — giữ mặc định 52px của Vuetify.
+  $table-header-height: 40px
+);

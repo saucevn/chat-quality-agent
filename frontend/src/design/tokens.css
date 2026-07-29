@@ -65,6 +65,43 @@
   --font-body: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --font-display: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-size-display-lg: 48px;
+  --font-size-heading-1: 30px;
+  --font-size-heading-2: 24px;
+  --font-size-heading-3: 20px;
+  --font-size-body-lg: 18px;
+  --font-size-body-base: 16px;
+  --font-size-body-sm: 14px;
+  --font-size-label: 12px;
+  --font-size-body-xs: 12px;
+  --line-height-heading-1: 36px;
+  --line-height-heading-2: 32px;
+  --line-height-heading-3: 28px;
+  --line-height-body-lg: 28px;
+  --line-height-body-base: 24px;
+  --line-height-body-sm: 20px;
+  --line-height-label: 16px;
+  --line-height-body-xs: 16px;
+  --tracking-tight: -0.025em;
+  --tracking-snug: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.06em;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-72: 288px;
 }
 
 .dark {
@@ -111,4 +148,117 @@
   --channel-zalo: oklch(64% 0.16 250);
   --channel-facebook: oklch(65% 0.16 285);
   --channel-pancake: oklch(65% 0.14 55);
+}
+
+.text-heading-1 {
+  font-family: var(--font-display);
+  font-size: var(--font-size-heading-1);
+  line-height: var(--line-height-heading-1);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-tight);
+}
+.text-heading-2 {
+  font-family: var(--font-display);
+  font-size: var(--font-size-heading-2);
+  line-height: var(--line-height-heading-2);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-snug);
+}
+.text-heading-3 {
+  font-family: var(--font-body);
+  font-size: var(--font-size-heading-3);
+  line-height: var(--line-height-heading-3);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-normal);
+}
+.text-body-lg {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-lg);
+  line-height: var(--line-height-body-lg);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-normal);
+}
+.text-body-base {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-base);
+  line-height: var(--line-height-body-base);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-normal);
+}
+.text-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-normal);
+}
+.text-body-xs {
+  font-family: var(--font-body);
+  font-size: var(--font-size-body-xs);
+  line-height: var(--line-height-body-xs);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-normal);
+}
+.text-label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+.text-h4 { /* ĐÃ LỖI THỜI → .text-heading-1 */
+  font-size: var(--font-size-heading-1);
+  line-height: var(--line-height-heading-1);
+}
+.text-h5 { /* ĐÃ LỖI THỜI → .text-heading-2 */
+  font-size: var(--font-size-heading-2);
+  line-height: var(--line-height-heading-2);
+}
+.text-h6 { /* ĐÃ LỖI THỜI → .text-heading-3 */
+  font-size: var(--font-size-heading-3);
+  line-height: var(--line-height-heading-3);
+}
+.text-subtitle-1 { /* ĐÃ LỖI THỜI → .text-body-base */
+  font-size: var(--font-size-body-base);
+  line-height: var(--line-height-body-base);
+}
+.text-subtitle-2 { /* ĐÃ LỖI THỜI → .text-body-sm */
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+}
+.text-body-1 { /* ĐÃ LỖI THỜI → .text-body-base */
+  font-size: var(--font-size-body-base);
+  line-height: var(--line-height-body-base);
+}
+.text-body-2 { /* ĐÃ LỖI THỜI → .text-body-sm */
+  font-size: var(--font-size-body-sm);
+  line-height: var(--line-height-body-sm);
+}
+.text-caption { /* ĐÃ LỖI THỜI → .text-body-xs */
+  font-size: var(--font-size-body-xs);
+  line-height: var(--line-height-body-xs);
+}
+:root {
+  --v-font-body: var(--font-body);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Dạng GHÉP (không dấu cách) là dạng bắt buộc: với variant flat, Vuetify gắn
+   class bg-primary lên CHÍNH thẻ <button>, nên selector hậu duệ
+   ".bg-primary :focus-visible" không bao giờ khớp nút. Thiếu dòng ghép này,
+   viền focus lấy màu --ring — vốn đúng bằng --primary — nên trùng màu nền nút
+   và biến mất. Dạng hậu duệ giữ lại cho phần tử con nằm trong vùng nền primary. */
+.bg-primary:focus-visible,
+.bg-primary :focus-visible {
+  outline-color: #fff;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
 }

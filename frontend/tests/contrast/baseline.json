@@ -7,20 +7,6 @@
     "note": "notifications/light — \"email\""
   },
   {
-    "fg": "#57A394",
-    "bg": "#D9E1F2",
-    "required": 4.5,
-    "ratio": 2.26,
-    "note": "messages/light — \"Đạt\""
-  },
-  {
-    "fg": "#A7A7AA",
-    "bg": "#FFFFFF",
-    "required": 4.5,
-    "ratio": 2.4,
-    "note": "messages/light — \"T2 20/07 15:30\""
-  },
-  {
     "fg": "#9E9E9E",
     "bg": "#F3F3F3",
     "required": 4.5,
@@ -35,20 +21,6 @@
     "note": "dashboard/light — \"Cần cải thiện\""
   },
   {
-    "fg": "#9289FC",
-    "bg": "#EAE9FE",
-    "required": 4.5,
-    "ratio": 2.44,
-    "note": "messages/light — \"8 tin · 7 ngày trước\""
-  },
-  {
-    "fg": "#B9835E",
-    "bg": "#E4DDEC",
-    "required": 4.5,
-    "ratio": 2.45,
-    "note": "messages/light — \"Pancake\""
-  },
-  {
     "fg": "#673AB7",
     "bg": "#171129",
     "required": 4.5,
@@ -56,18 +28,11 @@
     "note": "cost-logs/dark — \"claude\""
   },
   {
-    "fg": "#9C92D5",
-    "bg": "#F4F3FA",
+    "fg": "#3B9680",
+    "bg": "#D5DFEF",
     "required": 4.5,
-    "ratio": 2.54,
-    "note": "messages/light — \"FB\""
-  },
-  {
-    "fg": "#5F9ED3",
-    "bg": "#EDF4FA",
-    "required": 4.5,
-    "ratio": 2.59,
-    "note": "messages/light — \"Zalo\""
+    "ratio": 2.67,
+    "note": "messages/light — \"Đạt\""
   },
   {
     "fg": "#E17100",
@@ -98,13 +63,6 @@
     "note": "activity-logs/light, channel-detail/light, channels/light, cost-logs/light, dashboard/light, job-detail/light, job-edit/light, jobs/light, login/light, mcp/light, messages/light, notifications/light, settings/light, tenants/light, users/light — \"v1.0.0\""
   },
   {
-    "fg": "#F05F66",
-    "bg": "#FDEDEE",
-    "required": 4.5,
-    "ratio": 2.84,
-    "note": "messages/light — \"Không đạt\""
-  },
-  {
     "fg": "#B9B4FB",
     "bg": "#564AFA",
     "required": 4.5,
@@ -112,10 +70,31 @@
     "note": "messages/light — \"T2 20/07 15:30\""
   },
   {
-    "fg": "#9D5C2E",
-    "bg": "#282231",
+    "fg": "#B07041",
+    "bg": "#E3DAE8",
     "required": 4.5,
-    "ratio": 2.94,
+    "ratio": 2.95,
+    "note": "messages/light — \"Pancake\""
+  },
+  {
+    "fg": "#959599",
+    "bg": "#FFFFFF",
+    "required": 4.5,
+    "ratio": 2.98,
+    "note": "messages/light — \"T2 20/07 15:30\""
+  },
+  {
+    "fg": "#7F76FB",
+    "bg": "#EAE9FE",
+    "required": 4.5,
+    "ratio": 2.99,
+    "note": "messages/light — \"8 tin · 8 ngày trước\""
+  },
+  {
+    "fg": "#A05D2D",
+    "bg": "#292231",
+    "required": 4.5,
+    "ratio": 3,
     "note": "messages/dark — \"Pancake\""
   },
   {
@@ -133,18 +112,25 @@
     "note": "channel-detail/light — \"Xóa cuộc chat\""
   },
   {
-    "fg": "#655EB0",
-    "bg": "#161527",
+    "fg": "#887ECE",
+    "bg": "#F1F0F9",
     "required": 4.5,
-    "ratio": 3.23,
-    "note": "messages/dark — \"FB\""
+    "ratio": 3.14,
+    "note": "messages/light — \"FB\""
   },
   {
-    "fg": "#236BAE",
-    "bg": "#0F1727",
+    "fg": "#418CCB",
+    "bg": "#E9F2F9",
     "required": 4.5,
-    "ratio": 3.23,
-    "note": "messages/dark — \"Zalo\""
+    "ratio": 3.17,
+    "note": "messages/light — \"Zalo\""
+  },
+  {
+    "fg": "#EE4149",
+    "bg": "#FDE9EA",
+    "required": 4.5,
+    "ratio": 3.28,
+    "note": "messages/light — \"Không đạt\""
   },
   {
     "fg": "#E7000B",
@@ -154,24 +140,38 @@
     "note": "dashboard/light — \"Nghiêm trọng\""
   },
   {
-    "fg": "#6267C2",
-    "bg": "#1A1B32",
+    "fg": "#675FB5",
+    "bg": "#161528",
     "required": 4.5,
-    "ratio": 3.4,
-    "note": "messages/dark — \"8 tin · 7 ngày trước\""
+    "ratio": 3.31,
+    "note": "messages/dark — \"FB\""
   },
   {
-    "fg": "#696976",
+    "fg": "#236EB2",
+    "bg": "#0E1628",
+    "required": 4.5,
+    "ratio": 3.39,
+    "note": "messages/dark — \"Zalo\""
+  },
+  {
+    "fg": "#6469C6",
+    "bg": "#1A1B32",
+    "required": 4.5,
+    "ratio": 3.51,
+    "note": "messages/dark — \"8 tin · 8 ngày trước\""
+  },
+  {
+    "fg": "#6C6C79",
     "bg": "#0C0C16",
     "required": 4.5,
-    "ratio": 3.6,
+    "ratio": 3.76,
     "note": "messages/dark — \"T2 20/07 15:30\""
   },
   {
-    "fg": "#BC4B50",
-    "bg": "#20131C",
+    "fg": "#C14D52",
+    "bg": "#20131D",
     "required": 4.5,
-    "ratio": 3.64,
+    "ratio": 3.8,
     "note": "messages/dark — \"Không đạt\""
   },
   {
@@ -180,20 +180,6 @@
     "required": 4.5,
     "ratio": 3.84,
     "note": "activity-logs/light, channel-detail/light, channels/light, job-detail/light, jobs/light, notifications/light — \"ai.error\""
-  },
-  {
-    "fg": "#7B7B80",
-    "bg": "#F6F6F7",
-    "required": 4.5,
-    "ratio": 3.9,
-    "note": "job-edit/light — \"Mô tả\""
-  },
-  {
-    "fg": "#7F7F84",
-    "bg": "#FFFFFF",
-    "required": 4.5,
-    "ratio": 3.98,
-    "note": "activity-logs/light, cost-logs/light, job-edit/light, login/light, messages/light, settings/light, tenants/light — \"Lọc\""
   },
   {
     "fg": "#E7000B",

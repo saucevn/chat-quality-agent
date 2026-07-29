@@ -73,4 +73,42 @@ describe('design tokens', () => {
     }
     expect(failures, `Cặp không đạt AA:\n${failures.join('\n')}`).toEqual([])
   })
+
+  it('tokens.css khai báo thang chữ và spacing, không chỉ radius/shadow', () => {
+    for (const k of Object.keys(tokens.core.fontSize))
+      expect(css, `thiếu --font-size-${k}`).toContain(`--font-size-${k}:`)
+    for (const k of Object.keys(tokens.core.lineHeight))
+      expect(css, `thiếu --line-height-${k}`).toContain(`--line-height-${k}:`)
+    for (const k of Object.keys(tokens.core.letterSpacing))
+      expect(css, `thiếu --tracking-${k}`).toContain(`--tracking-${k}:`)
+    for (const k of Object.keys(tokens.core.fontWeight))
+      expect(css, `thiếu --font-weight-${k}`).toContain(`--font-weight-${k}:`)
+    for (const k of Object.keys(tokens.core.spacing))
+      expect(css, `thiếu --space-${k}`).toContain(`--space-${k}:`)
+  })
+
+  it('_ds-tokens.scss cấp biến SASS cho lớp settings của Vuetify', () => {
+    const scss = readFileSync(resolve(here, '../_ds-tokens.scss'), 'utf8')
+    for (const k of Object.keys(tokens.core.radius))
+      expect(scss, `thiếu $radius-${k}`).toContain(`$radius-${k}:`)
+    for (const k of Object.keys(tokens.core.fontSize))
+      expect(scss, `thiếu $font-size-${k}`).toContain(`$font-size-${k}:`)
+    for (const k of Object.keys(tokens.core.lineHeight))
+      expect(scss, `thiếu $line-height-${k}`).toContain(`$line-height-${k}:`)
+    // bậc body-xs là quyết định B16, không có trong erp-tokens.json gốc
+    expect(scss).toContain('$font-size-body-xs:')
+    expect(scss).toContain('$line-height-body-xs:')
+  })
+
+  it('tokens.css định nghĩa class typography DS và lớp đệm cho class Vuetify 3 đã chết', () => {
+    for (const c of ['heading-1', 'heading-2', 'heading-3', 'body-lg',
+                     'body-base', 'body-sm', 'body-xs', 'label'])
+      expect(css, `thiếu .text-${c}`).toContain(`.text-${c}`)
+
+    // Vuetify 4 bỏ hẳn thang Vuetify 3; 252 chỗ trong src/ vẫn dùng.
+    // Lớp đệm giữ chúng hoạt động cho tới khi Phase 2 thay hết.
+    for (const c of ['h4', 'h5', 'h6', 'subtitle-1', 'subtitle-2',
+                     'body-1', 'body-2', 'caption'])
+      expect(css, `thiếu lớp đệm .text-${c}`).toContain(`.text-${c}`)
+  })
 })
