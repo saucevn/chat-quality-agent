@@ -555,12 +555,21 @@ Thay khối `defaults` bằng:
     VCard: { elevation: 1, style: 'border-radius: var(--radius-xl);' },
     // hideDetails 'auto' bỏ khoảng trống message thừa dưới field khi không có
     // lỗi — nguyên nhân form CQA trông rời rạc.
-    VTextField: { variant: 'outlined', density: 'comfortable', hideDetails: 'auto' },
-    VSelect: { variant: 'outlined', density: 'comfortable', hideDetails: 'auto' },
-    VTextarea: { variant: 'outlined', density: 'comfortable', hideDetails: 'auto' },
-    VAutocomplete: { variant: 'outlined', density: 'comfortable', hideDetails: 'auto' },
-    VCombobox: { variant: 'outlined', density: 'comfortable', hideDetails: 'auto' },
-    VFileInput: { variant: 'outlined', density: 'comfortable', hideDetails: 'auto' },
+    //
+    // density 'compact', KHÔNG phải 'comfortable' — đây là kết quả đo, không
+    // phải sở thích. Với biến thể outlined, sàn chiều cao của VField là
+    //   max(control-height, input-font-size × input-line-height + 32px + density-modifier)
+    // và hằng 32px đó viết chết trong VField.sass, không ghi đè qua settings
+    // được. Với control-height 36px, chỉ modifier -16px (đúng bằng 'compact')
+    // mới kéo sàn xuống khớp 36px; 'comfortable' (-8px) cho ra 48px — đã đo
+    // trên DOM thật ở localhost:3001. Xem thêm comment ở $input-font-size
+    // trong src/design/vuetify-settings.scss.
+    VTextField: { variant: 'outlined', density: 'compact', hideDetails: 'auto' },
+    VSelect: { variant: 'outlined', density: 'compact', hideDetails: 'auto' },
+    VTextarea: { variant: 'outlined', density: 'compact', hideDetails: 'auto' },
+    VAutocomplete: { variant: 'outlined', density: 'compact', hideDetails: 'auto' },
+    VCombobox: { variant: 'outlined', density: 'compact', hideDetails: 'auto' },
+    VFileInput: { variant: 'outlined', density: 'compact', hideDetails: 'auto' },
     VSwitch: { inset: true, color: 'primary', hideDetails: 'auto' },
     VCheckbox: { color: 'primary', hideDetails: 'auto' },
     VChip: { variant: 'tonal' },
