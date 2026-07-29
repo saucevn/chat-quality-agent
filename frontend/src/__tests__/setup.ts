@@ -19,3 +19,45 @@ if (typeof globalThis.visualViewport === 'undefined') {
     removeEventListener: () => {},
   }
 }
+
+// Node 22+ có sẵn `globalThis.localStorage` (Web Storage thử nghiệm) dưới
+// dạng accessor (getter/setter), nhưng nó chỉ hoạt động thật khi tiến trình
+// chạy với cờ `--localstorage-file` — thiếu cờ đó, MỌI truy cập trả về
+// `undefined` kèm một ExperimentalWarning in ra stderr (làm bẩn output test),
+// không phải ReferenceError. happy-dom dùng chính `globalThis` làm `window`
+// ở môi trường test (`window === globalThis`), nên bị chung vấn đề:
+// `window.localStorage` cũng `undefined`. `src/i18n/index.ts` gọi
+// `localStorage.getItem('cqa_locale')` ngay ở module scope để khôi phục
+// locale đã lưu — bất kỳ test nào import instance i18n đó, trực tiếp hoặc
+// gián tiếp qua `utils/format.ts`, đều crash nếu thiếu polyfill này.
+//
+// Đọc `typeof globalThis.localStorage` để kiểm tra sẽ TỰ kích hoạt getter
+// của Node (in ra đúng cái warning ta đang tránh) — nên dùng
+// `getOwnPropertyDescriptor` để xem descriptor có phải accessor (`get`) hay
+// không mà không gọi nó, rồi ghi đè hẳn bằng `defineProperty` (không đi qua
+// setter cũ) bằng một Storage giả tối thiểu, lưu trong bộ nhớ tiến trình.
+const localStorageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+if (!localStorageDescriptor || typeof localStorageDescriptor.get === 'function') {
+  const store = new Map<string, string>()
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: {
+      getItem: (key: string) => (store.has(key) ? (store.get(key) as string) : null),
+      setItem: (key: string, value: string) => {
+        store.set(key, String(value))
+      },
+      removeItem: (key: string) => {
+        store.delete(key)
+      },
+      clear: () => {
+        store.clear()
+      },
+      key: (index: number) => Array.from(store.keys())[index] ?? null,
+      get length() {
+        return store.size
+      },
+    },
+    writable: true,
+    configurable: true,
+    enumerable: false,
+  })
+}

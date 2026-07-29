@@ -12,10 +12,12 @@ describe('i18n', () => {
     for (const [k, v] of Object.entries(en)) expect(v, `en.${k} rỗng`).toBeTruthy()
   })
 
-  it('giữ đúng 267 khoá sau khi tách module', () => {
+  it('giữ đúng 275 khoá sau khi tách module', () => {
     // Chốt cứng để việc tách không làm rơi key. Story nào thêm key mới thì
     // cập nhật số này trong cùng commit — đó là điểm reviewer nhìn thấy.
-    expect(Object.keys(vi)).toHaveLength(267)
+    // 2026-07-29: +8 khoá module format.ts (locale hoá utils/format.ts,
+    // vốn khoá cứng tiếng Việt cho dateWithTime/dateRelative/vndShort/pct).
+    expect(Object.keys(vi)).toHaveLength(275)
   })
 
   it('không khoá nào bị khai trùng ở hai module', () => {

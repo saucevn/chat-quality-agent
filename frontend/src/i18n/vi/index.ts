@@ -15,9 +15,10 @@ import users from './users'
 import logs from './logs'
 import mcp from './mcp'
 import errors from './errors'
+import format from './format'
 
 export default {
   ...common, ...auth, ...nav, ...tenants, ...channels, ...messages,
   ...jobs, ...jobDetail, ...dashboard, ...settings, ...users, ...logs,
-  ...mcp, ...errors,
+  ...mcp, ...errors, ...format,
 }
