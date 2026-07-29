@@ -19,8 +19,16 @@
 <script setup lang="ts">
 import { computed, useSlots } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { VDataTable, VDataTableServer } from 'vuetify/components'
 import EmptyState from './EmptyState.vue'
 import SkeletonTable from './SkeletonTable.vue'
+
+// Mọi attr không khai báo (show-select, item-value, density, hover…) phải rơi
+// xuống bảng, KHÔNG dính lên <v-card> gốc. Trước đây `inheritAttrs` để mặc
+// định nên `<DataTable show-select item-value="id">` đặt hai attr đó lên
+// v-card một cách im lặng: bảng không có ô chọn, và slot 'bulk-actions' không
+// bao giờ có gì để thao tác (component cố ý không tự quản lý selection).
+defineOptions({ inheritAttrs: false })
 
 interface Header {
   title: string
@@ -38,8 +46,13 @@ const props = withDefaults(
     totalItems?: number
     page?: number
     itemsPerPage?: number
-    emptyTitle?: string
+    // BẮT BUỘC, không có mặc định `t('no_data')`. Quy tắc 4 trạng thái cấm
+    // nhánh rỗng chỉ có một dòng "Không có dữ liệu" — có mặc định thì 14 bảng
+    // Phase 2 sẽ hợp lệ về type mà vẫn vi phạm quy tắc. Bắt buộc mới ép được.
+    emptyTitle: string
     emptyDescription?: string
+    // Nhánh rỗng phải có CTA hoặc số cụ thể (§3.2). Đây là CTA.
+    emptyActionLabel?: string
   }>(),
   { loading: false, error: false, page: 1, itemsPerPage: 20 },
 )
@@ -48,6 +61,7 @@ const emit = defineEmits<{
   'update:page': [value: number]
   'update:itemsPerPage': [value: number]
   retry: []
+  'empty-action': []
 }>()
 
 const { t } = useI18n()
@@ -61,6 +75,21 @@ const slots = useSlots()
 const forwardedSlotNames = computed(() =>
   Object.keys(slots).filter((name) => name !== 'toolbar' && name !== 'bulk-actions'),
 )
+
+// `items-length` KHÔNG phải prop của VDataTable — `makeVDataTableProps`
+// (node_modules/vuetify/lib/components/VDataTable/VDataTable.js) không có nó,
+// và dòng ~146 tự tính `itemsLength = items.length`. Nó CHỈ tồn tại trên
+// VDataTableServer. Truyền vào VDataTable là hỏng im lặng: view khai
+// totalItems=500 với 20 dòng vẫn thấy footer báo 1 trang và 'update:page'
+// không bao giờ phát.
+//
+// Chọn phân nhánh (thay vì "luôn dùng bản server") vì VDataTableServer KHÔNG
+// tự phân trang/sắp xếp phía client: chuyển hết sang nó thì mọi bảng không
+// truyền totalItems — ca phổ biến nhất ở Phase 2 — sẽ mất phân trang và sort,
+// đổi một lỗi im lặng lấy một lỗi im lặng khác. Có totalItems là tuyên bố
+// "server phân trang"; không có là "client tự lo".
+const serverSide = computed(() => props.totalItems !== undefined)
+const tableComponent = computed(() => (serverSide.value ? VDataTableServer : VDataTable))
 </script>
 
 <template>
@@ -89,24 +118,28 @@ const forwardedSlotNames = computed(() =>
       v-else-if="!items.length"
       data-test="empty"
       variant="no-data"
-      :title="props.emptyTitle ?? t('no_data')"
+      :title="props.emptyTitle"
       :description="props.emptyDescription"
+      :action-label="props.emptyActionLabel"
+      @action="emit('empty-action')"
     />
 
-    <v-data-table
+    <component
+      :is="tableComponent"
       v-else
+      v-bind="$attrs"
       :headers="headers"
       :items="items"
       :page="page"
       :items-per-page="itemsPerPage"
-      :items-length="totalItems ?? items.length"
+      :items-length="serverSide ? totalItems : undefined"
       @update:page="emit('update:page', $event)"
       @update:items-per-page="emit('update:itemsPerPage', $event)"
     >
       <template v-for="name in forwardedSlotNames" #[name]="slotProps" :key="name">
         <slot :name="name" v-bind="slotProps ?? {}" />
       </template>
-    </v-data-table>
+    </component>
   </v-card>
 </template>
 
