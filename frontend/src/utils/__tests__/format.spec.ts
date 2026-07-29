@@ -1,11 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { vnd, vndShort, pct, usd, dateTable, dateWithTime, dateRelative } from '../format'
+import { vnd, vndShort, pct, usd, count, dateTable, dateWithTime, dateRelative } from '../format'
 import i18n from '../../i18n'
 
 describe('format vi-VN', () => {
   it('vnd dùng dấu chấm phân cách nghìn, không phần thập phân', () => {
     expect(vnd(2847621000)).toBe('2.847.621.000 ₫')
     expect(vnd(0)).toBe('0 ₫')
+  })
+
+  it('count dùng dấu chấm phân cách nghìn, không đơn vị', () => {
+    expect(count(0)).toBe('0')
+    expect(count(942)).toBe('942')
+    expect(count(2847621000)).toBe('2.847.621.000')
+  })
+
+  // Bẫy đã biết của file này: `Intl.NumberFormat` chèn U+00A0 (non-breaking
+  // space) trong MỘT SỐ định dạng (đã xảy ra với `vnd`, xem comment ở đó).
+  // `count` không dùng `style: 'currency'` nên không có ký hiệu tiền tệ để
+  // chèn khoảng trắng trước — kiểm bằng mã điểm ký tự để chốt bằng số, không
+  // suy đoán từ `toBe` (vốn có thể so khớp nhầm nếu cả hai vế cùng dán
+  // sai một ký tự U+00A0 giống nhau).
+  it('count không chèn U+00A0 hay ký tự lạ nào — chỉ chữ số và dấu chấm ASCII', () => {
+    const codes = [...count(2847621000)].map((c) => c.codePointAt(0))
+    expect(codes.every((c) => (c! >= 0x30 && c! <= 0x39) || c === 0x2e)).toBe(true)
   })
 
   it('vndShort rút gọn tỷ / triệu / nghìn, dấu phẩy thập phân', () => {
@@ -104,6 +121,12 @@ describe('format en-US', () => {
   it('vnd uses comma thousands separator, no decimal part', () => {
     expect(vnd(2847621000)).toBe('₫2,847,621,000')
     expect(vnd(0)).toBe('₫0')
+  })
+
+  it('count uses comma thousands separator, no unit', () => {
+    expect(count(0)).toBe('0')
+    expect(count(942)).toBe('942')
+    expect(count(2847621000)).toBe('2,847,621,000')
   })
 
   it('vndShort abbreviates billion/million/thousand with dot decimal and EN suffixes', () => {

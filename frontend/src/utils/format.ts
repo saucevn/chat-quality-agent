@@ -36,6 +36,9 @@ const USD = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 })
 
+const COUNT_VI = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 })
+const COUNT_EN = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+
 /**
  * "2.847.621.000 ₫" (vi) · "₫2,847,621,000" (en)
  *
@@ -94,6 +97,20 @@ export function pct(n: number, decimals = 1): string {
 /** "$12.35" — chi phí AI tính bằng đô, luôn giữ quy ước Mỹ bất kể locale giao diện */
 export function usd(n: number): string {
   return USD.format(n)
+}
+
+/**
+ * "1.234" (vi) · "1,234" (en) — số ĐẾM THUẦN: số hội thoại, số job, số kênh…
+ * Không đơn vị, không phần thập phân (khác `vnd`/`pct`/`usd` — những hàm có
+ * đơn vị đi kèm). Chỉ đổi dấu phân cách nghìn theo locale, giống các hàm
+ * khác trong file.
+ *
+ * Không cần chuẩn hoá khoảng trắng như `vnd`: `Intl.NumberFormat` không kèm
+ * `style: 'currency'` thì không chèn U+00A0 — đã kiểm bằng mã điểm ký tự
+ * (xem test), không phải suy đoán.
+ */
+export function count(n: number): string {
+  return (isVi() ? COUNT_VI : COUNT_EN).format(n)
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
