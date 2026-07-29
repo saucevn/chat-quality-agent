@@ -21,13 +21,19 @@ const COLOR: Record<string, string> = {
   pass: 'success',
   failed: 'error',
   error: 'error',
-  pending: 'medium-emphasis',
-  queued: 'medium-emphasis',
-  disabled: 'medium-emphasis',
-  paused: 'medium-emphasis',
+  pending: 'muted-foreground',
+  queued: 'muted-foreground',
+  disabled: 'muted-foreground',
+  paused: 'muted-foreground',
 }
 
-const color = computed(() => COLOR[props.status] ?? 'medium-emphasis')
+// `disabled`/`paused` dùng CHUNG màu nền `muted-foreground` với
+// `pending`/`queued`, nhưng phải mờ hơn để phân biệt hai nhóm (Contract).
+// `pending`/`queued` KHÔNG được giảm opacity.
+const DIMMED = new Set(['disabled', 'paused'])
+
+const color = computed(() => COLOR[props.status] ?? 'muted-foreground')
+const dimmed = computed(() => DIMMED.has(props.status))
 const label = computed(() => t(`status_${props.status}`))
 
 // variant="tonal" không khai lại ở template — đã là default toàn cục của
@@ -36,7 +42,12 @@ const label = computed(() => t(`status_${props.status}`))
 </script>
 
 <template>
-  <v-chip :color="color" :size="size" :data-color="color">
+  <v-chip
+    :color="color"
+    :size="size"
+    :data-color="color"
+    :style="dimmed ? 'opacity: 0.6' : undefined"
+  >
     {{ label }}
   </v-chip>
 </template>

@@ -11,8 +11,10 @@ describe('StatusBadge', () => {
       ['success', 'success'],
       ['active', 'success'],
       ['failed', 'error'],
-      ['pending', 'medium-emphasis'],
-      ['disabled', 'medium-emphasis'],
+      ['pending', 'muted-foreground'],
+      ['queued', 'muted-foreground'],
+      ['disabled', 'muted-foreground'],
+      ['paused', 'muted-foreground'],
     ]
     for (const [status, color] of cases) {
       const w = mount(StatusBadge, { ...mountOptions(), props: { status } })
@@ -36,11 +38,28 @@ describe('StatusBadge', () => {
       ['running', 'text-amber'],
       ['success', 'text-success'],
       ['failed', 'text-error'],
-      ['pending', 'text-medium-emphasis'],
+      ['pending', 'text-muted-foreground'],
     ]
     for (const [status, expectedClass] of cases) {
       const w = mount(StatusBadge, { ...mountOptions(), props: { status } })
       expect(w.classes(), `${status} thiếu class ${expectedClass}`).toContain(expectedClass)
+    }
+  })
+
+  // `pending`/`queued` và `disabled`/`paused` dùng chung màu nền
+  // muted-foreground — chỉ opacity phân biệt hai nhóm. Nếu chỉ khẳng định
+  // `data-color` thì phân biệt này có thể trôi mất lần nữa mà test vẫn xanh,
+  // nên khẳng định trực tiếp style opacity render ra trên DOM.
+  it('disabled/paused giảm opacity 0.6, pending/queued giữ nguyên', () => {
+    for (const status of ['disabled', 'paused']) {
+      const w = mount(StatusBadge, { ...mountOptions(), props: { status } })
+      expect(w.attributes('style'), `${status} phải có opacity 0.6`).toContain('opacity: 0.6')
+    }
+    for (const status of ['pending', 'queued']) {
+      const w = mount(StatusBadge, { ...mountOptions(), props: { status } })
+      expect(w.attributes('style') ?? '', `${status} không được giảm opacity`).not.toContain(
+        'opacity',
+      )
     }
   })
 })
