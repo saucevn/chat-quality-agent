@@ -17,6 +17,22 @@ const props = defineProps<{
 
 const auto = useId()
 const id = computed(() => props.inputId ?? `field-${auto}`)
+
+// §6.4: `describedby` phải liệt kê id của MỌI phần tử mô tả ĐANG hiển thị.
+// Trước đây nó chỉ nối `<p>` lỗi và `<p>` hint không có `id` nào cả, nên
+// trình đọc màn hình nghe được lỗi mà không bao giờ nghe được gợi ý.
+//
+// Chỉ nối id CÓ THẬT trong DOM: lỗi THAY THẾ hint (xem `v-else-if` dưới
+// template), nên khi có cả hai thì phần tử hint không tồn tại — nối id của nó
+// vào sẽ tạo idref treo, trình đọc màn hình bỏ qua cả chuỗi. Danh sách vẫn
+// dựng theo kiểu gộp để nếu sau này hint và lỗi hiện đồng thời thì chỗ này
+// không phải sửa lại.
+const describedby = computed(() => {
+  const ids: string[] = []
+  if (props.error) ids.push(`${id.value}-error`)
+  else if (props.hint) ids.push(`${id.value}-hint`)
+  return ids.length ? ids.join(' ') : undefined
+})
 </script>
 
 <template>
@@ -24,9 +40,9 @@ const id = computed(() => props.inputId ?? `field-${auto}`)
     <label :for="id" class="text-body-sm">
       {{ label }}<span v-if="required" class="text-error ms-1">*</span>
     </label>
-    <slot :id="id" :describedby="error ? `${id}-error` : undefined" />
+    <slot :id="id" :describedby="describedby" />
     <p v-if="error" :id="`${id}-error`" class="text-body-xs text-error">{{ error }}</p>
-    <p v-else-if="hint" class="text-body-xs text-medium-emphasis">{{ hint }}</p>
+    <p v-else-if="hint" :id="`${id}-hint`" class="text-body-xs text-medium-emphasis">{{ hint }}</p>
   </div>
 </template>
 
