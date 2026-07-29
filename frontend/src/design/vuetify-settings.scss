@@ -22,6 +22,15 @@
     'shaped': ds.$radius-xl 0
   ),
 
+  // Bo góc theo từng loại thành phần — DS §1.4, quyết định A10.
+  // Ghi đè map $rounded KHÔNG đủ: mỗi component đọc biến riêng của nó
+  // ($card-border-radius, $dialog-border-radius, $menu-content-border-radius
+  // đọc thẳng $border-radius-root; $chip-border-radius đọc $rounded.pill).
+  $card-border-radius: ds.$radius-xl,
+  $dialog-border-radius: ds.$radius-lg,
+  $menu-content-border-radius: ds.$radius-lg,
+  $chip-border-radius: ds.$radius-chip,
+
   // Thang chữ: chỉ ghi đè 9 bậc Material 3 mà component Vuetify thật sự đọc
   // trong SCSS của nó. Ánh xạ bậc M3 → bậc DS theo cỡ chữ gần nhất.
   $typography: (
