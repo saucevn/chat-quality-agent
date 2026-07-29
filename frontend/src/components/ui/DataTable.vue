@@ -10,16 +10,26 @@
                      (ẩn hoàn toàn khi không truyền) — DataTable không tự quản
                      lý trạng thái chọn dòng, việc đó thuộc về nơi dùng.
   - 'item.<key>'   → tuỳ biến từng ô, chuyển tiếp thẳng vào v-data-table.
+  - 'actions'      → chuyển tiếp vào CardHeader, cạnh tiêu đề (xem dưới).
 
   Lưu ý: vòng lặp chuyển tiếp `v-for="(_, name) in $slots"` KHÔNG bao gồm
   'toolbar' và 'bulk-actions' — hai slot đó đã được render riêng ở trên,
   đưa lại vào trong sẽ bị lặp và không đúng chỗ (v-data-table không hiểu
   slot 'toolbar'/'bulk-actions').
+
+  DataTable TỰ SỞ HỮU tiêu đề (props 'title'/'subtitle' + slot 'actions', qua
+  CardHeader.vue dùng chung với SectionCard) — KHÔNG BAO GIỜ bọc DataTable
+  trong SectionCard, sẽ ra hai lớp viền/elevation chồng nhau (hai <v-card>
+  lồng nhau). Header render Ở TRÊN CÙNG, TRƯỚC toolbar, và hiện ở CẢ 4 nhánh
+  trạng thái (tải/rỗng/lỗi/có dữ liệu) — cùng lý do với 'class'/'id' đã ép ra
+  thẻ gốc ở mọi nhánh: tiêu đề biến mất khi bảng rỗng là hành vi sai (người
+  dùng không còn biết đang xem bảng gì).
 -->
 <script setup lang="ts">
 import { computed, ref, useAttrs, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VDataTable, VDataTableServer } from 'vuetify/components'
+import CardHeader from './CardHeader.vue'
 import EmptyState from './EmptyState.vue'
 import SkeletonTable from './SkeletonTable.vue'
 
@@ -51,6 +61,12 @@ const props = withDefaults(
     totalItems?: number
     page?: number
     itemsPerPage?: number
+    // Tiêu đề/mô tả của bảng — render qua CardHeader, TRƯỚC toolbar, ở CẢ 4
+    // nhánh trạng thái. Không có mặc định 'no_data' kiểu emptyTitle vì đây là
+    // optional thật: nhiều bảng nằm dưới PageHeader/SectionCard riêng của
+    // view và không cần tiêu đề thứ hai.
+    title?: string
+    subtitle?: string
     // Sắp xếp: VDataTableServer KHÔNG tự sắp xếp, nơi dùng phải nghe
     // `update:sortBy` rồi fetch lại. Thiếu cặp prop/emit này thì
     // `headers[].sortable` là prop khai mà vô tác dụng ở đúng nhánh cần nó
@@ -168,12 +184,14 @@ const { t } = useI18n()
 
 const slots = useSlots()
 
-// Slot chuyển tiếp vào v-data-table: mọi slot NGOẠI TRỪ 'toolbar' và
-// 'bulk-actions' — hai slot đó đã được render riêng ở ngoài v-data-table
-// (khối phía trên), đưa lại vào trong v-data-table lần nữa là thừa vì
-// v-data-table không hiểu hai tên slot đó.
+// Slot chuyển tiếp vào v-data-table: mọi slot NGOẠI TRỪ 'toolbar',
+// 'bulk-actions' và 'actions' — ba slot đó đã được render riêng ở ngoài
+// v-data-table (CardHeader + khối toolbar/bulk-actions phía trên), đưa lại
+// vào trong v-data-table lần nữa là thừa vì v-data-table không hiểu ba tên
+// slot đó.
+const EXCLUDED_SLOT_NAMES = new Set(['toolbar', 'bulk-actions', 'actions'])
 const forwardedSlotNames = computed(() =>
-  Object.keys(slots).filter((name) => name !== 'toolbar' && name !== 'bulk-actions'),
+  Object.keys(slots).filter((name) => !EXCLUDED_SLOT_NAMES.has(name)),
 )
 
 // `items-length` KHÔNG phải prop của VDataTable — `makeVDataTableProps`
@@ -194,6 +212,12 @@ const tableComponent = computed(() => (serverSide.value ? VDataTableServer : VDa
 
 <template>
   <v-card :class="rootClass" :style="rootStyle" v-bind="rootAttrs">
+    <CardHeader :title="title" :subtitle="subtitle">
+      <template v-if="$slots.actions" #actions>
+        <slot name="actions" />
+      </template>
+    </CardHeader>
+
     <div v-if="$slots.toolbar" class="data-table__toolbar">
       <slot name="toolbar" />
     </div>

@@ -386,4 +386,76 @@ describe('DataTable', () => {
     })
     expect(w.find('[data-test="custom-name"]').text()).toBe('JOB A')
   })
+
+  // DataTable TỰ SỞ HỮU tiêu đề (qua CardHeader dùng chung với SectionCard) —
+  // không bao giờ bọc DataTable trong SectionCard (hai <v-card> lồng nhau,
+  // hai lớp viền/elevation chồng nhau). Header phải hiện ở CẢ 4 nhánh trạng
+  // thái, cùng lý do class/id đã ép ra thẻ gốc mọi nhánh: tiêu đề biến mất khi
+  // bảng rỗng/lỗi/tải là hành vi sai — người dùng mất mốc "đang xem bảng gì".
+  describe('title/subtitle render header ở mọi nhánh trạng thái', () => {
+    const withTitle = { ...base, title: 'Công việc gần đây', subtitle: '45 công việc' }
+    const stateCases: [string, { items: unknown[]; error?: boolean; loading?: boolean }][] = [
+      ['có dữ liệu', { items: [{ name: 'Job A', status: 'success' }] }],
+      ['rỗng', { items: [] }],
+      ['lỗi', { items: [], error: true }],
+      ['đang tải', { items: [], loading: true }],
+    ]
+
+    it.each(stateCases)('trạng thái %s hiện header với title/subtitle', (_name, extra) => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...withTitle, ...extra },
+      })
+      const header = w.find('.card-header')
+      expect(header.exists()).toBe(true)
+      expect(header.find('h2').text()).toBe('Công việc gần đây')
+      expect(header.text()).toContain('45 công việc')
+    })
+
+    // Chứng minh PASS→FAIL→PASS đã chạy thật (không phải xanh giả): tạm sửa
+    // DataTable.vue thành `<CardHeader v-if="!loading && !error && items.length" …>`
+    // (header chỉ hiện ở nhánh có dữ liệu), chạy `npx vitest run
+    // DataTable.spec.ts` — kết quả 3 ca 'rỗng'/'lỗi'/'đang tải' đỏ đúng với
+    // `AssertionError: expected false to be true` tại dòng
+    // `expect(header.exists()).toBe(true)`, ca 'có dữ liệu' vẫn xanh. Sau đó
+    // khôi phục lại DataTable.vue về bản gốc (CardHeader đứng ngoài mọi
+    // v-if/v-else, ngay dưới v-card, trước toolbar) — chạy lại thì cả 4 ca xanh.
+  })
+
+  it('không truyền title thì không render header rỗng (không có div ăn padding thừa)', () => {
+    const w = mount(DataTable, {
+      ...mountOptions(),
+      props: { ...base, items: [{ name: 'Job A', status: 'success' }] },
+    })
+    expect(w.find('.card-header').exists()).toBe(false)
+  })
+
+  it('slot actions của DataTable render bên trong header, cạnh title', () => {
+    const w = mount(DataTable, {
+      ...mountOptions(),
+      props: { ...base, title: 'Công việc gần đây', items: [{ name: 'Job A', status: 'success' }] },
+      slots: { actions: '<button data-test="export-btn">Xuất Excel</button>' },
+    })
+    const header = w.find('.card-header')
+    expect(header.exists()).toBe(true)
+    expect(header.find('[data-test="export-btn"]').exists()).toBe(true)
+  })
+
+  it('không truyền title và không có slot actions thì không render header', () => {
+    const w = mount(DataTable, {
+      ...mountOptions(),
+      props: { ...base, items: [] },
+    })
+    expect(w.find('.card-header').exists()).toBe(false)
+  })
+
+  it('có slot actions dù không truyền title vẫn hiện header (giữ hành vi CardHeader)', () => {
+    const w = mount(DataTable, {
+      ...mountOptions(),
+      props: { ...base, items: [{ name: 'Job A', status: 'success' }] },
+      slots: { actions: '<button data-test="export-btn">Xuất Excel</button>' },
+    })
+    expect(w.find('.card-header').exists()).toBe(true)
+    expect(w.find('[data-test="export-btn"]').exists()).toBe(true)
+  })
 })

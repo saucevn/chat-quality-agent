@@ -1,5 +1,8 @@
 // Test hành vi của SectionCard: header chỉ hiện khi có title HOẶC slot
 // actions; slot mặc định luôn render bất kể header có hay không.
+// Header thực chất là CardHeader.vue (dùng chung với DataTable) nên selector
+// DOM là '.card-header', không phải '.section-card__header' (tên cũ, trước
+// khi tách header thành component riêng).
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SectionCard from '../SectionCard.vue'
@@ -11,7 +14,7 @@ describe('SectionCard', () => {
       ...mountOptions(),
       slots: { default: '<p data-test="body">Nội dung</p>' },
     })
-    expect(w.find('.section-card__header').exists()).toBe(false)
+    expect(w.find('.card-header').exists()).toBe(false)
     expect(w.find('[data-test="body"]').exists()).toBe(true)
   })
 
@@ -21,7 +24,7 @@ describe('SectionCard', () => {
       props: { title: 'Cấu hình đồng bộ' },
       slots: { default: '<p data-test="body">Nội dung</p>' },
     })
-    expect(w.find('.section-card__header').exists()).toBe(true)
+    expect(w.find('.card-header').exists()).toBe(true)
     expect(w.find('h2').text()).toBe('Cấu hình đồng bộ')
   })
 
@@ -33,7 +36,7 @@ describe('SectionCard', () => {
         actions: '<button data-test="action-btn">Sửa</button>',
       },
     })
-    expect(w.find('.section-card__header').exists()).toBe(true)
+    expect(w.find('.card-header').exists()).toBe(true)
     expect(w.find('[data-test="action-btn"]').exists()).toBe(true)
   })
 
