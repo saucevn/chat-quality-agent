@@ -841,9 +841,22 @@ mình.)*
 | `#673AB7` trên `#171129` | 2.49:1 | `CostLogs.vue:37` — `color="deep-purple"` | 2H |
 | `#E17100` trên `#FBEEE0` | 2.80:1 | `DefaultLayout.vue:103-106` — chip version (15/15 route light) | 2J |
 | `#E7000B` trên `#FCE0E1` | 3.84:1 | chip error tonal (6 route) | 2H |
-| 7 mục `messages/light` + 6 mục `messages/dark` | 1.95–4.12:1 | `Messages.vue` — chip channel tonal + timestamp `opacity: 0.6` | 2C |
+| 7 mục `messages/light` + 6 mục `messages/dark` | 2.67–3.80:1 | `Messages.vue` — chip channel tonal (`channelColor`/`success`/`error`) + timestamp `opacity: 0.6` | 2C |
 | 5 mục `dashboard/light` + 1 `dashboard/dark` | — | chip severity + banner demo amber | 2A |
-| `#7F7F84` trên `#FFFFFF` | 3.98:1 | label `v-select` (7 route) — **kỳ vọng tự khỏi** sau khi nâng emphasis | 0.5 |
+
+**Cập nhật Story 0.5 (2026-07-29):** dòng `messages` ở trên đã đổi tỉ số so với
+bản trước — 13 cặp màu cũ của `Messages.vue` (chip kênh + mốc thời gian) đổi
+hex do tầng emphasis/token nâng lên, nhưng vẫn cùng vị trí/văn bản và tỉ số
+đều **tăng** (vd `#B9835E`/2.45:1 → `#B07041`/2.95:1). Đây là hệ quả trực
+tiếp của việc đổi emphasis trên nợ màu vốn đã biết (không phải nợ mới), nên
+đã cập nhật lại 13 mục này trong `baseline.json` thay vì thêm dòng mới; không
+có cặp nào giảm tỉ số.
+
+Mục `#7F7F84` trên `#FFFFFF` (label `v-select`, 7 route) đã **tự khỏi hoàn
+toàn** sau khi nâng `medium-emphasis-opacity` — không còn đỏ, đã gỡ khỏi
+`baseline.json`, gỡ khỏi bảng bàn giao. Ngoài dự kiến, mục `#7B7B80` trên
+`#F6F6F7` (nhãn "Mô tả", `job-edit/light`, 3.9:1) cũng tự khỏi theo cùng cơ
+chế.
 
 ---
 
