@@ -7,16 +7,34 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    variant?: 'first-run' | 'no-data' | 'error'
-    icon?: string
-    title: string
-    description?: string
-    actionLabel?: string
-  }>(),
-  { variant: 'first-run' },
-)
+/**
+ * Chữ ký prop là UNION có phân biệt (discriminated union), không phải một khối
+ * phẳng với `actionLabel?`.
+ *
+ * Lý do: bảng "Quy tắc 4 trạng thái" (README §Contract) bắt nhánh lỗi phải CÓ
+ * nút thử lại và CẤM nuốt lỗi. Với `actionLabel?` optional,
+ * `<EmptyState variant="error" title="…" />` — một trạng thái lỗi câm, không lối
+ * thoát — vẫn qua `vue-tsc` sạch sẽ. Cùng cơ chế đã dùng cho `emptyTitle` của
+ * DataTable: khoá bằng KIỂU, không bằng lời hứa trong tài liệu.
+ *
+ * Các variant còn lại giữ `actionLabel?` optional: nhánh rỗng được phép chỉ có
+ * số cụ thể thay cho CTA (§3.2).
+ *
+ * KHÔNG bọc `withDefaults` quanh union này: đã đo bằng `vue-tsc`, `withDefaults`
+ * làm kiểu prop suy biến thành `{ [x: string]: any }` — mọi ràng buộc kiểu biến
+ * mất, kể cả `title` bắt buộc. Mặc định của `variant` vì thế đặt bằng `??` ở
+ * `variant` bên dưới.
+ */
+const props = defineProps<
+  | { variant: 'error'; icon?: string; title: string; description?: string; actionLabel: string }
+  | {
+      variant?: 'first-run' | 'no-data'
+      icon?: string
+      title: string
+      description?: string
+      actionLabel?: string
+    }
+>()
 
 defineEmits<{ action: [] }>()
 
@@ -32,10 +50,11 @@ const ICON_COLOR = {
   error: 'error',
 } as const
 
-const resolvedIcon = computed(() => props.icon ?? DEFAULT_ICON[props.variant])
-const iconColor = computed(() => ICON_COLOR[props.variant])
+const variant = computed(() => props.variant ?? 'first-run')
+const resolvedIcon = computed(() => props.icon ?? DEFAULT_ICON[variant.value])
+const iconColor = computed(() => ICON_COLOR[variant.value])
 // DS §3.2 dòng 1635: error → outlined, còn lại → primary flat
-const btnVariant = computed(() => (props.variant === 'error' ? 'outlined' : 'flat'))
+const btnVariant = computed(() => (variant.value === 'error' ? 'outlined' : 'flat'))
 </script>
 
 <template>
