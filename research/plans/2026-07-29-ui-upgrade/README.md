@@ -220,10 +220,10 @@ sửa.
 | Story | Sở hữu (create/modify) |
 |---|---|
 | **0.x** | `frontend/vite.config.ts` · `frontend/scripts/build-tokens.mjs` · `frontend/src/design/**` · `frontend/src/plugins/vuetify.ts` · `frontend/src/main.ts` · `frontend/src/i18n/**` · `frontend/tests/contrast/baseline.json` |
-| **1A** | `src/components/ui/EmptyState.vue` · `SkeletonTable.vue` · `SkeletonCard.vue` · `SkeletonKpi.vue` + test |
+| **1A** | `src/components/ui/EmptyState.vue` · `SkeletonBlock.vue` · `SkeletonTable.vue` · `SkeletonCard.vue` · `SkeletonKpi.vue` · `src/components/ui/__tests__/helpers.ts` + test |
 | **1B** | `src/components/ui/DataTable.vue` · `FilterBar.vue` + test |
-| **1C** | `src/components/ui/ConfirmDialog.vue` · `PageHeader.vue` · `SectionCard.vue` · `FormField.vue` · `src/components/StatusBadge.vue` + test |
-| **1D** | `src/utils/format.ts` · `src/utils/errors.ts` + test · `src/i18n/*/errors.ts` |
+| **1C** | `src/components/ui/ConfirmDialog.vue` · `PageHeader.vue` · `SectionCard.vue` · `FormField.vue` · `src/components/StatusBadge.vue` + test · `src/i18n/*/common.ts` (**chỉ thêm 11 khoá `status_*`**) · `src/__tests__/i18n.spec.ts` (**chỉ dòng đếm khoá**) |
+| **1D** | `src/utils/format.ts` · `src/utils/errors.ts` + test · `src/i18n/*/errors.ts` · `src/__tests__/i18n.spec.ts` (**chỉ dòng đếm khoá**) |
 | **1E** | `src/components/ui/StatCard.vue` · `KpiGrid.vue` + test |
 | **2A** | `src/views/Dashboard.vue` · `src/i18n/*/dashboard.ts` |
 | **2B** | `src/views/Channels.vue` · `src/views/Channels/ChannelDetail.vue` · `src/i18n/*/channels.ts` |
@@ -240,6 +240,21 @@ sửa.
 
 **Ba file nóng, chỉ Phase 0 và Phase 3 được đụng:**
 `src/plugins/vuetify.ts` · `src/design/*` · `tests/contrast/baseline.json`.
+
+**Ngoại lệ có kiểm soát cho Phase 1 (chốt 2026-07-29).** `src/__tests__/i18n.spec.ts`
+chốt cứng số khoá (`toHaveLength(243)`) nên **mọi** story thêm khoá đều phải sửa
+đúng dòng đó — mâu thuẫn với luật "một file một story". Giải bằng **thứ tự**
+thay vì bằng ownership:
+
+| Wave | Story | Khoá thêm | Dòng đếm sau wave |
+|---|---|---|---|
+| 1 | **1D** | 8 (`err_*`, `error_load_failed_*`, `retry`) | 243 → **251** |
+| 2 | **1C** | 11 (`status_*`) | 251 → **262** |
+
+1B **không** đụng i18n: khi 1B chạy, 1D đã merge nên `error_load_failed_title`,
+`error_load_failed_desc`, `retry` đã có sẵn. Bước "vá tạm vào `common.ts`" ở
+`phase-1-components.md` §1B Step 5 **không áp dụng** — nếu khoá chưa có thì
+đó là lỗi thứ tự dispatch, dừng lại và báo.
 
 ---
 
