@@ -96,7 +96,7 @@
     <template v-else>
       <!-- KPI tổng quan -->
       <KpiGrid class="mb-6">
-        <StatCard v-for="stat in stats" :key="stat.label" :label="t(stat.label)" :value="formatNumber(stat.value)" :icon="stat.icon" />
+        <StatCard v-for="stat in stats" :key="stat.label" :label="t(stat.label)" :value="count(stat.value)" :icon="stat.icon" />
       </KpiGrid>
 
       <!-- KPI theo kênh + tổng hợp -->
@@ -105,10 +105,10 @@
           v-for="ch in channelCounts"
           :key="ch.channel_type"
           :label="channelLabel(ch.channel_type)"
-          :value="formatNumber(ch.count)"
+          :value="count(ch.count)"
           :icon="channelIcon(ch.channel_type)"
         />
-        <StatCard :label="t('total_messages')" :value="formatNumber(totalMessages)" icon="mdi-email-multiple" />
+        <StatCard :label="t('total_messages')" :value="count(totalMessages)" icon="mdi-email-multiple" />
         <StatCard :label="t('ai_cost')" :value="vnd(Math.round(costToday * exchangeRate))" icon="mdi-currency-usd" />
       </KpiGrid>
 
@@ -227,7 +227,7 @@ import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend } from 'chart.js'
 import api from '../api'
 import { chartTokens } from '../design/chart-tokens'
-import { vnd, dateTable, dateRelative } from '../utils/format'
+import { vnd, count, dateTable, dateRelative } from '../utils/format'
 import { errorKey } from '../utils/errors'
 import PageHeader from '../components/ui/PageHeader.vue'
 import SectionCard from '../components/ui/SectionCard.vue'
@@ -244,22 +244,10 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const route = useRoute()
 const router = useRouter()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const theme = useTheme()
 const tenantId = computed(() => route.params.tenantId as string)
 
-// TẠM THỜI cục bộ (review 2A, mục 6 checklist "mọi số/tiền/ngày qua
-// src/utils/format.ts" — đọc đúng nghĩa đen là CHƯA ĐẠT vì hàm này nằm ở
-// đây). Định dạng số nguyên (đếm tin nhắn/token) theo locale hiện tại —
-// Contract (research/plans/2026-07-29-ui-upgrade/README.md §1D) chỉ có
-// vnd/vndShort/pct/usd/date*, không có hàm cho số đếm thuần. Không tự thêm
-// export vào utils/format.ts (sở hữu bởi story 1D, controller đã chốt hướng
-// bổ sung hàm ở đó) nên xử lý locale tại chỗ, cục bộ. PHẢI chuyển hàm này
-// sang utils/format.ts ngay khi hàm cho số đếm thuần được thêm vào đó — đừng
-// chép nguyên mẫu cục bộ này sang view khác.
-function formatNumber(n: number): string {
-  return n.toLocaleString(locale.value === 'vi' ? 'vi-VN' : 'en-US')
-}
 
 function channelLabel(type: string) {
   if (type === 'pancake') return t('channel_pancake')
@@ -332,7 +320,7 @@ const costHeaders = computed(() => [
 const costRows = computed(() =>
   costByDay.value.map((d) => ({
     date: dateTable(d.date),
-    tokens: formatNumber(d.input_tokens + d.output_tokens),
+    tokens: count(d.input_tokens + d.output_tokens),
     cost: vnd(Math.round(d.total_cost * exchangeRate.value)),
   })),
 )
