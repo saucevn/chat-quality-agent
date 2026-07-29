@@ -285,8 +285,21 @@ Tạo `frontend/src/design/vuetify-settings.scss`:
 @use './ds-tokens' as ds;
 
 @forward 'vuetify/settings' with (
-  // Radius: control 8px, card 14px — DS §1.4, quyết định A10.
+  // Radius: control 8px — DS §1.4, quyết định A10.
   $border-radius-root: ds.$radius-md,
+
+  // Bo góc theo TỪNG loại thành phần. Ghi đè map $rounded KHÔNG đủ:
+  // $card-border-radius, $dialog-border-radius, $menu-content-border-radius
+  // đọc thẳng $border-radius-root, còn $chip-border-radius đọc $rounded.pill
+  // (9999px). Không có 4 dòng dưới thì card/dialog/menu tụt về 8px và chip
+  // ra viên thuốc — đã đo trên CSS build thật, không phải suy đoán.
+  $card-border-radius: ds.$radius-xl,          // 14px
+  $dialog-border-radius: ds.$radius-lg,        // 10px
+  $menu-content-border-radius: ds.$radius-lg,  // 10px
+  $chip-border-radius: ds.$radius-chip,        // 16px
+
+  // Map $rounded vẫn cần: nó điều khiển class tiện ích rounded-* và prop
+  // rounded="xl", chỉ là nó KHÔNG điều khiển bo góc mặc định của component.
   $rounded: (
     0: 0,
     'sm': ds.$radius-sm,
@@ -357,11 +370,30 @@ Expected: build thành công, không lỗi Sass.
 cd frontend && grep -n '^\$' src/design/_ds-tokens.scss
 ```
 
-- [ ] **Step 4: Kiểm số đo đã thật sự đổi**
+- [ ] **Step 4: Kiểm số đo đã thật sự đổi — đo TỪNG selector**
 
-Run: `cd frontend && grep -c 'border-radius: 8px' dist/assets/*.css`
-Expected: `> 0`. Nếu `0` thì `configFile` chưa có tác dụng — kiểm lại đường
-dẫn trong `vite.config.ts`.
+**Đừng** đếm tổng số `border-radius` toàn site rồi kết luận. Con số tổng tăng
+lên vẫn có thể có nghĩa là mọi thành phần gộp về **cùng một** giá trị — đúng
+thứ cần tránh. Đo từng selector:
+
+```bash
+cd frontend && grep -o '\.v-card{[^}]*}' dist/assets/VCard-*.css | head -1
+```
+```bash
+cd frontend && grep -o '\.v-chip{[^}]*}' dist/assets/VChip-*.css | head -1
+```
+```bash
+cd frontend && grep -o 'border-radius:10px' dist/assets/index-*.css | head -2
+```
+
+Expected: card **14px** · chip **16px** · dialog và menu **10px** · `.v-btn`
+và `.v-field` vẫn **8px**.
+
+Lưu ý: CSS production **đã minify** nên không có dấu cách sau dấu hai chấm —
+grep `'border-radius: 8px'` (có cách) sẽ **không khớp gì**. Và VDialog/VMenu
+không có file asset riêng, CSS của chúng gộp vào `index-*.css`.
+
+Một trong bốn giá trị ra sai ⇒ dừng lại, đừng vá bằng CSS override tay.
 
 - [ ] **Step 5: Commit**
 
