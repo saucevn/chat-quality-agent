@@ -1,246 +1,220 @@
 <template>
   <div>
-    <!-- Demo Import Banner -->
-    <v-alert v-if="demoStatus && !demoStatus.has_data" type="info" variant="tonal" class="mb-4" prominent>
+    <PageHeader :title="t('dashboard')">
+      <template #actions>
+        <v-chip-group v-model="datePreset">
+          <v-chip
+            v-for="p in datePresets"
+            :key="p.value"
+            :value="p.value"
+            size="small"
+            variant="outlined"
+            @click="applyPreset(p.value)"
+          >
+            {{ t(p.labelKey) }}
+          </v-chip>
+        </v-chip-group>
+        <v-text-field
+          v-model="dateFrom"
+          type="date"
+          density="compact"
+          hide-details
+          style="max-width: 160px"
+          @change="loadDashboard"
+        />
+        <v-text-field
+          v-model="dateTo"
+          type="date"
+          density="compact"
+          hide-details
+          style="max-width: 160px"
+          @change="loadDashboard"
+        />
+      </template>
+    </PageHeader>
+
+    <!-- Banner nhập dữ liệu demo -->
+    <v-alert v-if="demoStatus && !demoStatus.has_data" type="info" variant="tonal" class="mb-6" prominent>
       <div>
-        <div class="text-subtitle-1 font-weight-bold mb-1">Chào mừng! Bắt đầu với dữ liệu demo</div>
-        <div class="text-body-2 mb-3">Hệ thống chưa có dữ liệu. Nhập dữ liệu demo để trải nghiệm ngay cách AI đánh giá chất lượng CSKH và phân loại cuộc chat tự động. Dữ liệu giả lập ~220 cuộc chat từ SePay Coffee.</div>
+        <div class="text-body-base font-weight-bold mb-1">{{ t('demo_import_title') }}</div>
+        <div class="text-body-sm mb-3">{{ t('demo_import_desc') }}</div>
         <v-btn color="primary" variant="flat" :loading="importingDemo" @click="importDemo">
           <v-icon start>mdi-database-import</v-icon>
-          Nhập dữ liệu demo
+          {{ t('import_demo_data') }}
         </v-btn>
       </div>
     </v-alert>
 
-    <!-- Demo Reset Banner -->
-    <v-alert v-if="demoStatus && demoStatus.is_demo" type="warning" variant="tonal" class="mb-4" density="compact">
-      <div class="d-flex align-center">
-        <v-icon start size="small">mdi-information</v-icon>
-        <span class="text-body-2 flex-grow-1">Bạn đang sử dụng dữ liệu demo. Khi sẵn sàng, hãy xóa để bắt đầu với dữ liệu thật.</span>
+    <!-- Banner xoá dữ liệu demo -->
+    <v-alert v-if="demoStatus && demoStatus.is_demo" type="warning" variant="tonal" class="mb-6" density="compact">
+      <div class="d-flex align-center flex-wrap ga-2">
+        <v-icon size="small">mdi-information</v-icon>
+        <span class="text-body-sm flex-grow-1">{{ t('demo_active_desc') }}</span>
         <v-btn color="error" variant="text" size="small" @click="resetDialog = true">
           <v-icon start size="small">mdi-delete</v-icon>
-          Xóa dữ liệu demo
+          {{ t('reset_demo_data') }}
         </v-btn>
       </div>
     </v-alert>
 
-    <!-- Reset confirm dialog -->
-    <v-dialog v-model="resetDialog" max-width="480">
-      <v-card>
-        <v-card-title class="text-error">Xóa toàn bộ dữ liệu demo</v-card-title>
-        <v-card-text>
-          <v-alert type="error" variant="tonal" class="mb-3">
-            Tất cả dữ liệu sẽ bị xóa bao gồm: kênh chat, tin nhắn, công việc, kết quả đánh giá, nhật ký chi phí. Chỉ giữ lại danh sách thành viên.
-          </v-alert>
-          <div class="text-body-2">Hành động này không thể hoàn tác. Bạn có chắc chắn?</div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="resetDialog = false">Hủy</v-btn>
-          <v-btn color="error" variant="flat" :loading="resettingDemo" @click="resetDemo">Xóa tất cả</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <ConfirmDialog
+      v-model="resetDialog"
+      :title="t('reset_demo_dialog_title')"
+      :message="t('reset_demo_dialog_message')"
+      :confirm-label="t('reset_demo_confirm_label')"
+      destructive
+      :loading="resettingDemo"
+      @confirm="resetDemo"
+    />
 
-    <div class="d-flex flex-wrap align-center mb-4 ga-2">
-      <h1 class="text-h5 font-weight-bold d-none d-md-block">{{ $t('dashboard') }}</h1>
-      <v-spacer class="d-none d-md-block" />
-      <v-chip-group v-model="datePreset">
-        <v-chip v-for="p in datePresets" :key="p.value" :value="p.value" size="small" variant="outlined" @click="applyPreset(p.value)">
-          {{ p.label }}
-        </v-chip>
-      </v-chip-group>
-      <!-- Desktop: inline with chips -->
-      <v-text-field v-model="dateFrom" type="date" density="compact" hide-details style="max-width: 160px" class="d-none d-md-block" @change="loadDashboard" />
-      <v-text-field v-model="dateTo" type="date" density="compact" hide-details style="max-width: 160px" class="d-none d-md-block" @change="loadDashboard" />
-    </div>
-    <!-- Mobile: separate row -->
-    <v-row dense class="mb-4 d-md-none">
-      <v-col cols="6">
-        <v-text-field v-model="dateFrom" type="date" density="compact" hide-details @change="loadDashboard" />
-      </v-col>
-      <v-col cols="6">
-        <v-text-field v-model="dateTo" type="date" density="compact" hide-details @change="loadDashboard" />
-      </v-col>
-    </v-row>
+    <template v-if="loading">
+      <SkeletonKpi :count="4" class="mb-6" />
+      <SkeletonKpi :count="4" class="mb-6" />
+      <v-row class="mb-6">
+        <v-col cols="12" md="7"><SkeletonCard :lines="5" /></v-col>
+        <v-col cols="12" md="5">
+          <SkeletonCard :lines="2" class="mb-6" />
+          <SkeletonCard :lines="3" />
+        </v-col>
+      </v-row>
+      <v-row class="mb-6">
+        <v-col cols="12" md="6"><SkeletonCard :lines="4" /></v-col>
+        <v-col cols="12" md="6"><SkeletonCard :lines="4" /></v-col>
+      </v-row>
+    </template>
 
-    <!-- Stat cards -->
-    <v-row class="mb-6">
-      <v-col v-for="stat in stats" :key="stat.label" cols="6" sm="4" md="3">
-        <v-card class="pa-4">
-          <div class="d-flex justify-space-between align-center">
-            <div>
-              <div class="text-body-2 text-medium-emphasis">{{ $t(stat.label) }}</div>
-              <div class="text-h5 font-weight-bold mt-1">{{ stat.value }}</div>
+    <EmptyState
+      v-else-if="loadError"
+      variant="error"
+      class="mb-6"
+      :title="t('error_load_failed_title')"
+      :description="t('error_load_failed_desc')"
+      :action-label="t('retry')"
+      @action="loadDashboard"
+    />
+
+    <template v-else>
+      <!-- KPI tổng quan -->
+      <KpiGrid class="mb-6">
+        <StatCard v-for="stat in stats" :key="stat.label" :label="t(stat.label)" :value="count(stat.value)" :icon="stat.icon" />
+      </KpiGrid>
+
+      <!-- KPI theo kênh + tổng hợp -->
+      <KpiGrid class="mb-6">
+        <StatCard
+          v-for="ch in channelCounts"
+          :key="ch.channel_type"
+          :label="channelLabel(ch.channel_type)"
+          :value="count(ch.count)"
+          :icon="channelIcon(ch.channel_type)"
+        />
+        <StatCard :label="t('total_messages')" :value="count(totalMessages)" icon="mdi-email-multiple" />
+        <StatCard :label="t('ai_cost')" :value="vnd(Math.round(costToday * exchangeRate))" icon="mdi-currency-usd" />
+      </KpiGrid>
+
+      <v-row class="mb-6">
+        <!-- Hoạt động gần đây -->
+        <v-col cols="12" md="7">
+          <SectionCard :title="t('recent_activity')">
+            <div v-if="recentActivity.length">
+              <div
+                v-for="item in recentActivity"
+                :key="item.id"
+                class="activity-row"
+                :class="item._type === 'qc' ? 'activity-row--qc' : 'activity-row--class'"
+                @click="goToConversation(item.conversation_id, item._type === 'qc' ? 'evaluation' : 'classification')"
+              >
+                <template v-if="item._type === 'qc'">
+                  <StatusBadge :status="item.severity === 'NGHIEM_TRONG' ? 'error' : 'warning'" class="mr-2 flex-shrink-0" />
+                  <span class="text-body-sm flex-grow-1 activity-row__text">{{ item.evidence || item.rule_name }}</span>
+                </template>
+                <template v-else>
+                  <span class="text-body-sm font-weight-medium mr-2 flex-shrink-0">{{ item.customer_name || '—' }}</span>
+                  <span class="text-body-xs text-medium-emphasis mr-2 flex-shrink-0">{{ t('classification_label') }}:</span>
+                  <v-chip size="x-small" color="primary" variant="tonal" class="mr-1 flex-shrink-0">{{ item.rule_name }}</v-chip>
+                </template>
+                <v-spacer />
+                <span class="text-body-xs text-medium-emphasis text-no-wrap ml-2">{{ dateRelative(item.created_at) }}</span>
+              </div>
             </div>
-            <v-icon :color="stat.color" size="32" class="opacity-50">{{ stat.icon }}</v-icon>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
+            <EmptyState
+              v-else
+              variant="no-data"
+              :title="t('empty_no_data_title')"
+              :description="t('empty_no_data_desc')"
+            />
+          </SectionCard>
+        </v-col>
 
-    <!-- Channel counts + extra stats -->
-    <v-row class="mb-4">
-      <v-col v-for="ch in channelCounts" :key="ch.channel_type" cols="6" sm="3">
-        <v-card class="pa-4">
-          <div class="d-flex justify-space-between align-center">
-            <div>
-              <div class="text-body-2 text-medium-emphasis">{{ channelLabel(ch.channel_type) }}</div>
-              <div class="text-h5 font-weight-bold mt-1">{{ ch.count }}</div>
+        <!-- Chi phí AI + trạng thái dịch vụ -->
+        <v-col cols="12" md="5">
+          <SectionCard :title="t('ai_cost')" class="mb-6">
+            <div class="d-flex ga-6">
+              <div>
+                <div class="text-body-xs text-medium-emphasis">{{ t('cost_today') }}</div>
+                <div class="text-heading-3">{{ vnd(Math.round(costToday * exchangeRate)) }}</div>
+              </div>
+              <div>
+                <div class="text-body-xs text-medium-emphasis">{{ t('cost_this_month') }}</div>
+                <div class="text-heading-3">{{ vnd(Math.round(costMonth * exchangeRate)) }}</div>
+              </div>
             </div>
-            <v-icon :color="channelColor(ch.channel_type)" size="32" class="opacity-50">
-              {{ channelIcon(ch.channel_type) }}
-            </v-icon>
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="6" sm="3">
-        <v-card class="pa-4">
-          <div class="d-flex justify-space-between align-center">
-            <div>
-              <div class="text-body-2 text-medium-emphasis">Tổng tin nhắn</div>
-              <div class="text-h5 font-weight-bold mt-1">{{ totalMessages.toLocaleString() }}</div>
-            </div>
-            <v-icon color="primary" size="32" class="opacity-50">mdi-email-multiple</v-icon>
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="6" sm="3">
-        <v-card class="pa-4">
-          <div class="d-flex justify-space-between align-center">
-            <div>
-              <div class="text-body-2 text-medium-emphasis">{{ $t('ai_cost') }}</div>
-              <div class="text-h5 font-weight-bold mt-1">{{ Math.round(costToday * exchangeRate).toLocaleString('vi-VN') }}đ</div>
-            </div>
-            <v-icon color="warning" size="32" class="opacity-50">mdi-currency-usd</v-icon>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
+          </SectionCard>
 
-    <v-row>
-      <!-- Recent Activity (QC + Classification mixed) -->
-      <v-col cols="12" md="7">
-        <v-card class="pa-4">
-          <div class="text-subtitle-1 font-weight-bold mb-3">
-            <v-icon start size="small" color="primary">mdi-bell-ring</v-icon>
-            Hoạt động gần đây
-          </div>
-          <div v-if="recentActivity.length">
-            <div
-              v-for="item in recentActivity"
-              :key="item.id"
-              class="d-flex align-center pa-2 mb-1 rounded"
-              style="cursor: pointer"
-              :style="{ background: item._type === 'qc' ? 'var(--destructive-bg)' : 'var(--muted)' }"
-              @click="goToConversation(item.conversation_id, item._type === 'qc' ? 'evaluation' : 'classification')"
-            >
-              <!-- QC Alert row -->
-              <template v-if="item._type === 'qc'">
-                <v-chip size="x-small" :color="item.severity === 'NGHIEM_TRONG' ? 'error' : 'warning'" variant="tonal" class="mr-2 flex-shrink-0">
-                  {{ item.severity === 'NGHIEM_TRONG' ? 'Nghiêm trọng' : 'Cần cải thiện' }}
-                </v-chip>
-                <span class="text-body-2 flex-grow-1" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">{{ item.evidence || item.rule_name }}</span>
-              </template>
-              <!-- Classification row -->
-              <template v-else>
-                <span class="text-body-2 font-weight-medium mr-2 flex-shrink-0">{{ item.customer_name || '—' }}</span>
-                <span class="text-body-2 text-medium-emphasis mr-2 flex-shrink-0">Phân loại:</span>
-                <v-chip size="x-small" color="chart-5" variant="tonal" class="mr-1 flex-shrink-0">{{ item.rule_name }}</v-chip>
-              </template>
-              <v-spacer />
-              <span class="text-caption text-medium-emphasis text-no-wrap ml-2">{{ timeAgo(item.created_at) }}</span>
-            </div>
-          </div>
-          <div v-else class="text-center pa-6">
-            <v-icon size="40" color="success" class="mb-2">mdi-check-circle</v-icon>
-            <div class="text-medium-emphasis">Chưa có hoạt động nào trong khoảng thời gian này.</div>
-          </div>
-        </v-card>
-      </v-col>
+          <SectionCard :title="t('service_status')">
+            <v-list density="compact">
+              <v-list-item v-for="svc in services" :key="svc.nameKey" class="px-0">
+                <v-list-item-title class="text-body-sm">{{ t(svc.nameKey) }}</v-list-item-title>
+                <template #append>
+                  <StatusBadge :status="svc.ok ? 'active' : 'failed'" />
+                </template>
+              </v-list-item>
+            </v-list>
+          </SectionCard>
+        </v-col>
+      </v-row>
 
-      <!-- AI Cost + Service Status -->
-      <v-col cols="12" md="5">
-        <!-- AI Cost Summary -->
-        <v-card class="pa-4 mb-4">
-          <div class="text-subtitle-1 font-weight-bold mb-3">
-            <v-icon start size="small" color="warning">mdi-currency-usd</v-icon>
-            {{ $t('ai_cost') }}
-          </div>
-          <div class="d-flex ga-4 mb-3">
-            <div>
-              <div class="text-caption text-medium-emphasis">{{ $t('cost_today') }}</div>
-              <div class="text-h6 font-weight-bold">{{ Math.round(costToday * exchangeRate).toLocaleString('vi-VN') }}đ</div>
-            </div>
-            <div>
-              <div class="text-caption text-medium-emphasis">{{ $t('cost_this_month') }}</div>
-              <div class="text-h6 font-weight-bold">{{ Math.round(costMonth * exchangeRate).toLocaleString('vi-VN') }}đ</div>
-            </div>
-          </div>
+      <!-- Biểu đồ -->
+      <v-row class="mb-6">
+        <v-col cols="12" md="6">
+          <SectionCard :title="t('messages_by_day')">
+            <Line v-if="messagesChartData.labels.length" :data="messagesChartData" :options="chartOptions" style="max-height: 250px" />
+            <EmptyState v-else variant="no-data" :title="t('empty_no_data_title')" :description="t('empty_no_data_desc')" />
+          </SectionCard>
+        </v-col>
+        <v-col cols="12" md="6">
+          <SectionCard :title="t('cost_by_day_chart')">
+            <Line v-if="costChartData.labels.length" :data="costChartData" :options="chartOptionsNoLegend" style="max-height: 250px" />
+            <EmptyState v-else variant="no-data" :title="t('empty_no_data_title')" :description="t('empty_no_data_desc')" />
+          </SectionCard>
+        </v-col>
+      </v-row>
+    </template>
 
-          <!-- Cost by day table -->
-          <v-table v-if="costByDay.length" density="compact" class="text-body-2">
-            <thead>
-              <tr>
-                <th>{{ $t('date') }}</th>
-                <th class="text-right">Tokens</th>
-                <th class="text-right">{{ $t('cost') }} (VNĐ)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="day in costByDay.slice(0, 7)" :key="day.date">
-                <td>{{ formatDisplayDate(day.date) }}</td>
-                <td class="text-right text-caption">{{ (day.input_tokens + day.output_tokens).toLocaleString() }}</td>
-                <td class="text-right">{{ Math.round(day.total_cost * exchangeRate).toLocaleString('vi-VN') }}đ</td>
-              </tr>
-            </tbody>
-          </v-table>
-          <div v-else class="text-center text-medium-emphasis text-caption pa-2">{{ $t('no_data') }}</div>
-        </v-card>
+    <!-- Bảng chi phí theo ngày.
+         Bug review 2A: trước đây DataTable nằm NGOÀI khối v-if/v-else-if/v-else
+         nên luôn render, kể cả khi loadError=true — và DataTable tự vẽ nhánh
+         lỗi nội bộ bằng ĐÚNG BA khoá i18n giống EmptyState cấp trang phía
+         trên (error_load_failed_title/desc, retry). Kết quả: hai khối "Không
+         tải được dữ liệu", hai nút "Thử lại" cùng gọi loadDashboard.
+         Gate bằng v-if="!loadError" — trang chỉ dùng MỘT loadError chung cho
+         cả trang nên chỉ cần MỘT khối lỗi (khối cấp trang ở trên). Không còn
+         truyền :error/@retry vì trong nhánh này error luôn là false; DataTable
+         vẫn giữ nguyên khả năng tự báo lỗi riêng (props error/retry chưa bị
+         xoá khỏi component) — nếu sau này bảng cần trạng thái lỗi RIÊNG (phần
+         còn lại của trang vẫn ổn), thêm một ref lỗi riêng cho bảng và bind lại
+         :error/@retry lúc đó, đừng dùng chung loadError của trang nữa. -->
+    <DataTable
+      v-if="!loadError"
+      :headers="costHeaders"
+      :items="costRows"
+      :loading="loading"
+      :title="t('cost_by_day_table')"
+      :empty-title="t('empty_no_data_title')"
+      :empty-description="t('empty_no_data_desc')"
+    />
 
-        <!-- Service Status -->
-        <v-card class="pa-4">
-          <div class="text-subtitle-1 font-weight-bold mb-3">
-            <v-icon start size="small" color="success">mdi-check-circle</v-icon>
-            {{ $t('service_status') }}
-          </div>
-          <v-list density="compact">
-            <v-list-item v-for="svc in services" :key="svc.name" class="px-0">
-              <v-list-item-title class="text-body-2">{{ svc.name }}</v-list-item-title>
-              <template #append>
-                <v-chip size="x-small" :color="svc.ok ? 'success' : 'error'" variant="tonal">
-                  {{ svc.ok ? $t('normal') : $t('error') }}
-                </v-chip>
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Charts Row -->
-    <v-row class="mt-4">
-      <v-col cols="12" md="6">
-        <v-card class="pa-4">
-          <div class="text-subtitle-1 font-weight-bold mb-3">
-            <v-icon start size="small" color="primary">mdi-message-text-clock</v-icon>
-            {{ $t('messages_by_day') }}
-          </div>
-          <Line v-if="messagesChartData.labels.length" :data="messagesChartData" :options="chartOptions" style="max-height: 250px" />
-          <div v-else class="text-center text-medium-emphasis pa-4">{{ $t('no_data') }}</div>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="6">
-        <v-card class="pa-4">
-          <div class="text-subtitle-1 font-weight-bold mb-3">
-            <v-icon start size="small" color="warning">mdi-chart-line</v-icon>
-            {{ $t('cost_by_day_chart') }}
-          </div>
-          <Line v-if="costChartData.labels.length" :data="costChartData" :options="chartOptionsNoLegend" style="max-height: 250px" />
-          <div v-else class="text-center text-medium-emphasis pa-4">{{ $t('no_data') }}</div>
-        </v-card>
-      </v-col>
-    </v-row>
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">{{ snackbar.text }}</v-snackbar>
   </div>
 </template>
 
@@ -253,6 +227,18 @@ import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend } from 'chart.js'
 import api from '../api'
 import { chartTokens } from '../design/chart-tokens'
+import { vnd, count, dateTable, dateRelative } from '../utils/format'
+import { errorKey } from '../utils/errors'
+import PageHeader from '../components/ui/PageHeader.vue'
+import SectionCard from '../components/ui/SectionCard.vue'
+import KpiGrid from '../components/ui/KpiGrid.vue'
+import StatCard from '../components/ui/StatCard.vue'
+import DataTable from '../components/ui/DataTable.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
+import SkeletonKpi from '../components/ui/SkeletonKpi.vue'
+import SkeletonCard from '../components/ui/SkeletonCard.vue'
+import ConfirmDialog from '../components/ui/ConfirmDialog.vue'
+import StatusBadge from '../components/StatusBadge.vue'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend)
 
@@ -262,15 +248,11 @@ const { t } = useI18n()
 const theme = useTheme()
 const tenantId = computed(() => route.params.tenantId as string)
 
+
 function channelLabel(type: string) {
   if (type === 'pancake') return t('channel_pancake')
-  if (type === 'facebook') return 'Facebook'
-  return 'Zalo OA'
-}
-function channelColor(type: string) {
-  if (type === 'pancake') return 'channel-pancake'
-  if (type === 'facebook') return 'channel-facebook'
-  return 'channel-zalo'
+  if (type === 'facebook') return t('channel_facebook')
+  return t('channel_zalo')
 }
 function channelIcon(type: string) {
   if (type === 'pancake') return 'mdi-storefront'
@@ -279,18 +261,34 @@ function channelIcon(type: string) {
 }
 
 const stats = ref([
-  { label: 'total_conversations', value: 0, icon: 'mdi-message-text', color: 'primary' },
-  { label: 'issues_today', value: 0, icon: 'mdi-alert-circle', color: 'error' },
-  { label: 'active_jobs', value: 0, icon: 'mdi-briefcase-check', color: 'success' },
-  { label: 'active_channels', value: 0, icon: 'mdi-connection', color: 'info' },
+  { label: 'total_conversations', value: 0 as number, icon: 'mdi-message-text' },
+  { label: 'issues_today', value: 0 as number, icon: 'mdi-alert-circle' },
+  { label: 'active_jobs', value: 0 as number, icon: 'mdi-briefcase-check' },
+  { label: 'active_channels', value: 0 as number, icon: 'mdi-connection' },
 ])
 
-const qcAlerts = ref<any[]>([])
-const classRecent = ref<any[]>([])
+interface QcAlert {
+  id: string
+  conversation_id: string
+  severity: string
+  evidence?: string
+  rule_name?: string
+  created_at: string
+}
+interface ClassRecent {
+  id: string
+  conversation_id: string
+  customer_name?: string
+  rule_name: string
+  created_at: string
+}
+
+const qcAlerts = ref<QcAlert[]>([])
+const classRecent = ref<ClassRecent[]>([])
 
 const recentActivity = computed(() => {
-  const qc = qcAlerts.value.map(a => ({ ...a, _type: 'qc' }))
-  const cls = classRecent.value.map(a => ({ ...a, _type: 'class' }))
+  const qc = qcAlerts.value.map((a) => ({ ...a, _type: 'qc' as const }))
+  const cls = classRecent.value.map((a) => ({ ...a, _type: 'class' as const }))
   return [...qc, ...cls]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 10)
@@ -298,16 +296,34 @@ const recentActivity = computed(() => {
 
 const costToday = ref(0)
 const costMonth = ref(0)
-const costByDay = ref<any[]>([])
+interface CostByDay { date: string; input_tokens: number; output_tokens: number; total_cost: number }
+const costByDay = ref<CostByDay[]>([])
 const exchangeRate = ref(26000)
 const services = ref([
-  { name: 'API Server', ok: true },
-  { name: 'Database', ok: true },
-  { name: 'Scheduler', ok: true },
+  { nameKey: 'service_api_server', ok: true },
+  { nameKey: 'service_database', ok: true },
+  { nameKey: 'service_scheduler', ok: true },
 ])
-const messagesByDay = ref<any[]>([])
-const channelCounts = ref<any[]>([])
+interface MessagesByDay { date: string; count: number; chat_count?: number; reply_count?: number }
+const messagesByDay = ref<MessagesByDay[]>([])
+interface ChannelCount { channel_type: string; count: number }
+const channelCounts = ref<ChannelCount[]>([])
 const totalMessages = computed(() => messagesByDay.value.reduce((sum, d) => sum + (d.count || 0), 0))
+
+// Bảng chi phí theo ngày — DataTable (bug #7): không còn cắt cứng .slice(0,7),
+// phân trang phía client do component tự lo (không truyền totalItems).
+const costHeaders = computed(() => [
+  { title: t('date'), key: 'date' },
+  { title: t('tokens'), key: 'tokens', align: 'end' as const },
+  { title: t('cost'), key: 'cost', align: 'end' as const },
+])
+const costRows = computed(() =>
+  costByDay.value.map((d) => ({
+    date: dateTable(d.date),
+    tokens: count(d.input_tokens + d.output_tokens),
+    cost: vnd(Math.round(d.total_cost * exchangeRate.value)),
+  })),
+)
 
 // Date filter + presets
 const now = new Date()
@@ -316,12 +332,12 @@ const dateTo = ref(formatDate(now))
 const datePreset = ref('28days')
 
 const datePresets = [
-  { label: 'Hôm nay', value: 'today' },
-  { label: '7 ngày', value: '7days' },
-  { label: '28 ngày', value: '28days' },
-  { label: 'Tháng này', value: 'month' },
-  { label: 'Quý này', value: 'quarter' },
-  { label: 'Năm này', value: 'year' },
+  { labelKey: 'date_today', value: 'today' },
+  { labelKey: 'date_7days', value: '7days' },
+  { labelKey: 'date_28days', value: '28days' },
+  { labelKey: 'date_month', value: 'month' },
+  { labelKey: 'date_quarter', value: 'quarter' },
+  { labelKey: 'date_year', value: 'year' },
 ]
 
 function formatDate(d: Date) {
@@ -344,11 +360,6 @@ function applyPreset(preset: string) {
     case '28days':
       dateFrom.value = formatDate(new Date(y, m, d.getDate() - 28))
       break
-    case 'week': {
-      const day = d.getDay() || 7
-      dateFrom.value = formatDate(new Date(y, m, d.getDate() - day + 1))
-      break
-    }
     case 'month':
       dateFrom.value = formatDate(new Date(y, m, 1))
       break
@@ -364,14 +375,13 @@ function applyPreset(preset: string) {
   loadDashboard()
 }
 
-function formatDisplayDate(dateStr: string) {
-  if (!dateStr) return ''
-  // Handle "2026-03-21" or "2026-03-21T00:00:00Z"
-  const parts = dateStr.split('T')[0].split('-')
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`
-  return dateStr
-}
-
+// TẠM THỜI cục bộ (review 2A, mục 6 checklist — CHƯA ĐẠT theo nghĩa đen vì
+// hàm này nằm ở đây thay vì utils/format.ts). Nhãn trục ngày của biểu đồ —
+// chỉ số, không có phần chữ đổi theo ngôn ngữ, nên không khớp bất kỳ hàm nào
+// trong Contract hiện có (dateTable/dateWithTime/dateRelative, cả ba đều in
+// kèm năm hoặc chữ, không khớp nhãn trục "d/M" ngắn cần cho biểu đồ). PHẢI
+// chuyển sang utils/format.ts ngay khi hàm cho nhãn trục biểu đồ được thêm
+// vào đó — đừng chép nguyên mẫu cục bộ này sang view khác.
 function formatChartDate(dateStr: string) {
   if (!dateStr) return ''
   const parts = dateStr.split('T')[0].split('-')
@@ -379,31 +389,38 @@ function formatChartDate(dateStr: string) {
   return dateStr
 }
 
+// Thêm alpha vào giá trị token màu (dạng "oklch(L C H)" từ chartTokens(), xem
+// src/design/tokens.css) bằng cú pháp slash CSS color — không dựng lại rgba()
+// cứng như bản cũ (bug #6), và không sửa chart-tokens.ts (sở hữu Phase 0).
+function withAlpha(color: string, alphaPercent: number): string {
+  return color.replace(/\)\s*$/, ` / ${alphaPercent}%)`)
+}
+
 const messagesChartData = computed(() => {
   // Phụ thuộc theme để biểu đồ vẽ lại khi đổi light/dark (chart.js cần chuỗi màu đã tính, không nhận biến CSS)
   void theme.global.name.value
   const ct = chartTokens()
   return {
-    labels: messagesByDay.value.map(d => formatChartDate(d.date)),
+    labels: messagesByDay.value.map((d) => formatChartDate(d.date)),
     datasets: [
       {
-        label: 'Tổng tin nhắn',
-        data: messagesByDay.value.map(d => d.count),
+        label: t('total_messages'),
+        data: messagesByDay.value.map((d) => d.count),
         borderColor: ct.c1,
-        backgroundColor: 'rgba(92,107,192,0.1)',
+        backgroundColor: withAlpha(ct.c1, 10),
         fill: false,
         tension: 0.3,
       },
       {
-        label: 'Cuộc chat',
-        data: messagesByDay.value.map(d => d.chat_count || 0),
+        label: t('chart_chat_count'),
+        data: messagesByDay.value.map((d) => d.chat_count || 0),
         borderColor: ct.c4,
         fill: false,
         tension: 0.3,
       },
       {
-        label: 'Trả lời NV',
-        data: messagesByDay.value.map(d => d.reply_count || 0),
+        label: t('chart_reply_count'),
+        data: messagesByDay.value.map((d) => d.reply_count || 0),
         borderColor: ct.c2,
         fill: false,
         tension: 0.3,
@@ -416,15 +433,17 @@ const costChartData = computed(() => {
   void theme.global.name.value
   const ct = chartTokens()
   return {
-    labels: [...costByDay.value].reverse().map(d => formatChartDate(d.date)),
-    datasets: [{
-      label: 'Chi phí (VNĐ)',
-      data: [...costByDay.value].reverse().map(d => Math.round(d.total_cost * exchangeRate.value)),
-      borderColor: ct.c2,
-      backgroundColor: 'rgba(255,167,38,0.1)',
-      fill: true,
-      tension: 0.3,
-    }],
+    labels: [...costByDay.value].reverse().map((d) => formatChartDate(d.date)),
+    datasets: [
+      {
+        label: t('cost'),
+        data: [...costByDay.value].reverse().map((d) => Math.round(d.total_cost * exchangeRate.value)),
+        borderColor: ct.c2,
+        backgroundColor: withAlpha(ct.c2, 10),
+        fill: true,
+        tension: 0.3,
+      },
+    ],
   }
 })
 
@@ -442,7 +461,17 @@ const chartOptionsNoLegend = {
   scales: { y: { beginAtZero: true } },
 }
 
+const snackbar = ref<{ show: boolean; text: string; color: string }>({ show: false, text: '', color: 'error' })
+function showError(e: unknown) {
+  snackbar.value = { show: true, text: t(errorKey(e)), color: 'error' }
+}
+
+const loading = ref(true)
+const loadError = ref(false)
+
 async function loadDashboard() {
+  loading.value = true
+  loadError.value = false
   try {
     const params: Record<string, string> = {}
     if (dateFrom.value) params.from = dateFrom.value
@@ -463,12 +492,15 @@ async function loadDashboard() {
     classRecent.value = data.classification_recent || []
     messagesByDay.value = data.messages_by_day || []
     channelCounts.value = data.conversations_by_channel || []
-  } catch {
-    // Dashboard data not available yet
+  } catch (e) {
+    loadError.value = true
+    showError(e)
+  } finally {
+    loading.value = false
   }
 }
 
-// Demo data state
+// Trạng thái dữ liệu demo
 const demoStatus = ref<{ has_data: boolean; is_demo: boolean } | null>(null)
 const importingDemo = ref(false)
 const resettingDemo = ref(false)
@@ -478,7 +510,9 @@ async function loadDemoStatus() {
   try {
     const { data } = await api.get(`/tenants/${tenantId.value}/demo/status`)
     demoStatus.value = data
-  } catch { /* ignore */ }
+  } catch (e) {
+    showError(e)
+  }
 }
 
 async function importDemo() {
@@ -487,8 +521,8 @@ async function importDemo() {
     await api.post(`/tenants/${tenantId.value}/demo/import`)
     await loadDemoStatus()
     await loadDashboard()
-  } catch (e: any) {
-    alert(e.response?.data?.error || 'Import failed')
+  } catch (e) {
+    showError(e)
   } finally {
     importingDemo.value = false
   }
@@ -501,8 +535,8 @@ async function resetDemo() {
     resetDialog.value = false
     await loadDemoStatus()
     await loadDashboard()
-  } catch (e: any) {
-    alert(e.response?.data?.error || 'Reset failed')
+  } catch (e) {
+    showError(e)
   } finally {
     resettingDemo.value = false
   }
@@ -513,15 +547,6 @@ onMounted(() => {
   loadDashboard()
 })
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins} phút trước`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours} giờ trước`
-  return `${Math.floor(hours / 24)} ngày trước`
-}
-
 function goToConversation(convId: string, tab?: string) {
   if (convId) {
     const query: Record<string, string> = { conv: convId }
@@ -530,3 +555,27 @@ function goToConversation(convId: string, tab?: string) {
   }
 }
 </script>
+
+<style scoped>
+/* Bug #8: nền hàng hoạt động dùng CLASS thay vì :style inline, vẫn qua token
+   (không hard-code hex) — --destructive-bg/--muted đã có sẵn trong theme. */
+.activity-row {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  margin-block-end: 4px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.activity-row--qc {
+  background: var(--destructive-bg);
+}
+.activity-row--class {
+  background: var(--muted);
+}
+.activity-row__text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+</style>
