@@ -133,13 +133,32 @@ function onSortBy(v: SortItem[]) {
 // khi rỗng/lỗi/đang tải, làm khoảng cách dọc nhảy theo trạng thái dữ liệu.
 // Vì vậy tách attr TRÌNH BÀY (luôn nằm trên thẻ gốc, mọi nhánh) khỏi attr
 // BẢNG (show-select, item-value, density… chỉ có nghĩa khi bảng tồn tại).
+//
+// Cùng lý do đó áp cho attr ĐỊNH DANH. `id` từng nằm trong nhóm attr bảng, nên
+// `<DataTable id="jobs-table">` đặt id lên `<table>` bên trong khi có dữ liệu và
+// VẮNG HẲN ở ba nhánh không có bảng (tải/rỗng/lỗi). `id` là mỏ neo của
+// `aria-labelledby`, deep-link `#jobs-table` và selector test — nó phải ổn định
+// bất kể trạng thái dữ liệu. `data-test*` cũng vậy: selector test mà biến mất
+// đúng lúc bảng rỗng thì bài kiểm nhánh rỗng không viết được.
+//
+// `role` và `aria-*` CỐ Ý không nằm trong nhóm này. Ý nghĩa của chúng phụ thuộc
+// vào phần tử mang: `aria-label` trên `<table role="table">` là tên của bảng,
+// còn trên `<div>` không role thì phần lớn trình đọc màn hình bỏ qua, và
+// `role="grid"` chuyển sang thẻ bọc là sai hẳn ngữ nghĩa. Đưa chúng ra gốc là
+// đổi một lỗi (mất khi rỗng) lấy một lỗi nặng hơn (không bao giờ được đọc), nên
+// giữ nguyên ở bảng.
+const IDENTITY_ATTR = /^(id|data-test)/
 const attrs = useAttrs()
 const rootClass = computed(() => attrs.class)
 const rootStyle = computed(() => attrs.style)
+const rootAttrs = computed(() =>
+  Object.fromEntries(Object.entries(attrs).filter(([k]) => IDENTITY_ATTR.test(k))),
+)
 const tableAttrs = computed(() => {
   const rest: Record<string, unknown> = { ...attrs }
   delete rest.class
   delete rest.style
+  for (const k of Object.keys(rest)) if (IDENTITY_ATTR.test(k)) delete rest[k]
   return rest
 })
 
@@ -172,7 +191,7 @@ const tableComponent = computed(() => (serverSide.value ? VDataTableServer : VDa
 </script>
 
 <template>
-  <v-card :class="rootClass" :style="rootStyle">
+  <v-card :class="rootClass" :style="rootStyle" v-bind="rootAttrs">
     <div v-if="$slots.toolbar" class="data-table__toolbar">
       <slot name="toolbar" />
     </div>

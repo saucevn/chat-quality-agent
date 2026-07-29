@@ -225,6 +225,32 @@ describe('DataTable', () => {
       expect(w.attributes('style')).toContain('margin-top: 8px')
     })
 
+    // ĐIỂM CHẶN MERGE (C3): `id` từng nằm trong nhóm attr BẢNG, nên
+    // `<DataTable id="jobs-table">` đặt id lên `<table>` bên trong khi có dữ
+    // liệu và VẮNG HẲN ở ba nhánh không có bảng. `id` là mỏ neo của
+    // `aria-labelledby`, deep-link và selector test ⇒ phải ổn định bất kể
+    // trạng thái dữ liệu.
+    it.each(stateCases)('trạng thái %s giữ id trên thẻ gốc', (_name, extra) => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...base, ...extra },
+        attrs: { id: 'jobs-table', 'data-test': 'jobs' },
+      })
+      expect(w.attributes('id')).toBe('jobs-table')
+      expect(w.attributes('data-test')).toBe('jobs')
+    })
+
+    it('id không rơi xuống bảng bên trong', () => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...base, items: [{ name: 'Job A', status: 'success' }] },
+        attrs: { id: 'jobs-table' },
+      })
+      expect(w.find('.v-table').attributes('id')).toBeUndefined()
+      // và chỉ tồn tại ĐÚNG MỘT lần trong cây — id trùng là DOM không hợp lệ.
+      expect(w.findAll('#jobs-table')).toHaveLength(1)
+    })
+
     it('class không rơi xuống bảng bên trong', () => {
       const w = mount(DataTable, {
         ...mountOptions(),
