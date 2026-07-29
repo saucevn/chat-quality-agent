@@ -25,4 +25,21 @@ describe('FilterBar', () => {
     expect(w.findAll('[data-test="only-child"]').length).toBe(1)
     expect(w.text()).toBe('Lọc')
   })
+
+  // modelValue từng là API chết — khai prop nhưng không đọc, không truyền
+  // vào slot, không emit. Test này khẳng định slot mặc định THẬT SỰ nhận
+  // được props.filters đúng bằng modelValue, không chỉ khẳng định component
+  // tồn tại.
+  it('truyền modelValue vào slot mặc định qua slot prop `filters`', () => {
+    const modelValue = { status: 'active', channel: 'zalo_oa' }
+    const w = mount(FilterBar, {
+      ...mountOptions(),
+      props: { modelValue },
+      slots: {
+        default:
+          '<template #default="{ filters }"><pre data-test="filters">{{ JSON.stringify(filters) }}</pre></template>',
+      },
+    })
+    expect(w.find('[data-test="filters"]').text()).toBe(JSON.stringify(modelValue))
+  })
 })

@@ -8,6 +8,12 @@
   tại, do nơi dùng sở hữu và truyền vào để các control trong slot mặc định
   đọc/ghi qua v-model của chính chúng. FilterBar chỉ là khung bố cục + ép
   chiều cao 36px, không tự diễn giải nội dung modelValue.
+
+  Expose qua slot props (`:filters`), KHÔNG qua emit — Contract không khai
+  emit nào cho component này. FilterBar vẫn chỉ là container trình bày;
+  control bên trong slot tự v-model vào state của view, filters ở đây chỉ để
+  đọc lại (vd. hiển thị số lượng filter đang bật) mà không cần view truyền
+  lại modelValue một lần nữa qua props riêng.
 -->
 <script setup lang="ts">
 defineProps<{ modelValue: Record<string, unknown> }>()
@@ -15,7 +21,7 @@ defineProps<{ modelValue: Record<string, unknown> }>()
 
 <template>
   <div class="filter-bar">
-    <slot />
+    <slot :filters="modelValue" />
   </div>
 </template>
 
