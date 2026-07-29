@@ -17,7 +17,7 @@
   slot 'toolbar'/'bulk-actions').
 -->
 <script setup lang="ts">
-import { computed, useSlots } from 'vue'
+import { computed, ref, useAttrs, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VDataTable, VDataTableServer } from 'vuetify/components'
 import EmptyState from './EmptyState.vue'
@@ -37,6 +37,11 @@ interface Header {
   align?: 'start' | 'center' | 'end'
 }
 
+interface SortItem {
+  key: string
+  order?: 'asc' | 'desc'
+}
+
 const props = withDefaults(
   defineProps<{
     headers: Header[]
@@ -46,6 +51,12 @@ const props = withDefaults(
     totalItems?: number
     page?: number
     itemsPerPage?: number
+    // Sắp xếp: VDataTableServer KHÔNG tự sắp xếp, nơi dùng phải nghe
+    // `update:sortBy` rồi fetch lại. Thiếu cặp prop/emit này thì
+    // `headers[].sortable` là prop khai mà vô tác dụng ở đúng nhánh cần nó
+    // nhất (Messages, các màn Logs): header vẫn bấm được, mũi tên vẫn đổi,
+    // dữ liệu đứng yên và nơi dùng không bao giờ biết.
+    sortBy?: SortItem[]
     // BẮT BUỘC, không có mặc định `t('no_data')`. Quy tắc 4 trạng thái cấm
     // nhánh rỗng chỉ có một dòng "Không có dữ liệu" — có mặc định thì 14 bảng
     // Phase 2 sẽ hợp lệ về type mà vẫn vi phạm quy tắc. Bắt buộc mới ép được.
@@ -54,15 +65,83 @@ const props = withDefaults(
     // Nhánh rỗng phải có CTA hoặc số cụ thể (§3.2). Đây là CTA.
     emptyActionLabel?: string
   }>(),
-  { loading: false, error: false, page: 1, itemsPerPage: 20 },
+  { loading: false, error: false, page: 1, itemsPerPage: 20, sortBy: () => [] },
 )
 
 const emit = defineEmits<{
   'update:page': [value: number]
   'update:itemsPerPage': [value: number]
+  'update:sortBy': [value: SortItem[]]
   retry: []
   'empty-action': []
 }>()
+
+// Trạng thái bảng giữ nội bộ, đồng bộ HAI CHIỀU với prop.
+//
+// Vì sao không bind thẳng `:page="page"` kèm `@update:page`: `useProxiedModel`
+// (node_modules/vuetify/lib/composables/proxiedModel.js) coi model là
+// "controlled" khi vnode có ĐỒNG THỜI prop lẫn listener, và khi đó giá trị
+// hiển thị luôn đọc ngược từ prop. Prop `page` của DataTable mặc định 1 và
+// không bao giờ đổi nếu nơi dùng không tự `v-model:page` — tức là ở đúng cách
+// dùng mặc định (Contract ghi `page?`/`itemsPerPage?`/`sortBy?` là tuỳ chọn),
+// bấm sang trang chỉ đổi mũi tên chứ dữ liệu đứng yên. `itemsPerPage` và
+// `sortBy` dính y hệt lỗi đó.
+//
+// Chiều ngược lại vẫn nguyên vẹn: nơi dùng CÓ `v-model:page` (bảng phân trang
+// server) đổi prop thì `watch` kéo state nội bộ theo, nên nơi dùng vẫn cầm lái.
+const innerPage = ref(props.page)
+const innerItemsPerPage = ref(props.itemsPerPage)
+const innerSortBy = ref<SortItem[]>(props.sortBy)
+
+watch(
+  () => props.page,
+  (v) => {
+    innerPage.value = v
+  },
+)
+watch(
+  () => props.itemsPerPage,
+  (v) => {
+    innerItemsPerPage.value = v
+  },
+)
+watch(
+  () => props.sortBy,
+  (v) => {
+    innerSortBy.value = v
+  },
+)
+
+function onPage(v: number) {
+  innerPage.value = v
+  emit('update:page', v)
+}
+
+function onItemsPerPage(v: number) {
+  innerItemsPerPage.value = v
+  emit('update:itemsPerPage', v)
+}
+
+function onSortBy(v: SortItem[]) {
+  innerSortBy.value = v
+  emit('update:sortBy', v)
+}
+
+// `inheritAttrs: false` đẩy CẢ `class`/`style` vào `$attrs`. Nếu `$attrs` chỉ
+// được v-bind ở nhánh có dữ liệu thì `<DataTable class="mb-6">` — cách viết
+// mặc định của mọi view — đặt margin lên `.v-table` khi có dữ liệu và mất hẳn
+// khi rỗng/lỗi/đang tải, làm khoảng cách dọc nhảy theo trạng thái dữ liệu.
+// Vì vậy tách attr TRÌNH BÀY (luôn nằm trên thẻ gốc, mọi nhánh) khỏi attr
+// BẢNG (show-select, item-value, density… chỉ có nghĩa khi bảng tồn tại).
+const attrs = useAttrs()
+const rootClass = computed(() => attrs.class)
+const rootStyle = computed(() => attrs.style)
+const tableAttrs = computed(() => {
+  const rest: Record<string, unknown> = { ...attrs }
+  delete rest.class
+  delete rest.style
+  return rest
+})
 
 const { t } = useI18n()
 
@@ -93,7 +172,7 @@ const tableComponent = computed(() => (serverSide.value ? VDataTableServer : VDa
 </script>
 
 <template>
-  <v-card>
+  <v-card :class="rootClass" :style="rootStyle">
     <div v-if="$slots.toolbar" class="data-table__toolbar">
       <slot name="toolbar" />
     </div>
@@ -127,14 +206,16 @@ const tableComponent = computed(() => (serverSide.value ? VDataTableServer : VDa
     <component
       :is="tableComponent"
       v-else
-      v-bind="$attrs"
+      v-bind="tableAttrs"
       :headers="headers"
       :items="items"
-      :page="page"
-      :items-per-page="itemsPerPage"
+      :page="innerPage"
+      :items-per-page="innerItemsPerPage"
+      :sort-by="innerSortBy"
       :items-length="serverSide ? totalItems : undefined"
-      @update:page="emit('update:page', $event)"
-      @update:items-per-page="emit('update:itemsPerPage', $event)"
+      @update:page="onPage"
+      @update:items-per-page="onItemsPerPage"
+      @update:sort-by="onSortBy"
     >
       <template v-for="name in forwardedSlotNames" #[name]="slotProps" :key="name">
         <slot :name="name" v-bind="slotProps ?? {}" />

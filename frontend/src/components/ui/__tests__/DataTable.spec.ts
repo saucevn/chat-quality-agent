@@ -2,7 +2,9 @@
 // thái") và hợp đồng 3 slot ('toolbar', 'item.<key>', 'bulk-actions') theo
 // Contract ở research/plans/2026-07-29-ui-upgrade/README.md.
 import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { VDataTable } from 'vuetify/components'
 import DataTable from '../DataTable.vue'
 import { mountOptions } from './helpers'
 
@@ -14,6 +16,17 @@ const headers = [
 // `emptyTitle` là prop BẮT BUỘC (nhánh rỗng không được là một dòng "Không có
 // dữ liệu"), nên mọi ca mount đều phải truyền.
 const base = { headers, emptyTitle: 'Chưa có công việc nào' }
+
+// 45 mục / 20 mỗi trang ⇒ 3 trang, và mốc từng trang khác hẳn nhau
+// (Job 0 / Job 20 / Job 40) nên không thể nhầm trang này với trang kia.
+const clientItems = Array.from({ length: 45 }, (_, i) => ({
+  name: `Job ${i}`,
+  status: 'success',
+}))
+
+function footerInfo(w: VueWrapper): string {
+  return w.find('.v-data-table-footer__info').text().replace(/\s+/g, ' ')
+}
 
 describe('DataTable', () => {
   it('đang tải thì hiện skeleton, không hiện empty', () => {
@@ -121,14 +134,154 @@ describe('DataTable', () => {
     })
 
     it('không truyền totalItems thì vẫn phân trang phía client như cũ', () => {
-      const items = Array.from({ length: 45 }, (_, i) => ({ name: `Job ${i}`, status: 'success' }))
       const w = mount(DataTable, {
         ...mountOptions(),
-        props: { ...base, items, itemsPerPage: 20 },
+        props: { ...base, items: clientItems, itemsPerPage: 20 },
       })
       // 45 mục, mỗi trang 20 ⇒ chỉ 20 hàng được render (client tự cắt trang).
       expect(w.findAll('tbody tr')).toHaveLength(20)
       expect(w.find('.v-data-table-footer').text()).toContain('45')
+    })
+  })
+
+  // ĐIỂM CHẶN MERGE (C1): truyền ĐỒNG THỜI `:page` và `@update:page` xuống bảng
+  // khiến `useProxiedModel` (node_modules/vuetify/lib/composables/proxiedModel.js)
+  // coi model là "controlled" — trang hiển thị luôn đọc từ props.page của
+  // DataTable. Prop đó mặc định 1 và KHÔNG BAO GIỜ đổi nếu nơi dùng không tự
+  // `v-model:page`, tức là ở đúng cách dùng mặc định của Phase 2. Bấm "next"
+  // thì giao diện trông đúng (mũi tên đổi) nhưng dữ liệu đứng yên.
+  //
+  // Ca cũ chỉ khẳng định lần render ĐẦU nên xanh bất kể code đúng hay sai;
+  // ba ca dưới đây bắt buộc phải quan sát SAU khi tương tác.
+  describe('phân trang client-side đổi được trang (C1)', () => {
+    it('bấm sang trang sau thì hàng đầu và footer đều đổi', async () => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...base, items: clientItems, itemsPerPage: 20 },
+      })
+      expect(w.find('tbody tr').text()).toContain('Job 0')
+      expect(footerInfo(w)).toContain('1-20 of 45')
+
+      await w.find('.v-pagination__next button').trigger('click')
+      await nextTick()
+
+      expect(w.find('tbody tr').text()).toContain('Job 20')
+      expect(footerInfo(w)).toContain('21-40 of 45')
+    })
+
+    it('đổi số dòng mỗi trang thì số hàng render đổi theo', async () => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...base, items: clientItems, itemsPerPage: 20 },
+      })
+      expect(w.findAll('tbody tr')).toHaveLength(20)
+
+      // Nguồn phát thật của dropdown "số dòng mỗi trang" trong footer Vuetify.
+      w.findComponent(VDataTable).vm.$emit('update:itemsPerPage', 10)
+      await nextTick()
+
+      expect(w.findAll('tbody tr')).toHaveLength(10)
+      expect(w.emitted('update:itemsPerPage')?.[0]).toEqual([10])
+    })
+
+    // Ca đối trọng: nơi dùng CÓ tự `v-model:page` (bảng phân trang server) phải
+    // tiếp tục do nơi dùng cầm lái — state nội bộ không được ghi đè prop.
+    it('nơi dùng tự cầm lái page thì prop vẫn thắng', async () => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...base, items: clientItems, itemsPerPage: 20, page: 1 },
+      })
+      await w.find('.v-pagination__next button').trigger('click')
+      expect(w.emitted('update:page')?.[0]).toEqual([2])
+
+      // Nơi dùng phản hồi bằng cách nhảy hẳn sang trang 3, không phải 2.
+      await w.setProps({ page: 3 })
+      await nextTick()
+      expect(w.find('tbody tr').text()).toContain('Job 40')
+      expect(footerInfo(w)).toContain('41-45 of 45')
+    })
+  })
+
+  // ĐIỂM CHẶN MERGE (C2): `inheritAttrs: false` đẩy cả `class`/`style` vào
+  // `$attrs`, mà `v-bind="$attrs"` chỉ có ở nhánh CÓ DỮ LIỆU. Hệ quả:
+  // `<DataTable class="mb-6">` — cách viết mặc định của mọi view — đặt margin
+  // lên `.v-table` thay vì thẻ gốc khi có dữ liệu, và mất hẳn khi rỗng/lỗi/tải.
+  // Khoảng cách dọc nhảy theo trạng thái dữ liệu.
+  describe('class/style trình bày luôn nằm trên thẻ gốc (C2)', () => {
+    const stateCases: [string, { items: unknown[]; error?: boolean; loading?: boolean }][] = [
+      ['có dữ liệu', { items: [{ name: 'Job A', status: 'success' }] }],
+      ['rỗng', { items: [] }],
+      ['lỗi', { items: [], error: true }],
+      ['đang tải', { items: [], loading: true }],
+    ]
+
+    it.each(stateCases)('trạng thái %s giữ nguyên class trên thẻ gốc', (_name, extra) => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...base, ...extra },
+        attrs: { class: 'mb-6', style: 'margin-top: 8px' },
+      })
+      expect(w.classes()).toContain('mb-6')
+      expect(w.attributes('style')).toContain('margin-top: 8px')
+    })
+
+    it('class không rơi xuống bảng bên trong', () => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...base, items: [{ name: 'Job A', status: 'success' }] },
+        attrs: { class: 'mb-6' },
+      })
+      expect(w.find('.v-table').classes()).not.toContain('mb-6')
+    })
+  })
+
+  // I1: VDataTableServer KHÔNG tự sắp xếp. Không chuyển tiếp `update:sortBy`
+  // thì header vẫn bấm được, mũi tên vẫn đổi, dữ liệu KHÔNG đổi và nơi dùng
+  // không bao giờ biết ⇒ `headers[].sortable` là prop khai mà vô tác dụng ở
+  // đúng nhánh cần nó nhất (Messages, 3 màn Logs).
+  describe('sắp xếp chuyển tiếp ra ngoài (I1)', () => {
+    it('bấm header ở chế độ server thì phát update:sortBy với key đúng', async () => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: { ...base, items: [{ name: 'Job A', status: 'success' }], totalItems: 500 },
+      })
+      await w.findAll('thead th')[0]!.trigger('click')
+      expect(w.emitted('update:sortBy')).toBeTruthy()
+      expect(w.emitted('update:sortBy')?.[0]?.[0]).toEqual([{ key: 'name', order: 'asc' }])
+    })
+
+    it('sortBy truyền vào được tôn trọng ở chế độ server', () => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: {
+          ...base,
+          items: [{ name: 'Job A', status: 'success' }],
+          totalItems: 500,
+          sortBy: [{ key: 'status', order: 'desc' as const }],
+        },
+      })
+      const sorted = w.findAll('thead th')[1]!
+      expect(sorted.classes()).toContain('v-data-table__th--sorted')
+    })
+
+    // Không hồi quy: chế độ client vẫn phải TỰ sắp xếp được (nó không có ai
+    // ở ngoài fetch lại dữ liệu hộ).
+    it('chế độ client vẫn tự sắp xếp khi bấm header', async () => {
+      const w = mount(DataTable, {
+        ...mountOptions(),
+        props: {
+          ...base,
+          items: [
+            { name: 'B', status: 'x' },
+            { name: 'A', status: 'y' },
+          ],
+        },
+      })
+      expect(w.findAll('tbody tr')[0]!.text()).toContain('B')
+      await w.findAll('thead th')[0]!.trigger('click')
+      await nextTick()
+      expect(w.findAll('tbody tr')[0]!.text()).toContain('A')
+      expect(w.emitted('update:sortBy')).toBeTruthy()
     })
   })
 
