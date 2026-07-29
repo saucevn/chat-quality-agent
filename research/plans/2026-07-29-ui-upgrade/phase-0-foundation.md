@@ -504,6 +504,13 @@ const globalRules = `:root {
   box-shadow: var(--shadow-focus);
 }
 
+/* Dạng GHÉP (không dấu cách) là bắt buộc: với variant flat, Vuetify gắn class
+   bg-primary lên CHÍNH thẻ <button>, nên selector hậu duệ không bao giờ khớp
+   nút. Thiếu nó, viền focus lấy màu --ring — vốn đúng bằng --primary — nên
+   trùng màu nền nút và biến mất. Đã đo trên DOM: matches() trả false cho dạng
+   hậu duệ, true cho dạng ghép. Dạng hậu duệ giữ lại cho phần tử con nằm trong
+   vùng nền primary. */
+.bg-primary:focus-visible,
 .bg-primary :focus-visible {
   outline-color: #fff;
 }
