@@ -386,7 +386,13 @@ SectionCard:  { title?: string; subtitle?: string }
               // slot: mặc định, 'actions'
               // Dùng cho khối nội dung THƯỜNG (form, biểu đồ, danh sách tự vẽ).
               // KHÔNG dùng để bọc DataTable — xem cảnh báo ở DataTable.
-CardHeader:   { title?: string; subtitle?: string }   // slot: 'actions'
+CardHeader:   { title?: string; subtitle?: string
+                icon?: string; iconColor?: string }   // slot: 'actions'
+              // `icon`/`iconColor` chuyển tiếp được từ CẢ SectionCard LẪN
+              // DataTable — hai component đó cũng nhận hai prop này.
+              // `iconColor` nhận TÊN MÀU THEME (primary/warning/success…),
+              // cấm hex, cấm palette dựng sẵn Vuetify. Không truyền ⇒ thừa
+              // hưởng currentColor, luôn an toàn.
               // NỘI BỘ — Phase 2 KHÔNG dùng trực tiếp. Tồn tại để SectionCard
               // và DataTable dùng CHUNG một bản header thay vì chép markup ra
               // hai chỗ. Không thuộc sở hữu 1B hay 1C: đây là hạ tầng chung,
@@ -410,7 +416,15 @@ FormField:    { label: string; required?: boolean; hint?: string
               // DS §2.3/§3.4: label LUÔN nằm TRÊN field, không thả nổi vào
               // viền như mặc định Vuetify, và placeholder là ví dụ chứ không
               // phải nhãn. Field bên trong KHÔNG nhận prop `label`.
-StatusBadge:  { status: string; size?: string }
+StatusBadge:  { status: string; size?: string; label?: string }
+              // `label` chỉ đổi CHỮ. MÀU vẫn luôn suy từ `status` — view KHÔNG
+              // BAO GIỜ truyền được màu. Luật "nơi duy nhất ánh xạ trạng thái"
+              // là về màu, không phải về nhãn; có test riêng chốt rằng truyền
+              // `label` không đổi được màu.
+              // Dùng khi miền nghiệp vụ có từ vựng riêng: mức độ QC
+              // "Nghiêm trọng"/"Cần cải thiện" thay vì "Lỗi"/"Cảnh báo" chung.
+              // Không truyền ⇒ giữ `t('status_' + status)`, fallback về chính
+              // `status` khi thiếu khoá.
 
 // 1D — định dạng & lỗi
 // CHỮ KÝ KHÔNG ĐỔI, nhưng ĐẦU RA PHỤ THUỘC LOCALE. Các hàm đọc locale hiện
@@ -425,6 +439,19 @@ pct(n: number, d?: number): string     // vi "18,4%" · en "18.4%"
                                        // CHỈ n > 0 && n < 0.1 ⇒ "<0,1%"/"<0.1%".
                                        // n = 0 và n âm KHÔNG rơi vào nhánh này.
 usd(n: number): string                 // luôn quy ước Mỹ, kể cả khi giao diện vi
+count(n: number): string               // SỐ ĐẾM THUẦN: vi "1.284" · en "1,284"
+                                       // Dùng cho số hội thoại/job/kênh/tin
+                                       // nhắn. Trước khi có nó, 5 file đã tự
+                                       // gọi `.toLocaleString()` rời rạc và
+                                       // Dashboard phải tự chế hàm cục bộ —
+                                       // luật "mọi số đi qua format.ts" vỡ im
+                                       // lặng. KHÔNG tự chế lại ở view.
+                                       // Ghi chú: KHÔNG có hàm nhãn ngày cho
+                                       // trục biểu đồ. Nhãn trục bỏ năm/bỏ số 0
+                                       // đầu là NGƯỢC quyết định dd/MM/yyyy đầy
+                                       // đủ ở trên, và mới một view cần — story
+                                       // nào cần thì giữ hàm cục bộ, đừng thêm
+                                       // vào Contract.
 dateTable(d: string | Date): string        // dd/MM/yyyy Ở CẢ HAI LOCALE — cố ý.
                                        // "3/9/2026" là 9 tháng 3 với người đọc
                                        // Mỹ và 3 tháng 9 với người đọc Việt;
